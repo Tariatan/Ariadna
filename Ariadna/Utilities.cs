@@ -17,6 +17,12 @@ namespace Ariadna
             None = 0,
             SUCCESS,
         }
+        // Movie Data Transfer Object
+        public class MovieDto
+        {
+            public string path { get; set; }
+            public string title { get; set; }
+        }
 
         public static int GENRE_IMAGE_W = 60;
         public static int GENRE_IMAGE_H = 60;

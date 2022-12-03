@@ -24,6 +24,7 @@ namespace Ariadna
 
         private Bitmap NO_PREVIEW_IMAGE_SMALL = new Bitmap(Properties.Resources.No_Preview_Image_small);
 
+        const Int32 MAX_GENRE_COUNT_ALLOWED = 5;
 
         public MovieData(string filePath)
         {
@@ -50,7 +51,7 @@ namespace Ariadna
 
             using (var ctx = new AriadnaEntities())
             {
-                Movie movie = ctx.Movies.AsNoTracking().FirstOrDefault(r => r.file_path == FilePath);
+                var movie = ctx.Movies.AsNoTracking().Where(r => r.file_path == FilePath).Select(x => x.file_path).FirstOrDefault();
                 if (movie != null)
                 {
                     FillFieldsFromFile();
@@ -143,7 +144,7 @@ namespace Ariadna
         {
             using (var ctx = new AriadnaEntities())
             {
-                Ignore ignore = ctx.Ignores.FirstOrDefault(r => r.path == FilePath);
+                Ignore ignore = ctx.Ignores.Where(r => r.path == FilePath).FirstOrDefault();
                 if (ignore == null)
                 {
                     ctx.Ignores.Add(new Ignore { path = FilePath });
@@ -206,7 +207,7 @@ namespace Ariadna
                 {
                     var genreName = m_GenresList.Items[i].Text;
 
-                    Genre genre = ctx.Genres.FirstOrDefault(r => r.name == genreName);
+                    Genre genre = ctx.Genres.Where(r => r.name == genreName).FirstOrDefault();
                     if (genre == null)
                     {
                         ctx.Genres.Add(new Genre { name = genreName });
@@ -238,7 +239,7 @@ namespace Ariadna
                 {
                     bool bAddEntry = false;
                     var itemText = m_CastList.Items[i].Text;
-                    Actor actor = ctx.Actors.FirstOrDefault(r => r.name == itemText);
+                    Actor actor = ctx.Actors.Where(r => r.name == itemText).FirstOrDefault();
                     if (actor == null)
                     {
                         bAddEntry = true;
@@ -275,7 +276,7 @@ namespace Ariadna
                 {
                     bool bAddEntry = false;
                     var itemText = m_DirectorsList.Items[i].Text;
-                    Director director = ctx.Directors.FirstOrDefault(r => r.name == itemText);
+                    Director director = ctx.Directors.Where(r => r.name == itemText).FirstOrDefault();
                     if (director == null)
                     {
                         bAddEntry = true;
@@ -321,7 +322,7 @@ namespace Ariadna
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {
-                Movie movie = ctx.Movies.FirstOrDefault(r => r.file_path == FilePath);
+                Movie movie = ctx.Movies.Where(r => r.file_path == FilePath).FirstOrDefault();
 
                 Int32 movieYear = 1900;
                 Int32.TryParse(txtYear.Text, out movieYear);
@@ -367,28 +368,24 @@ namespace Ariadna
             {
                 bool bNeedToSaveChanges = false;
 
-                Movie movie = ctx.Movies.FirstOrDefault(r => r.file_path == FilePath);
-                if (movie == null)
-                {
-                    return false;
-                }
+                int movieId = ctx.Movies.Where(r => r.file_path == FilePath).Select(x => x.Id).FirstOrDefault();
 
-                ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == movie.Id)));
+                ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == movieId)));
                 ctx.SaveChanges();
 
                 for (int i = 0; i < m_CastList.Items.Count; ++i)
                 {
                     var actorName = m_CastList.Items[i].Text;
-                    Actor actor = ctx.Actors.FirstOrDefault(r => r.name == actorName);
+                    Actor actor = ctx.Actors.Where(r => r.name == actorName).FirstOrDefault();
                     if (actor == null)
                     {
                         continue;
                     }
 
-                    MovieCast movieCast = ctx.MovieCasts.FirstOrDefault(r => (r.movieId == movie.Id && r.actorId == actor.Id));
+                    MovieCast movieCast = ctx.MovieCasts.Where(r => (r.movieId == movieId && r.actorId == actor.Id)).FirstOrDefault();
                     if (movieCast == null)
                     {
-                        ctx.MovieCasts.Add(new MovieCast { movieId = movie.Id, actorId = actor.Id });
+                        ctx.MovieCasts.Add(new MovieCast { movieId = movieId, actorId = actor.Id });
                         bNeedToSaveChanges = true;
                     }
                 }
@@ -407,28 +404,24 @@ namespace Ariadna
             {
                 bool bNeedToSaveChanges = false;
 
-                Movie movie = ctx.Movies.FirstOrDefault(r => r.file_path == FilePath);
-                if (movie == null)
-                {
-                    return false;
-                }
+                int movieId = ctx.Movies.Where(r => r.file_path == FilePath).Select(x => x.Id).FirstOrDefault();
 
-                ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == movie.Id)));
+                ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == movieId)));
                 ctx.SaveChanges();
 
                 for (int i = 0; i < m_DirectorsList.Items.Count; ++i)
                 {
                     var directorName = m_DirectorsList.Items[i].Text;
-                    Director director = ctx.Directors.FirstOrDefault(r => r.name == directorName);
+                    Director director = ctx.Directors.Where(r => r.name == directorName).FirstOrDefault();
                     if (director == null)
                     {
                         continue;
                     }
 
-                    MovieDirector movieDirector = ctx.MovieDirectors.FirstOrDefault(r => (r.movieId == movie.Id && r.directorId == director.Id));
+                    MovieDirector movieDirector = ctx.MovieDirectors.Where(r => (r.movieId == movieId && r.directorId == director.Id)).FirstOrDefault();
                     if (movieDirector == null)
                     {
-                        ctx.MovieDirectors.Add(new MovieDirector { movieId = movie.Id, directorId = director.Id });
+                        ctx.MovieDirectors.Add(new MovieDirector { movieId = movieId, directorId = director.Id });
                         bNeedToSaveChanges = true;
                     }
                 }
@@ -447,28 +440,24 @@ namespace Ariadna
             {
                 bool bNeedToSaveChanges = false;
 
-                Movie movie = ctx.Movies.FirstOrDefault(r => r.file_path == FilePath);
-                if (movie == null)
-                {
-                    return false;
-                }
+                int movieId = ctx.Movies.Where(r => r.file_path == FilePath).Select(x => x.Id).FirstOrDefault();
 
-                ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == movie.Id)));
+                ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == movieId)));
                 ctx.SaveChanges();
 
                 for (int i = 0; i < m_GenresList.Items.Count; ++i)
                 {
                     var genreName = m_GenresList.Items[i].Text;
-                    Genre genre = ctx.Genres.FirstOrDefault(r => r.name == genreName);
+                    Genre genre = ctx.Genres.Where(r => r.name == genreName).FirstOrDefault();
                     if (genre == null)
                     {
                         continue;
                     }
 
-                    MovieGenre movieGenre = ctx.MovieGenres.FirstOrDefault(r => (r.movieId == movie.Id && r.genreId == genre.Id));
+                    MovieGenre movieGenre = ctx.MovieGenres.Where(r => (r.movieId == movieId && r.genreId == genre.Id)).FirstOrDefault();
                     if (movieGenre == null)
                     {
-                        ctx.MovieGenres.Add(new MovieGenre { movieId = movie.Id, genreId = genre.Id });
+                        ctx.MovieGenres.Add(new MovieGenre { movieId = movieId, genreId = genre.Id });
                         bNeedToSaveChanges = true;
                     }
                 }
@@ -484,7 +473,7 @@ namespace Ariadna
         {
             using (var ctx = new AriadnaEntities())
             {
-                Movie movie = ctx.Movies.AsNoTracking().FirstOrDefault(r => r.file_path == FilePath);
+                Movie movie = ctx.Movies.AsNoTracking().Where(r => r.file_path == FilePath).FirstOrDefault();
                 if (movie == null)
                 {
                     return;
@@ -521,7 +510,7 @@ namespace Ariadna
                     m_GenresImages.Images.Add(name, Utilities.GetGenreImage(name));
                     m_GenresList.Items.Add(new ListViewItem(name, m_GenresImages.Images.IndexOfKey(name)));
                 }
-                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < 5);
+                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
             }
         }
         private bool GetBitmapFromDisk(out Bitmap outBmp, string filter, int width, int height)
@@ -586,12 +575,11 @@ namespace Ariadna
         }
         private void AddListViewItemFromClipboard(ListView listView, ImageList imageList)
         {
-            var items = Clipboard.GetText().Split(',');
-            for (int i = 0; i < items.Length; ++i)
+            foreach (var item in Clipboard.GetText().Split(','))
             {
-                var item = Utilities.CapitalizeWords(items[i]);
+                var name = Utilities.CapitalizeWords(item);
 
-                AddNewListItem(listView, imageList, item);
+                AddNewListItem(listView, imageList, name);
             }
         }
         private void AddNewListItem(ListView listView, ImageList imageList, string name, Bitmap image = null)
@@ -602,7 +590,7 @@ namespace Ariadna
                 {
                     // var director = ctx.Directors.AsNoTracking().Where(r => r.name == name).Select(r => r.name == name);
 
-                    Director director = ctx.Directors.AsNoTracking().FirstOrDefault(r => r.name == name);
+                    Director director = ctx.Directors.AsNoTracking().Where(r => r.name == name).FirstOrDefault();
                     if (director != null)
                     {
                         if (director.photo != null)
@@ -612,7 +600,7 @@ namespace Ariadna
                     }
                     if (image == null)
                     {
-                        Actor actor = ctx.Actors.AsNoTracking().FirstOrDefault(r => r.name == name);
+                        Actor actor = ctx.Actors.AsNoTracking().Where(r => r.name == name).FirstOrDefault();
                         if (actor != null)
                         {
                             if (actor.photo != null)
@@ -711,10 +699,9 @@ namespace Ariadna
         }
         private void AddGenresFromClipboard()
         {
-            var items = Clipboard.GetText().Split(',');
-            for (int i = 0; i < items.Length; ++i)
+            foreach (var item in Clipboard.GetText().Split(','))
             {
-                var name = items[i].Trim();
+                var name = item.Trim();
                 // Only single word allowed
                 if (name.Contains(" "))
                 {
@@ -725,7 +712,7 @@ namespace Ariadna
                 m_GenresImages.Images.Add(name, Utilities.GetGenreImage(name));
                 m_GenresList.Items.Add(new ListViewItem(name, m_GenresImages.Images.IndexOfKey(name)));
                 
-                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < 5);
+                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
 
                 if (m_GenresList.Items.Count == Utilities.MAX_GENRES_COUNT)
                 {
@@ -744,7 +731,7 @@ namespace Ariadna
             if (e.KeyCode == Keys.Delete)
             {
                 DeleteFocusedListItem(m_GenresList);
-                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < 5);
+                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
 
                 return;
             }
@@ -788,7 +775,7 @@ namespace Ariadna
                 m_GenresImages.Images.Add(name, Utilities.GetGenreImage(name));
                 m_GenresList.Items.Add(new ListViewItem(name, m_GenresImages.Images.IndexOfKey(name)));
 
-                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < 5);
+                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
             }
         }
         private void OnDescriptionPasteClick(object sender, EventArgs e)
