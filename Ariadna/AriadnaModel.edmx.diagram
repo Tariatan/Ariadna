@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="e6803c38045b46f6b09a4757aa10e9be" Name="Diagram1">
+        <EntityTypeShape EntityType="AriadnaModel.Actor" Width="1.5" PointX="11" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="AriadnaModel.Genre" Width="1.5" PointX="0.625" PointY="2.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="AriadnaModel.Movie" Width="1.5" PointX="5.75" PointY="1.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AriadnaModel.MovieCast" Width="1.5" PointX="8" PointY="2.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="AriadnaModel.MovieGenre" Width="1.5" PointX="3" PointY="0.75" IsExpanded="true" />
+        <AssociationConnector Association="AriadnaModel.movie_cast_actor_FK" ManuallyRouted="false" />
+        <AssociationConnector Association="AriadnaModel.movie_genre_genre_FK" ManuallyRouted="false" />
+        <AssociationConnector Association="AriadnaModel.movie_cast_movie_FK" ManuallyRouted="false" />
+        <AssociationConnector Association="AriadnaModel.movie_genre_movie_FK" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="AriadnaModel.Director" Width="1.5" PointX="0.625" PointY="4.75" />
+        <EntityTypeShape EntityType="AriadnaModel.MovieDirector" Width="1.5" PointX="3.125" PointY="4.25" />
+        <AssociationConnector Association="AriadnaModel.movie_director_director_FK" />
+        <AssociationConnector Association="AriadnaModel.movie_director_movie_FK" />
+        <EntityTypeShape EntityType="AriadnaModel.Ignore" Width="1.5" PointX="14.375" PointY="0.875" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

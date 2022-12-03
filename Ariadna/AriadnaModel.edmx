@@ -1,0 +1,483 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="AriadnaModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Actor">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="photo" Type="image" />
+        </EntityType>
+        <EntityType Name="Director">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="photo" Type="image" />
+        </EntityType>
+        <EntityType Name="Genre">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Ignore">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="path" Type="nvarchar" MaxLength="256" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Movie">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="title" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="title_original" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="year" Type="int" Nullable="false" />
+          <Property Name="length" Type="time" Precision="7" Nullable="false" />
+          <Property Name="rating" Type="float" />
+          <Property Name="poster" Type="image" />
+          <Property Name="file_path" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="description" Type="nvarchar(max)" />
+          <Property Name="creation_time" Type="date" />
+          <Property Name="want_to_see" Type="bit" />
+        </EntityType>
+        <EntityType Name="MovieCast">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="movieId" Type="int" />
+          <Property Name="actorId" Type="int" />
+        </EntityType>
+        <EntityType Name="MovieDirector">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="movieId" Type="int" />
+          <Property Name="directorId" Type="int" />
+        </EntityType>
+        <EntityType Name="MovieGenre">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="movieId" Type="int" Nullable="false" />
+          <Property Name="genreId" Type="int" Nullable="false" />
+        </EntityType>
+        <Association Name="movie_cast_actor_FK">
+          <End Role="Actor" Type="Self.Actor" Multiplicity="0..1" />
+          <End Role="MovieCast" Type="Self.MovieCast" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Actor">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieCast">
+              <PropertyRef Name="actorId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_cast_movie_FK">
+          <End Role="Movie" Type="Self.Movie" Multiplicity="0..1" />
+          <End Role="MovieCast" Type="Self.MovieCast" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Movie">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieCast">
+              <PropertyRef Name="movieId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_director_director_FK">
+          <End Role="Director" Type="Self.Director" Multiplicity="0..1" />
+          <End Role="MovieDirector" Type="Self.MovieDirector" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Director">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieDirector">
+              <PropertyRef Name="directorId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_director_movie_FK">
+          <End Role="Movie" Type="Self.Movie" Multiplicity="0..1" />
+          <End Role="MovieDirector" Type="Self.MovieDirector" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Movie">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieDirector">
+              <PropertyRef Name="movieId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_genre_genre_FK">
+          <End Role="Genre" Type="Self.Genre" Multiplicity="1" />
+          <End Role="MovieGenre" Type="Self.MovieGenre" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Genre">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieGenre">
+              <PropertyRef Name="genreId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_genre_movie_FK">
+          <End Role="Movie" Type="Self.Movie" Multiplicity="1" />
+          <End Role="MovieGenre" Type="Self.MovieGenre" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Movie">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieGenre">
+              <PropertyRef Name="movieId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="AriadnaModelStoreContainer">
+          <EntitySet Name="Actor" EntityType="Self.Actor" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Director" EntityType="Self.Director" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Genre" EntityType="Self.Genre" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Ignore" EntityType="Self.Ignore" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Movie" EntityType="Self.Movie" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="MovieCast" EntityType="Self.MovieCast" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="MovieDirector" EntityType="Self.MovieDirector" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="MovieGenre" EntityType="Self.MovieGenre" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="movie_cast_actor_FK" Association="Self.movie_cast_actor_FK">
+            <End Role="Actor" EntitySet="Actor" />
+            <End Role="MovieCast" EntitySet="MovieCast" />
+          </AssociationSet>
+          <AssociationSet Name="movie_cast_movie_FK" Association="Self.movie_cast_movie_FK">
+            <End Role="Movie" EntitySet="Movie" />
+            <End Role="MovieCast" EntitySet="MovieCast" />
+          </AssociationSet>
+          <AssociationSet Name="movie_director_director_FK" Association="Self.movie_director_director_FK">
+            <End Role="Director" EntitySet="Director" />
+            <End Role="MovieDirector" EntitySet="MovieDirector" />
+          </AssociationSet>
+          <AssociationSet Name="movie_director_movie_FK" Association="Self.movie_director_movie_FK">
+            <End Role="Movie" EntitySet="Movie" />
+            <End Role="MovieDirector" EntitySet="MovieDirector" />
+          </AssociationSet>
+          <AssociationSet Name="movie_genre_genre_FK" Association="Self.movie_genre_genre_FK">
+            <End Role="Genre" EntitySet="Genre" />
+            <End Role="MovieGenre" EntitySet="MovieGenre" />
+          </AssociationSet>
+          <AssociationSet Name="movie_genre_movie_FK" Association="Self.movie_genre_movie_FK">
+            <End Role="Movie" EntitySet="Movie" />
+            <End Role="MovieGenre" EntitySet="MovieGenre" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="AriadnaModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Actor">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <NavigationProperty Name="MovieCasts" Relationship="Self.movie_cast_actor_FK" FromRole="Actor" ToRole="MovieCast" />
+        </EntityType>
+        <EntityType Name="Genre">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="MovieGenres" Relationship="Self.movie_genre_genre_FK" FromRole="Genre" ToRole="MovieGenre" />
+        </EntityType>
+        <EntityType Name="Movie">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="title" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="title_original" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="year" Type="Int32" Nullable="false" />
+          <Property Name="length" Type="Time" Nullable="false" Precision="7" />
+          <Property Name="rating" Type="Double" />
+          <Property Name="poster" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <Property Name="file_path" Type="String" MaxLength="256" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="MovieCasts" Relationship="Self.movie_cast_movie_FK" FromRole="Movie" ToRole="MovieCast" />
+          <NavigationProperty Name="MovieGenres" Relationship="Self.movie_genre_movie_FK" FromRole="Movie" ToRole="MovieGenre" />
+          <NavigationProperty Name="MovieDirectors" Relationship="AriadnaModel.movie_director_movie_FK" FromRole="Movie" ToRole="MovieDirector" />
+          <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="creation_time" Type="DateTime" Precision="0" />
+          <Property Name="want_to_see" Type="Boolean" />
+        </EntityType>
+        <EntityType Name="MovieCast">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="movieId" Type="Int32" />
+          <Property Name="actorId" Type="Int32" />
+          <NavigationProperty Name="Actor" Relationship="Self.movie_cast_actor_FK" FromRole="MovieCast" ToRole="Actor" />
+          <NavigationProperty Name="Movie" Relationship="Self.movie_cast_movie_FK" FromRole="MovieCast" ToRole="Movie" />
+        </EntityType>
+        <EntityType Name="MovieGenre">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="movieId" Type="Int32" Nullable="false" />
+          <Property Name="genreId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Genre" Relationship="Self.movie_genre_genre_FK" FromRole="MovieGenre" ToRole="Genre" />
+          <NavigationProperty Name="Movie" Relationship="Self.movie_genre_movie_FK" FromRole="MovieGenre" ToRole="Movie" />
+        </EntityType>
+        <Association Name="movie_cast_actor_FK">
+          <End Role="Actor" Type="Self.Actor" Multiplicity="0..1" />
+          <End Role="MovieCast" Type="Self.MovieCast" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Actor">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieCast">
+              <PropertyRef Name="actorId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_genre_genre_FK">
+          <End Role="Genre" Type="Self.Genre" Multiplicity="1" />
+          <End Role="MovieGenre" Type="Self.MovieGenre" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Genre">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieGenre">
+              <PropertyRef Name="genreId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_cast_movie_FK">
+          <End Role="Movie" Type="Self.Movie" Multiplicity="0..1" />
+          <End Role="MovieCast" Type="Self.MovieCast" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Movie">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieCast">
+              <PropertyRef Name="movieId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_genre_movie_FK">
+          <End Role="Movie" Type="Self.Movie" Multiplicity="1" />
+          <End Role="MovieGenre" Type="Self.MovieGenre" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Movie">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieGenre">
+              <PropertyRef Name="movieId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="AriadnaEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Actors" EntityType="Self.Actor" />
+          <EntitySet Name="Genres" EntityType="Self.Genre" />
+          <EntitySet Name="Movies" EntityType="Self.Movie" />
+          <EntitySet Name="MovieCasts" EntityType="Self.MovieCast" />
+          <EntitySet Name="MovieGenres" EntityType="Self.MovieGenre" />
+          <AssociationSet Name="movie_cast_actor_FK" Association="Self.movie_cast_actor_FK">
+            <End Role="Actor" EntitySet="Actors" />
+            <End Role="MovieCast" EntitySet="MovieCasts" />
+          </AssociationSet>
+          <AssociationSet Name="movie_genre_genre_FK" Association="Self.movie_genre_genre_FK">
+            <End Role="Genre" EntitySet="Genres" />
+            <End Role="MovieGenre" EntitySet="MovieGenres" />
+          </AssociationSet>
+          <AssociationSet Name="movie_cast_movie_FK" Association="Self.movie_cast_movie_FK">
+            <End Role="Movie" EntitySet="Movies" />
+            <End Role="MovieCast" EntitySet="MovieCasts" />
+          </AssociationSet>
+          <AssociationSet Name="movie_genre_movie_FK" Association="Self.movie_genre_movie_FK">
+            <End Role="Movie" EntitySet="Movies" />
+            <End Role="MovieGenre" EntitySet="MovieGenres" />
+          </AssociationSet>
+          <EntitySet Name="Directors" EntityType="AriadnaModel.Director" />
+          <EntitySet Name="MovieDirectors" EntityType="AriadnaModel.MovieDirector" />
+          <AssociationSet Name="movie_director_director_FK" Association="AriadnaModel.movie_director_director_FK">
+            <End Role="Director" EntitySet="Directors" />
+            <End Role="MovieDirector" EntitySet="MovieDirectors" />
+          </AssociationSet>
+          <AssociationSet Name="movie_director_movie_FK" Association="AriadnaModel.movie_director_movie_FK">
+            <End Role="Movie" EntitySet="Movies" />
+            <End Role="MovieDirector" EntitySet="MovieDirectors" />
+          </AssociationSet>
+          <EntitySet Name="Ignores" EntityType="AriadnaModel.Ignore" />
+        </EntityContainer>
+        <EntityType Name="Director">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="MovieDirectors" Relationship="AriadnaModel.movie_director_director_FK" FromRole="Director" ToRole="MovieDirector" />
+          <Property Name="photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="MovieDirector">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="movieId" Type="Int32" />
+          <Property Name="directorId" Type="Int32" />
+          <NavigationProperty Name="Director" Relationship="AriadnaModel.movie_director_director_FK" FromRole="MovieDirector" ToRole="Director" />
+          <NavigationProperty Name="Movie" Relationship="AriadnaModel.movie_director_movie_FK" FromRole="MovieDirector" ToRole="Movie" />
+        </EntityType>
+        <Association Name="movie_director_director_FK">
+          <End Type="AriadnaModel.Director" Role="Director" Multiplicity="0..1" />
+          <End Type="AriadnaModel.MovieDirector" Role="MovieDirector" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Director">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieDirector">
+              <PropertyRef Name="directorId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_director_movie_FK">
+          <End Type="AriadnaModel.Movie" Role="Movie" Multiplicity="0..1" />
+          <End Type="AriadnaModel.MovieDirector" Role="MovieDirector" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Movie">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieDirector">
+              <PropertyRef Name="movieId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Ignore">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="path" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="AriadnaModelStoreContainer" CdmEntityContainer="AriadnaEntities">
+          <EntitySetMapping Name="Actors">
+            <EntityTypeMapping TypeName="AriadnaModel.Actor">
+              <MappingFragment StoreEntitySet="Actor">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="photo" ColumnName="photo" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Genres">
+            <EntityTypeMapping TypeName="AriadnaModel.Genre">
+              <MappingFragment StoreEntitySet="Genre">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="name" ColumnName="name" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Movies">
+            <EntityTypeMapping TypeName="AriadnaModel.Movie">
+              <MappingFragment StoreEntitySet="Movie">
+                <ScalarProperty Name="want_to_see" ColumnName="want_to_see" />
+                <ScalarProperty Name="creation_time" ColumnName="creation_time" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="title" ColumnName="title" />
+                <ScalarProperty Name="title_original" ColumnName="title_original" />
+                <ScalarProperty Name="year" ColumnName="year" />
+                <ScalarProperty Name="length" ColumnName="length" />
+                <ScalarProperty Name="rating" ColumnName="rating" />
+                <ScalarProperty Name="poster" ColumnName="poster" />
+                <ScalarProperty Name="file_path" ColumnName="file_path" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MovieCasts">
+            <EntityTypeMapping TypeName="AriadnaModel.MovieCast">
+              <MappingFragment StoreEntitySet="MovieCast">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="movieId" ColumnName="movieId" />
+                <ScalarProperty Name="actorId" ColumnName="actorId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MovieGenres">
+            <EntityTypeMapping TypeName="AriadnaModel.MovieGenre">
+              <MappingFragment StoreEntitySet="MovieGenre">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="movieId" ColumnName="movieId" />
+                <ScalarProperty Name="genreId" ColumnName="genreId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Directors">
+            <EntityTypeMapping TypeName="AriadnaModel.Director">
+              <MappingFragment StoreEntitySet="Director">
+                <ScalarProperty Name="photo" ColumnName="photo" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MovieDirectors">
+            <EntityTypeMapping TypeName="AriadnaModel.MovieDirector">
+              <MappingFragment StoreEntitySet="MovieDirector">
+                <ScalarProperty Name="directorId" ColumnName="directorId" />
+                <ScalarProperty Name="movieId" ColumnName="movieId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Ignores">
+            <EntityTypeMapping TypeName="AriadnaModel.Ignore">
+              <MappingFragment StoreEntitySet="Ignore">
+                <ScalarProperty Name="path" ColumnName="path" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
