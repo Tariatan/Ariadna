@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Ariadna
 {
@@ -32,10 +26,10 @@ namespace Ariadna
 
         public static int MAX_GENRES_COUNT = 5;
 
-        public static List<string> GENRES_LIST = new List<string> 
+        public static List<string> GENRES_LIST = new List<string>
         {"Боевик", "Приключение", "Анимационный", "Биография", "Комедия", "Криминал", "Детектив", "Катастрофа", "Драма",
          "Сказка", "Семейный", "Фэнтези", "Исторический", "Ужасы", "Детский", "Музыка", "Мистика", "Постапокалипсис",
-         "Романтика", "Фантастика", "Спорт", "Триллер", "Военный", "Вестерн", "Новогодний" 
+         "Романтика", "Фантастика", "Спорт", "Триллер", "Военный", "Вестерн", "Новогодний"
         };
 
         public static string CapitalizeWords(string words)
@@ -69,7 +63,7 @@ namespace Ariadna
         }
         public static Bitmap BytesToBitmap(byte[] bytes)
         {
-            if(bytes == null)
+            if (bytes == null)
             {
                 return null;
             }

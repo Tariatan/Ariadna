@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Ariadna
@@ -66,7 +61,7 @@ namespace Ariadna
 
         private void OnListItemChecked(object sender, ItemCheckedEventArgs e)
         {
-            if(!mPanelListView.Focused)
+            if (!mPanelListView.Focused)
             {
                 return;
             }

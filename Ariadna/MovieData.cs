@@ -91,7 +91,7 @@ namespace Ariadna
 
             if (e.KeyCode == Keys.Escape)
             {
-                if(m_FloatingPanel.Visible)
+                if (m_FloatingPanel.Visible)
                 {
                     m_FloatingPanel.Hide();
                     return;
@@ -125,7 +125,7 @@ namespace Ariadna
         }
         private static TimeSpan GetVideoDuration(string filePath)
         {
-            if(!File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
                 return TimeSpan.Zero;
             }
@@ -343,7 +343,7 @@ namespace Ariadna
                 movie.poster = poster;
                 movie.creation_time = File.GetCreationTimeUtc(FilePath);
                 movie.want_to_see = checkToSee.Checked;
- 
+
                 if (bAddMovie)
                 {
                     ctx.Movies.Add(movie);
@@ -711,12 +711,12 @@ namespace Ariadna
                 name = Utilities.CapitalizeWords(name);
                 m_GenresImages.Images.Add(name, Utilities.GetGenreImage(name));
                 m_GenresList.Items.Add(new ListViewItem(name, m_GenresImages.Images.IndexOfKey(name)));
-                
+
                 m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
 
                 if (m_GenresList.Items.Count == Utilities.MAX_GENRES_COUNT)
                 {
-                    break;      
+                    break;
                 }
             }
         }

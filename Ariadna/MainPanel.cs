@@ -180,7 +180,7 @@ namespace Ariadna
         }
         private void AddNewMovie()
         {
-            if(FindFirstNotInsertedMovie())
+            if (FindFirstNotInsertedMovie())
             {
                 return;
             }
@@ -208,7 +208,7 @@ namespace Ariadna
         private void OnAddMovieFormClosed(object sender, FormClosedEventArgs e)
         {
             MovieData movieData = (MovieData)sender;
-            if(movieData.FormCloseReason == Utilities.EFormCloseReason.SUCCESS)
+            if (movieData.FormCloseReason == Utilities.EFormCloseReason.SUCCESS)
             {
                 using (var ctx = new AriadnaEntities())
                 {
@@ -217,16 +217,16 @@ namespace Ariadna
                     // Retrieve poster
                     Bitmap bmp = new Bitmap(171, 256);
                     Graphics graph = Graphics.FromImage(bmp);
-                    Image img = (movie.poster.Length != 0) ? Utilities.BytesToBitmap(movie.poster) : 
+                    Image img = (movie.poster.Length != 0) ? Utilities.BytesToBitmap(movie.poster) :
                                                                 new Bitmap(Properties.Resources.No_Preview_Image);
 
                     graph.DrawImage(img, new Rectangle(0, 0, 171, 256));
-                    
+
                     // Find if item index is already in the list
                     int index = 0;
-                    for(; index < mMovies.Count; ++index)
+                    for (; index < mMovies.Count; ++index)
                     {
-                        if(mMovies[index].path.Equals(movieData.FilePath))
+                        if (mMovies[index].path.Equals(movieData.FilePath))
                         {
                             break;
                         }
@@ -378,7 +378,7 @@ namespace Ariadna
             HideFloatingPanel();
 
             Cursor.Current = Cursors.WaitCursor;
-            
+
             using (var ctx = new AriadnaEntities())
             {
                 IQueryable<Movie> query = ctx.Movies.AsNoTracking();
@@ -621,7 +621,7 @@ namespace Ariadna
                 foreach (var genre in genres)
                 {
                     var usedGenres = ctx.MovieGenres.Where(r => (r.genreId == genre.Id)).FirstOrDefault();
-                    if(usedGenres == null)
+                    if (usedGenres == null)
                     {
                         ctx.Genres.Remove(genre);
                         bNeedToSaveChanges = true;
