@@ -27,6 +27,8 @@ namespace Ariadna
         private const int BLINK_COUNT = 3;
         private int mBlinkCount = BLINK_COUNT;
 
+        private const int MIN_NAME_LENGTH = 3;
+
         public MainPanel()
         {
             InitializeComponent();
@@ -409,19 +411,28 @@ namespace Ariadna
                 if (m_ToolStripDirectorName.Text.Length > 0)
                 {
                     var entry = ctx.Directors.AsNoTracking().Where(r => r.name == m_ToolStripDirectorName.Text).FirstOrDefault();
-                    query = query.Where(r => r.MovieDirectors.Any(l => (l.directorId == entry.Id)));
+                    if (entry != null)
+                    {
+                        query = query.Where(r => r.MovieDirectors.Any(l => (l.directorId == entry.Id)));
+                    }
                 }
                 // -- ACTOR NAME --
                 if (m_ToolStripActorName.Text.Length > 0)
                 {
                     var entry = ctx.Actors.AsNoTracking().Where(r => r.name == m_ToolStripActorName.Text).FirstOrDefault();
-                    query = query.Where(r => r.MovieCasts.Any(l => (l.actorId == entry.Id)));
+                    if (entry != null)
+                    {
+                        query = query.Where(r => r.MovieCasts.Any(l => (l.actorId == entry.Id)));
+                    }
                 }
                 // -- GENRE --
                 if (m_ToolStripGenreName.Text.Length > 0)
                 {
                     var entry = ctx.Genres.AsNoTracking().Where(r => r.name == m_ToolStripGenreName.Text).FirstOrDefault();
-                    query = query.Where(r => r.MovieGenres.Any(l => (l.genreId == entry.Id)));
+                    if (entry != null)
+                    {
+                        query = query.Where(r => r.MovieGenres.Any(l => (l.genreId == entry.Id)));
+                    }
                 }
 
                 SetMoviesList(query.OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title }).ToList());
@@ -460,14 +471,6 @@ namespace Ariadna
             }
 
             QueryMovies();
-        }
-        private void OnMovieNameConfirmed(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                e.SuppressKeyPress = true;
-                QueryMovies();
-            }
         }
         private void ToolStrip_WishlistBtn_Click(object sender, EventArgs e)
         {
@@ -532,14 +535,32 @@ namespace Ariadna
             HideFloatingPanel();
             if (m_ToolStripGenreName.Text.Length > 0)
             {
-                m_ToolStripGenreName.Text = "";
+                m_ToolStripGenreName.Text = "...";
                 QueryMovies();
             }
         }
+        private void OnMovieNameConfirmed(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                QueryMovies();
+            }
+        }
+        private void OnMovieNameTextChanged(object sender, EventArgs e)
+        {
+            QueryMovies();
+        }
         private void OnDirectorNameTextChanged(object sender, EventArgs e)
         {
-            if ((m_ToolStripDirectorName.Text.Length < 3) || mSuppressNameChangedEvent)
+            if (mSuppressNameChangedEvent)
             {
+                return;
+            }
+
+            if(m_ToolStripDirectorName.Text.Length == 0)
+            {
+                HideFloatingPanel();
                 return;
             }
 
@@ -548,8 +569,8 @@ namespace Ariadna
             SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
             using (var ctx = new AriadnaEntities())
             {
-                var directors = ctx.MovieDirectors.AsNoTracking().ToArray().Where(
-                                        r => (r.Director.name.ToUpper().Contains(m_ToolStripDirectorName.Text.ToUpper())));
+                var name = m_ToolStripDirectorName.Text.ToUpper();
+                var directors = ctx.MovieDirectors.AsNoTracking().Where(r => r.Director.name.ToUpper().Contains(name));
 
                 foreach (var director in directors)
                 {
@@ -565,8 +586,14 @@ namespace Ariadna
         }
         private void OnActorNameTextChanged(object sender, EventArgs e)
         {
-            if ((m_ToolStripActorName.Text.Length < 3) || mSuppressNameChangedEvent)
+            if (mSuppressNameChangedEvent)
             {
+                return;
+            }
+
+            if (m_ToolStripActorName.Text.Length == 0)
+            {
+                HideFloatingPanel();
                 return;
             }
 
@@ -575,8 +602,8 @@ namespace Ariadna
             SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
             using (var ctx = new AriadnaEntities())
             {
-                var actors = ctx.MovieCasts.AsNoTracking().ToArray().Where(
-                                        r => (r.Actor.name.ToUpper().Contains(m_ToolStripActorName.Text.ToUpper())));
+                var name = m_ToolStripActorName.Text.ToUpper();
+                var actors = ctx.MovieCasts.AsNoTracking().Where(r => (r.Actor.name.ToUpper().Contains(name)));
 
                 foreach (var actor in actors)
                 {
@@ -589,27 +616,6 @@ namespace Ariadna
             m_ToolStripActorName.Focus();
 
             Cursor.Current = Cursors.Default;
-        }
-        private void OnToolStripDirectorConfirmed(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                e.SuppressKeyPress = true;
-            }
-        }
-        private void OnToolStripCastConfirmed(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                e.SuppressKeyPress = true;
-            }
-        }
-        private void OnToolStripGenreConfirmed(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                e.SuppressKeyPress = true;
-            }
         }
         private void DeleteUnusedGenres()
         {

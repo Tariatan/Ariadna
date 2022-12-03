@@ -57,7 +57,7 @@
             this.m_ToolStripClearActorBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripLabel7 = new System.Windows.Forms.ToolStripLabel();
-            this.m_ToolStripGenreName = new System.Windows.Forms.ToolStripTextBox();
+            this.m_ToolStripGenreName = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStripClearGenreBtn = new System.Windows.Forms.ToolStripButton();
             this.m_QuickListFlow = new System.Windows.Forms.FlowLayoutPanel();
             this.button1 = new System.Windows.Forms.Button();
@@ -171,6 +171,7 @@
             this.m_ToolStripMovieName.Name = "m_ToolStripMovieName";
             this.m_ToolStripMovieName.Size = new System.Drawing.Size(150, 23);
             this.m_ToolStripMovieName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnMovieNameConfirmed);
+            this.m_ToolStripMovieName.TextChanged += new System.EventHandler(this.OnMovieNameTextChanged);
             // 
             // m_ToolStripClearTitleBtn
             // 
@@ -271,7 +272,6 @@
             this.m_ToolStripDirectorName.MaxLength = 20;
             this.m_ToolStripDirectorName.Name = "m_ToolStripDirectorName";
             this.m_ToolStripDirectorName.Size = new System.Drawing.Size(100, 25);
-            this.m_ToolStripDirectorName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnToolStripDirectorConfirmed);
             this.m_ToolStripDirectorName.TextChanged += new System.EventHandler(this.OnDirectorNameTextChanged);
             // 
             // m_ToolStripClearDirectorBtn
@@ -306,7 +306,6 @@
             this.m_ToolStripActorName.MaxLength = 20;
             this.m_ToolStripActorName.Name = "m_ToolStripActorName";
             this.m_ToolStripActorName.Size = new System.Drawing.Size(100, 25);
-            this.m_ToolStripActorName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnToolStripCastConfirmed);
             this.m_ToolStripActorName.TextChanged += new System.EventHandler(this.OnActorNameTextChanged);
             // 
             // m_ToolStripClearActorBtn
@@ -336,12 +335,10 @@
             // m_ToolStripGenreName
             // 
             this.m_ToolStripGenreName.BackColor = System.Drawing.Color.DarkMagenta;
-            this.m_ToolStripGenreName.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.m_ToolStripGenreName.ForeColor = System.Drawing.Color.White;
-            this.m_ToolStripGenreName.MaxLength = 100;
             this.m_ToolStripGenreName.Name = "m_ToolStripGenreName";
-            this.m_ToolStripGenreName.Size = new System.Drawing.Size(200, 25);
-            this.m_ToolStripGenreName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnToolStripGenreConfirmed);
+            this.m_ToolStripGenreName.Size = new System.Drawing.Size(16, 22);
+            this.m_ToolStripGenreName.Text = "...";
             this.m_ToolStripGenreName.Click += new System.EventHandler(this.OnToolStripGenreClicked);
             // 
             // m_ToolStripClearGenreBtn
@@ -451,8 +448,8 @@
         private System.Windows.Forms.ToolStripButton m_ToolStripClearTitleBtn;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripLabel toolStripLabel7;
-        private System.Windows.Forms.ToolStripTextBox m_ToolStripGenreName;
         private System.Windows.Forms.ToolStripButton m_ToolStripClearGenreBtn;
+        private System.Windows.Forms.ToolStripLabel m_ToolStripGenreName;
     }
 }
 

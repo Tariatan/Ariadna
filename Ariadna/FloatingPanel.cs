@@ -37,9 +37,10 @@ namespace Ariadna
             mPanelListView.CheckBoxes = checkBox;
             mPanelListView.MultiSelect = multiSelect;
 
+            var empty = new Bitmap(Properties.Resources.No_Preview_Image_small);
             foreach (var value in values)
             {
-                mPanelImageView.Images.Add(value.Key, (value.Value != null) ? value.Value : new Bitmap(Properties.Resources.No_Preview_Image_small));
+                mPanelImageView.Images.Add(value.Key, (value.Value != null) ? value.Value : empty);
                 mPanelListView.Items.Add(new ListViewItem(value.Key, mPanelImageView.Images.IndexOfKey(value.Key)));
             }
         }
