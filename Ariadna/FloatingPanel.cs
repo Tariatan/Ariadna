@@ -78,28 +78,5 @@ namespace Ariadna
 
             ItemSelected.Invoke(this, e);
         }
-
-        private void OnFormActivated(object sender, EventArgs e)
-        {
-            int i = 0;
-        }
-
-        private void OnFormDeactivated(object sender, EventArgs e)
-        {
-
-            int i = 0;
-        }
-
-        private void OnFormEnter(object sender, EventArgs e)
-        {
-
-            int i = 0;
-        }
-
-        private void OnFormLeave(object sender, EventArgs e)
-        {
-
-            int i = 0;
-        }
     }
 }

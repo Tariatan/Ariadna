@@ -203,14 +203,12 @@ namespace Ariadna
             using (var ctx = new AriadnaEntities())
             {
                 bool bNeedToSaveChanges = false;
-                for (int i = 0; i < m_GenresList.Items.Count; ++i)
+                foreach (ListViewItem item in m_GenresList.Items)
                 {
-                    var genreName = m_GenresList.Items[i].Text;
-
-                    Genre genre = ctx.Genres.Where(r => r.name == genreName).FirstOrDefault();
+                    Genre genre = ctx.Genres.Where(r => r.name == item.Text).FirstOrDefault();
                     if (genre == null)
                     {
-                        ctx.Genres.Add(new Genre { name = genreName });
+                        ctx.Genres.Add(new Genre { name = item.Text });
                         bNeedToSaveChanges = true;
                     }
                 }
@@ -235,18 +233,17 @@ namespace Ariadna
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {
-                for (int i = 0; i < m_CastList.Items.Count; ++i)
+                foreach (ListViewItem item in m_CastList.Items)
                 {
                     bool bAddEntry = false;
-                    var itemText = m_CastList.Items[i].Text;
-                    Actor actor = ctx.Actors.Where(r => r.name == itemText).FirstOrDefault();
+                    Actor actor = ctx.Actors.Where(r => r.name == item.Text).FirstOrDefault();
                     if (actor == null)
                     {
                         bAddEntry = true;
                         actor = new Actor();
                     }
-                    actor.name = itemText;
-                    actor.photo = Utilities.ImageToBytes(m_CastPhotos.Images[itemText]);
+                    actor.name = item.Text;
+                    actor.photo = Utilities.ImageToBytes(m_CastPhotos.Images[item.Text]);
 
                     if (bAddEntry)
                     {
@@ -272,19 +269,18 @@ namespace Ariadna
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {
-                for (int i = 0; i < m_DirectorsList.Items.Count; ++i)
+                foreach (ListViewItem item in m_DirectorsList.Items)
                 {
                     bool bAddEntry = false;
-                    var itemText = m_DirectorsList.Items[i].Text;
-                    Director director = ctx.Directors.Where(r => r.name == itemText).FirstOrDefault();
+                    Director director = ctx.Directors.Where(r => r.name == item.Text).FirstOrDefault();
                     if (director == null)
                     {
                         bAddEntry = true;
                         director = new Director();
                     }
 
-                    director.name = itemText;
-                    director.photo = Utilities.ImageToBytes(m_DirectorsPhotos.Images[itemText]);
+                    director.name = item.Text;
+                    director.photo = Utilities.ImageToBytes(m_DirectorsPhotos.Images[item.Text]);
 
                     if (bAddEntry)
                     {
@@ -567,9 +563,53 @@ namespace Ariadna
                 return;
             }
 
-            if (e.KeyData == Keys.F2 && m_DirectorsList.SelectedItems.Count > 0)
+            if ((e.KeyData == Keys.F2) && (m_DirectorsList.SelectedItems.Count > 0))
             {
                 m_DirectorsList.SelectedItems[0].BeginEdit();
+                return;
+            }
+        }
+        private void OnCastKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Control && (e.KeyCode == Keys.V))
+            {
+                AddListViewItemFromClipboard(m_CastList, m_CastPhotos);
+                return;
+            }
+
+            if (e.KeyCode == Keys.Delete)
+            {
+                DeleteFocusedListItem(m_CastList);
+                return;
+            }
+
+            if ((e.KeyData == Keys.F2) && (m_DirectorsList.SelectedItems.Count > 0))
+            {
+                m_CastList.SelectedItems[0].BeginEdit();
+                return;
+            }
+        }
+        private void OnDescriptionKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Control && (e.KeyCode == Keys.V))
+            {
+                txtDescription.Text = DecorateDescription(txtDescription.Text);
+                return;
+            }
+        }
+        private void OnGenresKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Control && (e.KeyCode == Keys.V))
+            {
+                AddGenresFromClipboard();
+                return;
+            }
+
+            if (e.KeyCode == Keys.Delete)
+            {
+                DeleteFocusedListItem(m_GenresList);
+                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
+
                 return;
             }
         }
@@ -588,8 +628,6 @@ namespace Ariadna
             {
                 using (var ctx = new AriadnaEntities())
                 {
-                    // var director = ctx.Directors.AsNoTracking().Where(r => r.name == name).Select(r => r.name == name);
-
                     Director director = ctx.Directors.AsNoTracking().Where(r => r.name == name).FirstOrDefault();
                     if (director != null)
                     {
@@ -640,26 +678,6 @@ namespace Ariadna
                 m_DirectorsList.Refresh();
             }
         }
-        private void OnCastKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Control && (e.KeyCode == Keys.V))
-            {
-                AddListViewItemFromClipboard(m_CastList, m_CastPhotos);
-                return;
-            }
-
-            if (e.KeyCode == Keys.Delete)
-            {
-                DeleteFocusedListItem(m_CastList);
-                return;
-            }
-
-            if (e.KeyData == Keys.F2 && m_DirectorsList.SelectedItems.Count > 0)
-            {
-                m_CastList.SelectedItems[0].BeginEdit();
-                return;
-            }
-        }
         private void OnCastDoubleClicked(object sender, MouseEventArgs e)
         {
             if (GetBitmapFromDisk(out Bitmap bmp,
@@ -689,14 +707,6 @@ namespace Ariadna
 
             return decoratedText;
         }
-        private void OnDescriptionKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Control && (e.KeyCode == Keys.V))
-            {
-                txtDescription.Text = DecorateDescription(txtDescription.Text);
-                return;
-            }
-        }
         private void AddGenresFromClipboard()
         {
             foreach (var item in Clipboard.GetText().Split(','))
@@ -720,25 +730,8 @@ namespace Ariadna
                 }
             }
         }
-        private void OnGenresKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Control && (e.KeyCode == Keys.V))
-            {
-                AddGenresFromClipboard();
-                return;
-            }
-
-            if (e.KeyCode == Keys.Delete)
-            {
-                DeleteFocusedListItem(m_GenresList);
-                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
-
-                return;
-            }
-        }
         private void OnAddGenreClicked(object sender, EventArgs e)
         {
-
             SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
             foreach (var name in Utilities.GENRES_LIST)
             {
@@ -793,6 +786,42 @@ namespace Ariadna
         private void OnCastPasteClick(object sender, EventArgs e)
         {
             AddListViewItemFromClipboard(m_CastList, m_CastPhotos);
+        }
+        private void OnDirectorRenamed(object sender, LabelEditEventArgs e)
+        {
+            if (e.Label == null)
+            {
+                return;
+            }
+
+            using (var ctx = new AriadnaEntities())
+            {
+                Director director = ctx.Directors.AsNoTracking().Where(r => r.name == e.Label).FirstOrDefault();
+                if ((director != null) && (director.photo != null))
+                {
+                    m_DirectorsPhotos.Images.SetKeyName(m_DirectorsList.Items[e.Item].ImageIndex, e.Label);
+                    m_DirectorsPhotos.Images[m_DirectorsPhotos.Images.IndexOfKey(e.Label)] = Utilities.BytesToBitmap(director.photo);
+                    m_DirectorsList.Refresh();
+                }
+            }
+        }
+        private void OnActorRenamed(object sender, LabelEditEventArgs e)
+        {
+            if (e.Label == null)
+            {
+                return;
+            }
+
+            using (var ctx = new AriadnaEntities())
+            {
+                Actor actor = ctx.Actors.AsNoTracking().Where(r => r.name == e.Label).FirstOrDefault();
+                if ((actor != null) && (actor.photo != null))
+                {
+                    m_CastPhotos.Images.SetKeyName(m_CastList.Items[e.Item].ImageIndex, e.Label);
+                    m_CastPhotos.Images[m_CastPhotos.Images.IndexOfKey(e.Label)] = Utilities.BytesToBitmap(actor.photo);
+                    m_CastList.Refresh();
+                }
+            }
         }
     }
 }

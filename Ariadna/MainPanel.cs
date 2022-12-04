@@ -27,7 +27,9 @@ namespace Ariadna
         private const int BLINK_COUNT = 3;
         private int mBlinkCount = BLINK_COUNT;
 
-        private const int MIN_NAME_LENGTH = 3;
+        private const int MAX_SEARCH_FILTER_COUNT = 200;
+
+        private const string EMPTY_DOTS = ". . .";
 
         public MainPanel()
         {
@@ -489,8 +491,6 @@ namespace Ariadna
         }
         private void OnToolStripGenreClicked(object sender, EventArgs e)
         {
-            DeleteUnusedGenres();
-
             SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
             using (var ctx = new AriadnaEntities())
             {
@@ -515,6 +515,8 @@ namespace Ariadna
         }
         private void OnToolStripClearActorBtnClick(object sender, EventArgs e)
         {
+            //DeleteUnusedActors();
+
             HideFloatingPanel();
             if (m_ToolStripActorName.Text.Length > 0)
             {
@@ -532,10 +534,13 @@ namespace Ariadna
         }
         private void OnToolStripClearGenreBtnClick(object sender, EventArgs e)
         {
+            //DeleteUnusedGenres();
+
             HideFloatingPanel();
-            if (m_ToolStripGenreName.Text.Length > 0)
+            if ((m_ToolStripGenreName.Text.Length > 0) && (m_ToolStripGenreName.Text != EMPTY_DOTS))
             {
-                m_ToolStripGenreName.Text = "...";
+
+                m_ToolStripGenreName.Text = EMPTY_DOTS;
                 QueryMovies();
             }
         }
@@ -549,6 +554,7 @@ namespace Ariadna
         }
         private void OnMovieNameTextChanged(object sender, EventArgs e)
         {
+            HideFloatingPanel();
             QueryMovies();
         }
         private void OnDirectorNameTextChanged(object sender, EventArgs e)
@@ -570,7 +576,7 @@ namespace Ariadna
             using (var ctx = new AriadnaEntities())
             {
                 var name = m_ToolStripDirectorName.Text.ToUpper();
-                var directors = ctx.MovieDirectors.AsNoTracking().Where(r => r.Director.name.ToUpper().Contains(name));
+                var directors = ctx.MovieDirectors.AsNoTracking().Where(r => r.Director.name.ToUpper().Contains(name)).Take(MAX_SEARCH_FILTER_COUNT);
 
                 foreach (var director in directors)
                 {
@@ -603,7 +609,7 @@ namespace Ariadna
             using (var ctx = new AriadnaEntities())
             {
                 var name = m_ToolStripActorName.Text.ToUpper();
-                var actors = ctx.MovieCasts.AsNoTracking().Where(r => (r.Actor.name.ToUpper().Contains(name)));
+                var actors = ctx.MovieCasts.AsNoTracking().Where(r => (r.Actor.name.ToUpper().Contains(name))).Take(MAX_SEARCH_FILTER_COUNT);
 
                 foreach (var actor in actors)
                 {
@@ -616,6 +622,28 @@ namespace Ariadna
             m_ToolStripActorName.Focus();
 
             Cursor.Current = Cursors.Default;
+        }
+        private void DeleteUnusedActors()
+        {
+            using (var ctx = new AriadnaEntities())
+            {
+                var actors = ctx.Actors.ToList();
+
+                bool bNeedToSaveChanges = false;
+                foreach (var actor in actors)
+                {
+                    var usedActor = ctx.MovieCasts.Where(r => (r.actorId == actor.Id)).FirstOrDefault();
+                    if (usedActor == null)
+                    {
+                        ctx.Actors.Remove(actor);
+                        bNeedToSaveChanges = true;
+                    }
+                }
+                if (bNeedToSaveChanges)
+                {
+                    ctx.SaveChanges();
+                }
+            }
         }
         private void DeleteUnusedGenres()
         {
@@ -696,6 +724,22 @@ namespace Ariadna
 
                 QueryMovies();
             }
+        }
+        private void OnPanelMoved(object sender, EventArgs e)
+        {
+            HideFloatingPanel();
+        }
+        private void OnPanelResized(object sender, EventArgs e)
+        {
+            HideFloatingPanel();
+        }
+        private void OnListViewKeyDown(object sender, KeyEventArgs e)
+        {
+            HideFloatingPanel();
+        }
+        private void OnListViewEnter(object sender, EventArgs e)
+        {
+            HideFloatingPanel();
         }
     }
 }

@@ -63,7 +63,7 @@ namespace Ariadna
         }
         public static Bitmap BytesToBitmap(byte[] bytes)
         {
-            if (bytes == null)
+            if ((bytes == null) || (bytes.Length == 0))
             {
                 return null;
             }

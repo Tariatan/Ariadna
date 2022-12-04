@@ -73,11 +73,7 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "FloatingPanel";
-            this.Activated += new System.EventHandler(this.OnFormActivated);
-            this.Deactivate += new System.EventHandler(this.OnFormDeactivated);
-            this.Enter += new System.EventHandler(this.OnFormEnter);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnKeyDown);
-            this.Leave += new System.EventHandler(this.OnFormLeave);
             this.ResumeLayout(false);
 
         }

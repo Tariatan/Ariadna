@@ -89,6 +89,8 @@
             this.listView.RetrieveVirtualItem += new System.Windows.Forms.RetrieveVirtualItemEventHandler(this.ListView_RetrieveVirtualItem);
             this.listView.SearchForVirtualItem += new System.Windows.Forms.SearchForVirtualItemEventHandler(this.ListView_SearchForVirtualItem);
             this.listView.Click += new System.EventHandler(this.OnListViewClick);
+            this.listView.Enter += new System.EventHandler(this.OnListViewEnter);
+            this.listView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnListViewKeyDown);
             this.listView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ListView_MouseDoubleClick);
             // 
             // imageList
@@ -170,6 +172,7 @@
             this.m_ToolStripMovieName.MaxLength = 50;
             this.m_ToolStripMovieName.Name = "m_ToolStripMovieName";
             this.m_ToolStripMovieName.Size = new System.Drawing.Size(150, 23);
+            this.m_ToolStripMovieName.Enter += new System.EventHandler(this.OnMovieNameTextChanged);
             this.m_ToolStripMovieName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnMovieNameConfirmed);
             this.m_ToolStripMovieName.TextChanged += new System.EventHandler(this.OnMovieNameTextChanged);
             // 
@@ -272,6 +275,7 @@
             this.m_ToolStripDirectorName.MaxLength = 20;
             this.m_ToolStripDirectorName.Name = "m_ToolStripDirectorName";
             this.m_ToolStripDirectorName.Size = new System.Drawing.Size(100, 25);
+            this.m_ToolStripDirectorName.Enter += new System.EventHandler(this.OnDirectorNameTextChanged);
             this.m_ToolStripDirectorName.TextChanged += new System.EventHandler(this.OnDirectorNameTextChanged);
             // 
             // m_ToolStripClearDirectorBtn
@@ -306,6 +310,7 @@
             this.m_ToolStripActorName.MaxLength = 20;
             this.m_ToolStripActorName.Name = "m_ToolStripActorName";
             this.m_ToolStripActorName.Size = new System.Drawing.Size(100, 25);
+            this.m_ToolStripActorName.Enter += new System.EventHandler(this.OnActorNameTextChanged);
             this.m_ToolStripActorName.TextChanged += new System.EventHandler(this.OnActorNameTextChanged);
             // 
             // m_ToolStripClearActorBtn
@@ -337,8 +342,8 @@
             this.m_ToolStripGenreName.BackColor = System.Drawing.Color.DarkMagenta;
             this.m_ToolStripGenreName.ForeColor = System.Drawing.Color.White;
             this.m_ToolStripGenreName.Name = "m_ToolStripGenreName";
-            this.m_ToolStripGenreName.Size = new System.Drawing.Size(16, 22);
-            this.m_ToolStripGenreName.Text = "...";
+            this.m_ToolStripGenreName.Size = new System.Drawing.Size(22, 22);
+            this.m_ToolStripGenreName.Text = ". . .";
             this.m_ToolStripGenreName.Click += new System.EventHandler(this.OnToolStripGenreClicked);
             // 
             // m_ToolStripClearGenreBtn
@@ -409,6 +414,8 @@
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainPanel_KeyPress);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.MainPanel_KeyUp);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.OnFormClicked);
+            this.Move += new System.EventHandler(this.OnPanelMoved);
+            this.Resize += new System.EventHandler(this.OnPanelResized);
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();
             this.m_QuickListFlow.ResumeLayout(false);

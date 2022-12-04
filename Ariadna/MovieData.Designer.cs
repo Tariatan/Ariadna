@@ -269,6 +269,7 @@
             this.m_DirectorsList.Size = new System.Drawing.Size(130, 246);
             this.m_DirectorsList.TabIndex = 6;
             this.m_DirectorsList.UseCompatibleStateImageBehavior = false;
+            this.m_DirectorsList.AfterLabelEdit += new System.Windows.Forms.LabelEditEventHandler(this.OnDirectorRenamed);
             this.m_DirectorsList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.OnDirectorsKeyUp);
             this.m_DirectorsList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.OnDirectorsDoubleClicked);
             // 
@@ -298,6 +299,7 @@
             this.m_CastList.Size = new System.Drawing.Size(466, 246);
             this.m_CastList.TabIndex = 7;
             this.m_CastList.UseCompatibleStateImageBehavior = false;
+            this.m_CastList.AfterLabelEdit += new System.Windows.Forms.LabelEditEventHandler(this.OnActorRenamed);
             this.m_CastList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.OnCastKeyUp);
             this.m_CastList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.OnCastDoubleClicked);
             // 
