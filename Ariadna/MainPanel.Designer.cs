@@ -89,9 +89,9 @@
             this.listView.RetrieveVirtualItem += new System.Windows.Forms.RetrieveVirtualItemEventHandler(this.ListView_RetrieveVirtualItem);
             this.listView.SearchForVirtualItem += new System.Windows.Forms.SearchForVirtualItemEventHandler(this.ListView_SearchForVirtualItem);
             this.listView.Click += new System.EventHandler(this.OnListViewClick);
-            this.listView.Enter += new System.EventHandler(this.OnListViewEnter);
             this.listView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnListViewKeyDown);
             this.listView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ListView_MouseDoubleClick);
+            this.listView.MouseCaptureChanged += new System.EventHandler(this.OnMouseCaptureChanged);
             // 
             // imageList
             // 
@@ -172,7 +172,7 @@
             this.m_ToolStripMovieName.MaxLength = 50;
             this.m_ToolStripMovieName.Name = "m_ToolStripMovieName";
             this.m_ToolStripMovieName.Size = new System.Drawing.Size(150, 23);
-            this.m_ToolStripMovieName.Enter += new System.EventHandler(this.OnMovieNameTextChanged);
+            this.m_ToolStripMovieName.Enter += new System.EventHandler(this.OnMovieNameTextEntered);
             this.m_ToolStripMovieName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnMovieNameConfirmed);
             this.m_ToolStripMovieName.TextChanged += new System.EventHandler(this.OnMovieNameTextChanged);
             // 
@@ -367,6 +367,7 @@
             this.m_QuickListFlow.Name = "m_QuickListFlow";
             this.m_QuickListFlow.Size = new System.Drawing.Size(93, 657);
             this.m_QuickListFlow.TabIndex = 3;
+            this.m_QuickListFlow.MouseCaptureChanged += new System.EventHandler(this.OnMouseCaptureChanged);
             // 
             // button1
             // 

@@ -44,7 +44,10 @@ namespace Ariadna
             m_CastPhotos.ImageSize = new Size(Utilities.PHOTO_W, Utilities.PHOTO_H);
             m_DirectorsPhotos.ImageSize = new Size(Utilities.PHOTO_W, Utilities.PHOTO_H);
 
-            txtTitle.Text = FilePath.Substring(FilePath.LastIndexOf('\\') + 1, FilePath.LastIndexOf('.') - FilePath.LastIndexOf('\\') - 1);
+            // Get path name
+            txtTitle.Text = FilePath.Substring(FilePath.LastIndexOf('\\') + 1);
+            // Remove extension
+            txtTitle.Text = txtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mpg", "").Replace(".ts", "");
             txtPath.Text = FilePath;
 
             m_IsShiftPressed = false;
@@ -192,9 +195,9 @@ namespace Ariadna
         }
         private void PrepareListView(ListView listView)
         {
-            for (int i = 0; i < listView.Items.Count; ++i)
+            foreach (ListViewItem item in listView.Items)
             {
-                listView.Items[i].Text = Utilities.CapitalizeWords(listView.Items[i].Text.Trim());
+                item.Text = Utilities.CapitalizeWords(item.Text.Trim());
             }
         }
         private bool StoreGenres()
@@ -369,10 +372,9 @@ namespace Ariadna
                 ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == movieId)));
                 ctx.SaveChanges();
 
-                for (int i = 0; i < m_CastList.Items.Count; ++i)
+                foreach (ListViewItem item in m_CastList.Items)
                 {
-                    var actorName = m_CastList.Items[i].Text;
-                    Actor actor = ctx.Actors.Where(r => r.name == actorName).FirstOrDefault();
+                    Actor actor = ctx.Actors.Where(r => r.name == item.Text).FirstOrDefault();
                     if (actor == null)
                     {
                         continue;
@@ -405,10 +407,9 @@ namespace Ariadna
                 ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == movieId)));
                 ctx.SaveChanges();
 
-                for (int i = 0; i < m_DirectorsList.Items.Count; ++i)
+                foreach (ListViewItem item in m_DirectorsList.Items)
                 {
-                    var directorName = m_DirectorsList.Items[i].Text;
-                    Director director = ctx.Directors.Where(r => r.name == directorName).FirstOrDefault();
+                    Director director = ctx.Directors.Where(r => r.name == item.Text).FirstOrDefault();
                     if (director == null)
                     {
                         continue;
@@ -441,10 +442,9 @@ namespace Ariadna
                 ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == movieId)));
                 ctx.SaveChanges();
 
-                for (int i = 0; i < m_GenresList.Items.Count; ++i)
+                foreach (ListViewItem item in m_GenresList.Items)
                 {
-                    var genreName = m_GenresList.Items[i].Text;
-                    Genre genre = ctx.Genres.Where(r => r.name == genreName).FirstOrDefault();
+                    Genre genre = ctx.Genres.Where(r => r.name == item.Text).FirstOrDefault();
                     if (genre == null)
                     {
                         continue;

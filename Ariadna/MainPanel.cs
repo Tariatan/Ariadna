@@ -196,9 +196,21 @@ namespace Ariadna
                 openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
 
+                // Allow folders too
+                openFileDialog.ValidateNames = false;
+                openFileDialog.CheckFileExists = false;
+                openFileDialog.CheckPathExists = true;
+                const string folderFlag = "File or folder";
+                openFileDialog.FileName = folderFlag;
+
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    OpenAddMovieFormDialog(openFileDialog.FileName);
+                    string path = openFileDialog.FileName;
+                    if (path.Contains(folderFlag))
+                    {
+                        path = Path.GetDirectoryName(openFileDialog.FileName);
+                    }
+                    OpenAddMovieFormDialog(path);
                 }
             }
         }
@@ -554,7 +566,6 @@ namespace Ariadna
         }
         private void OnMovieNameTextChanged(object sender, EventArgs e)
         {
-            HideFloatingPanel();
             QueryMovies();
         }
         private void OnDirectorNameTextChanged(object sender, EventArgs e)
@@ -737,7 +748,11 @@ namespace Ariadna
         {
             HideFloatingPanel();
         }
-        private void OnListViewEnter(object sender, EventArgs e)
+        private void OnMouseCaptureChanged(object sender, EventArgs e)
+        {
+            HideFloatingPanel();
+        }
+        private void OnMovieNameTextEntered(object sender, EventArgs e)
         {
             HideFloatingPanel();
         }
