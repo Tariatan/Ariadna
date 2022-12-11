@@ -90,6 +90,7 @@
             this.listView.SearchForVirtualItem += new System.Windows.Forms.SearchForVirtualItemEventHandler(this.ListView_SearchForVirtualItem);
             this.listView.Click += new System.EventHandler(this.OnListViewClick);
             this.listView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnListViewKeyDown);
+            this.listView.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ListView_MouseClicked);
             this.listView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ListView_MouseDoubleClick);
             this.listView.MouseCaptureChanged += new System.EventHandler(this.OnMouseCaptureChanged);
             // 

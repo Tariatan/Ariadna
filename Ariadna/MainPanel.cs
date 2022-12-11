@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -30,6 +31,7 @@ namespace Ariadna
         private const int MAX_SEARCH_FILTER_COUNT = 200;
 
         private const string EMPTY_DOTS = ". . .";
+        private const string MEDIA_PLAYER_PATH = "C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe";
 
         public MainPanel()
         {
@@ -192,7 +194,7 @@ namespace Ariadna
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.InitialDirectory = "M:\\";
-                openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.ts|All files (*.*)|*.*";
+                openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.ts|All files (*.*)|*.*";
                 openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
 
@@ -264,10 +266,6 @@ namespace Ariadna
                 }
             }
         }
-        private void OnListViewClick(object sender, EventArgs e)
-        {
-            HideFloatingPanel();
-        }
         private ListViewItem BuildListViewItem(int index)
         {
             var movie = mMovies[index];
@@ -326,8 +324,15 @@ namespace Ariadna
                 mBlinkState = EBlinkState.None;
             }
         }
-        private void ListView_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void ListView_MouseClicked(object sender, MouseEventArgs e)
         {
+            HideFloatingPanel();
+            if(e.Button == MouseButtons.Left)
+            {
+                return;
+            }
+
+            // Show Movie details on Mouse Right Click
             ListView lv = sender as ListView;
             MovieData addMovie = new MovieData(lv.FocusedItem.ToolTipText);
             // No Taskbar icon for helper dialog
@@ -335,6 +340,32 @@ namespace Ariadna
 
             addMovie.FormClosed += new FormClosedEventHandler(OnAddMovieFormClosed);
             addMovie.ShowDialog();
+        }
+        private void ListView_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            ListView lv = sender as ListView;
+            var path = lv.FocusedItem.ToolTipText;
+            // Check if it is a file first
+            if (File.Exists(path))
+            {
+                if (!File.Exists(MEDIA_PLAYER_PATH))
+                {
+                    return;
+                }
+
+                // Enclose the path in quotes as required by MPC
+                Process.Start(MEDIA_PLAYER_PATH, "\"" + path + "\"");
+            }
+            // Checked if it is a directory
+            else if (Directory.Exists(path))
+            {
+                Process.Start(new ProcessStartInfo()
+                {
+                    FileName = path,
+                    UseShellExecute = true,
+                    Verb = "open"
+                });
+            }
         }
         //The basic VirtualMode function. Dynamically returns a ListViewItem with the required properties.
         private void ListView_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
@@ -402,7 +433,8 @@ namespace Ariadna
                 // -- Search Movie Name --
                 if (m_ToolStripMovieName.Text.Length > 0)
                 {
-                    query = query.Where(r => r.title.ToUpper().Contains(m_ToolStripMovieName.Text.ToUpper()));
+                    query = query.Where(r => r.title.ToUpper().Contains(m_ToolStripMovieName.Text.ToUpper()) || 
+                                             r.title_original.ToUpper().Contains(m_ToolStripMovieName.Text.ToUpper()));
                 }
                 // -- WISH LIST --
                 if (m_ToolStrip_WishlistBtn.Checked)
@@ -741,6 +773,10 @@ namespace Ariadna
             HideFloatingPanel();
         }
         private void OnPanelResized(object sender, EventArgs e)
+        {
+            HideFloatingPanel();
+        }
+        private void OnListViewClick(object sender, EventArgs e)
         {
             HideFloatingPanel();
         }
