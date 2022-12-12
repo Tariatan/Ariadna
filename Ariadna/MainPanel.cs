@@ -21,12 +21,18 @@ namespace Ariadna
 
         private FloatingPanel mFloatingPanel = new FloatingPanel();
 
+        private System.Windows.Forms.Timer mTypeTimer = new System.Windows.Forms.Timer();
+        private enum ETypeField { None = 0, TITLE, DIRECTOR, ACTOR }
+        private ETypeField mTypeField = ETypeField.None;
+        private const int TYPE_TIMOUT_MS = 200;
+
         private System.Windows.Forms.Timer mBlinkTimer = new System.Windows.Forms.Timer();
         private enum EBlinkState { None = 0, TICK, TUCK, }
 
         private EBlinkState mBlinkState = EBlinkState.None;
         private const int BLINK_COUNT = 3;
         private int mBlinkCount = BLINK_COUNT;
+        private const int BLINK_INTERVAL_MS = 50;
 
         private const int MAX_SEARCH_FILTER_COUNT = 200;
 
@@ -51,6 +57,12 @@ namespace Ariadna
 
             // Blink timer
             mBlinkTimer.Tick += new EventHandler(Blink);
+            mBlinkTimer.Interval = BLINK_INTERVAL_MS;
+
+            // Type timer
+            mTypeField = ETypeField.None;
+            mTypeTimer.Tick += new EventHandler(onTypeTimer);
+            mTypeTimer.Interval = TYPE_TIMOUT_MS;
         }
         private void MainPanel_Load(object sender, EventArgs e)
         {
@@ -311,7 +323,6 @@ namespace Ariadna
 
             mBlinkState = EBlinkState.TICK;
             mBlinkCount = BLINK_COUNT;
-            mBlinkTimer.Interval = 50;
             mBlinkTimer.Start();
         }
         private void Blink(object sender, EventArgs e)
@@ -598,16 +609,46 @@ namespace Ariadna
         }
         private void OnMovieNameTextChanged(object sender, EventArgs e)
         {
-            QueryMovies();
+            mTypeTimer.Stop();
+            mTypeField = ETypeField.TITLE;
+            mTypeTimer.Start();
+        }
+        private void onTypeTimer(object sender, EventArgs e)
+        {
+            mTypeTimer.Stop();
+            var typeField = mTypeField;
+            mTypeField = ETypeField.None;
+
+            switch (typeField)
+            {
+                case ETypeField.TITLE:
+                    QueryMovies();
+                    break;
+                case ETypeField.DIRECTOR:
+                    onDirectorTypeTimer();
+                    break;
+                case ETypeField.ACTOR:
+                    onActorTypeTimer();
+                    break;
+
+                default:
+                    break;
+            }
         }
         private void OnDirectorNameTextChanged(object sender, EventArgs e)
+        {
+            mTypeTimer.Stop();
+            mTypeField = ETypeField.DIRECTOR;
+            mTypeTimer.Start();
+        }
+        private void onDirectorTypeTimer()
         {
             if (mSuppressNameChangedEvent)
             {
                 return;
             }
 
-            if(m_ToolStripDirectorName.Text.Length == 0)
+            if (m_ToolStripDirectorName.Text.Length == 0)
             {
                 HideFloatingPanel();
                 return;
@@ -634,6 +675,12 @@ namespace Ariadna
             Cursor.Current = Cursors.Default;
         }
         private void OnActorNameTextChanged(object sender, EventArgs e)
+        {
+            mTypeTimer.Stop();
+            mTypeField = ETypeField.ACTOR;
+            mTypeTimer.Start();
+        }
+        private void onActorTypeTimer()
         {
             if (mSuppressNameChangedEvent)
             {
