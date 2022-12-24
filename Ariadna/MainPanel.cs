@@ -38,6 +38,8 @@ namespace Ariadna
 
         private const string EMPTY_DOTS = ". . .";
         private const string MEDIA_PLAYER_PATH = "C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe";
+        private const string DEFAULT_MOVIES_PATH = @"M:\";
+        private const string DEFAULT_SERIES_PATH = @"S:\";
 
         public MainPanel()
         {
@@ -51,8 +53,6 @@ namespace Ariadna
                 SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title }).ToList());
 
                 listView.VirtualListSize = mMovies.Count();
-
-                m_ToolStripMovieName.Focus();
             }
 
             // Blink timer
@@ -70,6 +70,8 @@ namespace Ariadna
             this.Activate();
 
             Splasher.Close();
+
+            m_ToolStripMovieName.Focus();
         }
         private void SetMoviesList(List<Utilities.MovieDto> movies)
         {
@@ -118,20 +120,26 @@ namespace Ariadna
         }
         private bool FindFirstNotInsertedMovie()
         {
-            var Files = Directory.GetFiles(@"M:\");
+            return FindFirstNotInserted(Directory.GetFiles(DEFAULT_MOVIES_PATH));
+        }
+        private bool FindFirstNotInsertedSeries()
+        {
+            return FindFirstNotInserted(Directory.GetDirectories(DEFAULT_SERIES_PATH));
+        }
+        private bool FindFirstNotInserted(String[] paths)
+        {
             using (var ctx = new AriadnaEntities())
             {
-                foreach (var file in Files)
+                foreach (var path in paths)
                 {
-                    if (ctx.Ignores.AsNoTracking().Where(r => r.path == file).FirstOrDefault() != null)
+                    if (ctx.Ignores.AsNoTracking().Where(r => r.path == path).FirstOrDefault() != null)
                     {
                         continue;
                     }
 
-                    var path = ctx.Movies.AsNoTracking().Where(r => r.file_path == file).Select(r => r.file_path).FirstOrDefault();
-                    if (path == null)
+                    if (ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() == null)
                     {
-                        OpenAddMovieFormDialog(file);
+                        OpenAddMovieFormDialog(path);
                         return true;
                     }
                 }
@@ -202,10 +210,14 @@ namespace Ariadna
             {
                 return;
             }
+            else if(FindFirstNotInsertedSeries())
+            {
+                return;
+            }
 
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.InitialDirectory = "M:\\";
+                openFileDialog.InitialDirectory = DEFAULT_MOVIES_PATH;
                 openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.ts|All files (*.*)|*.*";
                 openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
