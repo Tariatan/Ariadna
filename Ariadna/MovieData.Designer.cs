@@ -116,6 +116,7 @@
             this.txtTitle.Name = "txtTitle";
             this.txtTitle.Size = new System.Drawing.Size(603, 29);
             this.txtTitle.TabIndex = 1;
+            this.txtTitle.Enter += new System.EventHandler(this.HideFloatingPanel);
             // 
             // txtPath
             // 
@@ -139,6 +140,7 @@
             this.txtTitleOriginal.Name = "txtTitleOriginal";
             this.txtTitleOriginal.Size = new System.Drawing.Size(603, 29);
             this.txtTitleOriginal.TabIndex = 2;
+            this.txtTitleOriginal.Enter += new System.EventHandler(this.HideFloatingPanel);
             // 
             // txtYear
             // 
@@ -191,6 +193,7 @@
             this.txtDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtDescription.Size = new System.Drawing.Size(603, 154);
             this.txtDescription.TabIndex = 5;
+            this.txtDescription.Enter += new System.EventHandler(this.HideFloatingPanel);
             this.txtDescription.KeyUp += new System.Windows.Forms.KeyEventHandler(this.OnDescriptionKeyUp);
             // 
             // checkToSee
@@ -270,6 +273,7 @@
             this.m_DirectorsList.TabIndex = 6;
             this.m_DirectorsList.UseCompatibleStateImageBehavior = false;
             this.m_DirectorsList.AfterLabelEdit += new System.Windows.Forms.LabelEditEventHandler(this.OnDirectorRenamed);
+            this.m_DirectorsList.Enter += new System.EventHandler(this.HideFloatingPanel);
             this.m_DirectorsList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.OnDirectorsKeyUp);
             this.m_DirectorsList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.OnDirectorsDoubleClicked);
             // 
@@ -300,6 +304,7 @@
             this.m_CastList.TabIndex = 7;
             this.m_CastList.UseCompatibleStateImageBehavior = false;
             this.m_CastList.AfterLabelEdit += new System.Windows.Forms.LabelEditEventHandler(this.OnActorRenamed);
+            this.m_CastList.Enter += new System.EventHandler(this.HideFloatingPanel);
             this.m_CastList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.OnCastKeyUp);
             this.m_CastList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.OnCastDoubleClicked);
             // 
@@ -322,6 +327,7 @@
             this.m_GenresList.Size = new System.Drawing.Size(520, 83);
             this.m_GenresList.TabIndex = 4;
             this.m_GenresList.UseCompatibleStateImageBehavior = false;
+            this.m_GenresList.Enter += new System.EventHandler(this.HideFloatingPanel);
             this.m_GenresList.KeyUp += new System.Windows.Forms.KeyEventHandler(this.OnGenresKeyUp);
             // 
             // m_GenresImages
@@ -358,45 +364,53 @@
             // m_GenrePaste
             // 
             this.m_GenrePaste.AutoSize = true;
+            this.m_GenrePaste.CausesValidation = false;
             this.m_GenrePaste.ForeColor = System.Drawing.Color.White;
             this.m_GenrePaste.Location = new System.Drawing.Point(540, 96);
             this.m_GenrePaste.Name = "m_GenrePaste";
             this.m_GenrePaste.Size = new System.Drawing.Size(13, 13);
             this.m_GenrePaste.TabIndex = 35;
             this.m_GenrePaste.Text = "↓";
+            this.m_GenrePaste.UseMnemonic = false;
             this.m_GenrePaste.Click += new System.EventHandler(this.OnGenrePasteClick);
             // 
             // m_DescriptionPaste
             // 
             this.m_DescriptionPaste.AutoSize = true;
+            this.m_DescriptionPaste.CausesValidation = false;
             this.m_DescriptionPaste.ForeColor = System.Drawing.Color.White;
             this.m_DescriptionPaste.Location = new System.Drawing.Point(476, 185);
             this.m_DescriptionPaste.Name = "m_DescriptionPaste";
             this.m_DescriptionPaste.Size = new System.Drawing.Size(13, 13);
             this.m_DescriptionPaste.TabIndex = 36;
             this.m_DescriptionPaste.Text = "↓";
+            this.m_DescriptionPaste.UseMnemonic = false;
             this.m_DescriptionPaste.Click += new System.EventHandler(this.OnDescriptionPasteClick);
             // 
             // m_DirectorPaste
             // 
             this.m_DirectorPaste.AutoSize = true;
+            this.m_DirectorPaste.CausesValidation = false;
             this.m_DirectorPaste.ForeColor = System.Drawing.Color.White;
             this.m_DirectorPaste.Location = new System.Drawing.Point(472, 353);
             this.m_DirectorPaste.Name = "m_DirectorPaste";
             this.m_DirectorPaste.Size = new System.Drawing.Size(13, 13);
             this.m_DirectorPaste.TabIndex = 37;
             this.m_DirectorPaste.Text = "↓";
+            this.m_DirectorPaste.UseMnemonic = false;
             this.m_DirectorPaste.Click += new System.EventHandler(this.OnDirectorPasteClick);
             // 
             // m_CastPaste
             // 
             this.m_CastPaste.AutoSize = true;
+            this.m_CastPaste.CausesValidation = false;
             this.m_CastPaste.ForeColor = System.Drawing.Color.White;
             this.m_CastPaste.Location = new System.Drawing.Point(601, 353);
             this.m_CastPaste.Name = "m_CastPaste";
             this.m_CastPaste.Size = new System.Drawing.Size(13, 13);
             this.m_CastPaste.TabIndex = 38;
             this.m_CastPaste.Text = "↓";
+            this.m_CastPaste.UseMnemonic = false;
             this.m_CastPaste.Click += new System.EventHandler(this.OnCastPasteClick);
             // 
             // MovieData

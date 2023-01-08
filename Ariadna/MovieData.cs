@@ -17,10 +17,10 @@ namespace Ariadna
         public Utilities.EFormCloseReason FormCloseReason { get; set; }
         public string FilePath { get; set; }
 
-        private bool m_IsUpdate = false;
-        private bool m_IsShiftPressed = false;
+        private bool mIsInUpdateMode = false;
+        private bool mIsShiftPressed = false;
 
-        private FloatingPanel m_FloatingPanel = new FloatingPanel();
+        private FloatingPanel mFloatingPanel = new FloatingPanel();
 
         private Bitmap NO_PREVIEW_IMAGE_SMALL = new Bitmap(Properties.Resources.No_Preview_Image_small);
 
@@ -39,7 +39,7 @@ namespace Ariadna
                 return;
             }
 
-            m_FloatingPanel.Deactivate += new System.EventHandler(OnFloatingPanelClosed);
+            mFloatingPanel.Deactivate += new System.EventHandler(OnFloatingPanelClosed);
 
             m_CastPhotos.ImageSize = new Size(Utilities.PHOTO_W, Utilities.PHOTO_H);
             m_DirectorsPhotos.ImageSize = new Size(Utilities.PHOTO_W, Utilities.PHOTO_H);
@@ -50,7 +50,7 @@ namespace Ariadna
             txtTitle.Text = txtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mpg", "").Replace(".ts", "");
             txtPath.Text = FilePath;
 
-            m_IsShiftPressed = false;
+            mIsShiftPressed = false;
 
             using (var ctx = new AriadnaEntities())
             {
@@ -58,11 +58,11 @@ namespace Ariadna
                 if (movie != null)
                 {
                     FillFieldsFromFile();
-                    m_IsUpdate = true;
+                    mIsInUpdateMode = true;
                 }
                 else
                 {
-                    m_IsUpdate = false;
+                    mIsInUpdateMode = false;
                 }
                 UpdateInsertButtonText();
             }
@@ -72,7 +72,7 @@ namespace Ariadna
         }
         private void UpdateInsertButtonText()
         {
-            if (m_IsUpdate)
+            if (mIsInUpdateMode)
             {
                 Text = "Обновление записи";
                 btnInsert.Text = "Обновить";
@@ -85,7 +85,7 @@ namespace Ariadna
         }
         private void MovieData_KeyDown(object sender, KeyEventArgs e)
         {
-            m_IsShiftPressed = e.Modifiers.HasFlag(Keys.Shift);
+            mIsShiftPressed = e.Modifiers.HasFlag(Keys.Shift);
 
             if (e.Modifiers.HasFlag(Keys.Shift))
             {
@@ -94,9 +94,9 @@ namespace Ariadna
 
             if (e.KeyCode == Keys.Escape)
             {
-                if (m_FloatingPanel.Visible)
+                if (mFloatingPanel.Visible)
                 {
-                    m_FloatingPanel.Hide();
+                    mFloatingPanel.Hide();
                     return;
                 }
 
@@ -112,7 +112,7 @@ namespace Ariadna
         }
         private void MovieData_KeyUp(object sender, KeyEventArgs e)
         {
-            m_IsShiftPressed = e.Modifiers.HasFlag(Keys.Shift);
+            mIsShiftPressed = e.Modifiers.HasFlag(Keys.Shift);
 
             if (e.Modifiers.HasFlag(Keys.Shift) == false)
             {
@@ -136,6 +136,11 @@ namespace Ariadna
             using (var shell = ShellObject.FromParsingName(filePath))
             {
                 IShellProperty prop = shell.Properties.System.Media.Duration;
+                if(prop.ValueAsObject == null)
+                {
+                    return TimeSpan.Zero;
+                }
+
                 return TimeSpan.FromTicks((long)(ulong)prop.ValueAsObject);
             }
         }
@@ -159,7 +164,7 @@ namespace Ariadna
         }
         private void AddUpdateMovie()
         {
-            if (m_IsShiftPressed)
+            if (mIsShiftPressed)
             {
                 AddToIgnoreList();
                 return;
@@ -622,8 +627,19 @@ namespace Ariadna
                 AddNewListItem(listView, imageList, name);
             }
         }
+
         private void AddNewListItem(ListView listView, ImageList imageList, string name, Bitmap image = null)
         {
+            if (name == "↓")
+            {
+                return;
+            }
+
+            if(listView.FindItemWithText(name) != null)
+            {
+                return;
+            }
+
             if (image == null)
             {
                 using (var ctx = new AriadnaEntities())
@@ -653,7 +669,7 @@ namespace Ariadna
                     image = NO_PREVIEW_IMAGE_SMALL;
                 }
             }
-
+            
             imageList.Images.Add(name, image);
             listView.Items.Add(new ListViewItem(name, imageList.Images.IndexOfKey(name)));
         }
@@ -732,6 +748,12 @@ namespace Ariadna
         }
         private void OnAddGenreClicked(object sender, EventArgs e)
         {
+            if (mFloatingPanel.Visible)
+            {
+                mFloatingPanel.Hide();
+                return;
+            }
+
             SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
             foreach (var name in Utilities.GENRES_LIST)
             {
@@ -743,26 +765,26 @@ namespace Ariadna
                 values[name] = Utilities.GetGenreImage(name);
             }
 
-            m_FloatingPanel.Location = new Point(this.Location.X + m_GenresList.Location.X + 12,
+            mFloatingPanel.Location = new Point(this.Location.X + m_GenresList.Location.X + 12,
                                                this.Location.Y + m_GenresList.Location.Y + SystemInformation.CaptionHeight + m_GenresList.Size.Height + 12);
-            m_FloatingPanel.Size = new Size(m_GenresList.Size.Width, Utilities.GENRE_IMAGE_H * 7 - 10);
-            m_FloatingPanel.BackColor = this.BackColor;
+            mFloatingPanel.Size = new Size(m_GenresList.Size.Width, Utilities.GENRE_IMAGE_H * 7 - 10);
+            mFloatingPanel.BackColor = this.BackColor;
 
-            m_FloatingPanel.UpdateListView(values, FloatingPanel.EPanelContentType.GENRES, false, false, Utilities.GENRE_IMAGE_W, Utilities.GENRE_IMAGE_H);
-            if (!m_FloatingPanel.Visible)
+            mFloatingPanel.UpdateListView(values, FloatingPanel.EPanelContentType.GENRES, false, false, Utilities.GENRE_IMAGE_W, Utilities.GENRE_IMAGE_H);
+            if (!mFloatingPanel.Visible)
             {
-                m_FloatingPanel.Show(this);
+                mFloatingPanel.Show(this);
             }
         }
         private void OnFloatingPanelClosed(object sender, EventArgs e)
         {
-            if (m_FloatingPanel.Visible)
+            if (mFloatingPanel.Visible)
             {
                 return;
             }
 
-            var name = m_FloatingPanel.EntryNames.FirstOrDefault();
-            if (name.Length > 0)
+            var name = mFloatingPanel.EntryNames.FirstOrDefault();
+            if (name != null)
             {
                 name = Utilities.CapitalizeWords(name);
                 m_GenresImages.Images.Add(name, Utilities.GetGenreImage(name));
@@ -821,6 +843,13 @@ namespace Ariadna
                     m_CastPhotos.Images[m_CastPhotos.Images.IndexOfKey(e.Label)] = Utilities.BytesToBitmap(actor.photo);
                     m_CastList.Refresh();
                 }
+            }
+        }
+        private void HideFloatingPanel(object sender, EventArgs e)
+        {
+            if (mFloatingPanel.Visible)
+            {
+                mFloatingPanel.Hide();
             }
         }
     }
