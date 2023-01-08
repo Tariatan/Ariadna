@@ -734,6 +734,11 @@ namespace Ariadna
                     continue;
                 }
 
+                if (m_GenresList.FindItemWithText(name) != null)
+                {
+                    continue;
+                }
+
                 name = Utilities.CapitalizeWords(name);
                 m_GenresImages.Images.Add(name, Utilities.GetGenreImage(name));
                 m_GenresList.Items.Add(new ListViewItem(name, m_GenresImages.Images.IndexOfKey(name)));

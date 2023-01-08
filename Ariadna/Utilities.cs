@@ -38,6 +38,11 @@ namespace Ariadna
             var result = "";
             for (int i = 0; i < wordList.Length; ++i)
             {
+                if (wordList[i].Length == 0)
+                {
+                    continue;
+                }
+
                 wordList[i] = wordList[i][0].ToString().ToUpper() + wordList[i].Substring(1);
                 if (result.Length > 0)
                 {

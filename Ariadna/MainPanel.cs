@@ -128,6 +128,9 @@ namespace Ariadna
         }
         private bool FindFirstNotInserted(String[] paths)
         {
+            Cursor.Current = Cursors.WaitCursor;
+
+            bool bFound = false;
             using (var ctx = new AriadnaEntities())
             {
                 foreach (var path in paths)
@@ -140,16 +143,36 @@ namespace Ariadna
                     if (ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() == null)
                     {
                         OpenAddMovieFormDialog(path);
-                        return true;
+                        bFound = true;
+
+                        break;
                     }
                 }
             }
 
-            return false;
+            Cursor.Current = Cursors.Default;
+
+            return bFound;
         }
-        private void ToolStripAddBtn_Click(object sender, EventArgs e)
+        private void ToolStripAddBtn_MouseUp(object sender, MouseEventArgs e)
         {
-            AddNewMovie();
+            if (e.Button == MouseButtons.Left)
+            {
+                if (FindFirstNotInsertedMovie())
+                {
+                    return;
+                }
+                else if (FindFirstNotInsertedSeries())
+                {
+                    return;
+                }
+
+                AddNewMovie();
+            }
+            else if(e.Button == MouseButtons.Right)
+            {
+                AddNewMovie();
+            }
         }
         private void MainPanel_KeyUp(object sender, KeyEventArgs e)
         {
@@ -164,7 +187,6 @@ namespace Ariadna
                 HideFloatingPanel();
                 return;
             }
-
         }
         private void OnFormClicked(object sender, EventArgs e)
         {
@@ -172,9 +194,19 @@ namespace Ariadna
         }
         private void MainPanel_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == '+')
+            if(e.KeyChar == '+')
             {
                 e.Handled = true;
+
+                if (FindFirstNotInsertedMovie())
+                {
+                    return;
+                }
+                else if (FindFirstNotInsertedSeries())
+                {
+                    return;
+                }
+
                 AddNewMovie();
             }
         }
@@ -206,14 +238,6 @@ namespace Ariadna
         }
         private void AddNewMovie()
         {
-            if (FindFirstNotInsertedMovie())
-            {
-                return;
-            }
-            else if(FindFirstNotInsertedSeries())
-            {
-                return;
-            }
 
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {

@@ -150,7 +150,7 @@
             this.m_ToolStrip_AddBtn.Name = "m_ToolStrip_AddBtn";
             this.m_ToolStrip_AddBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_AddBtn.Text = "Добавить";
-            this.m_ToolStrip_AddBtn.Click += new System.EventHandler(this.ToolStripAddBtn_Click);
+            this.m_ToolStrip_AddBtn.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ToolStripAddBtn_MouseUp);
             // 
             // toolStripSeparator1
             // 
@@ -413,8 +413,8 @@
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.MainPanel_Load);
             this.Click += new System.EventHandler(this.OnFormClicked);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainPanel_KeyUp);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.MainPanel_KeyPress);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.MainPanel_KeyUp);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.OnFormClicked);
             this.Move += new System.EventHandler(this.OnPanelMoved);
             this.Resize += new System.EventHandler(this.OnPanelResized);
