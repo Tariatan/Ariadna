@@ -480,8 +480,10 @@ namespace Ariadna
                 // -- Search Movie Name --
                 if (m_ToolStripMovieName.Text.Length > 0)
                 {
-                    query = query.Where(r => r.title.ToUpper().Contains(m_ToolStripMovieName.Text.ToUpper()) || 
-                                             r.title_original.ToUpper().Contains(m_ToolStripMovieName.Text.ToUpper()));
+                    var toSearch = m_ToolStripMovieName.Text.ToUpper();
+                    query = query.Where(r => r.title.ToUpper().Contains(toSearch) || 
+                                             r.title_original.ToUpper().Contains(toSearch) ||
+                                             r.file_path.ToUpper().Contains(toSearch));
                 }
                 // -- WISH LIST --
                 if (m_ToolStrip_WishlistBtn.Checked)
