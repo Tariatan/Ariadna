@@ -50,7 +50,7 @@ namespace Ariadna
 
             using (var ctx = new AriadnaEntities())
             {
-                SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title }).ToList());
+                SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
 
                 listView.VirtualListSize = mMovies.Count();
             }
@@ -229,7 +229,7 @@ namespace Ariadna
                         ctx.Movies.Remove(movie);
 
                         ctx.SaveChanges();
-                        SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title }).ToList());
+                        SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
 
                         RebuildCache();
                     }
@@ -308,7 +308,7 @@ namespace Ariadna
                     // Simply update list and list count to reflect changes
                     else
                     {
-                        SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title }).ToList());
+                        SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
                         RebuildCache();
                     }
                 }
@@ -530,7 +530,7 @@ namespace Ariadna
                     }
                 }
 
-                SetMoviesList(query.OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title }).ToList());
+                SetMoviesList(query.OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
             }
 
             RebuildCache();

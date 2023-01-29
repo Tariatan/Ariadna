@@ -184,10 +184,22 @@ namespace Ariadna
 
             bSuccess = bSuccess && StoreMovie();
 
-            // Store tables with references
-            bSuccess = bSuccess && StoreMovieCast();
-            bSuccess = bSuccess && StoreMovieDirectors();
-            bSuccess = bSuccess && StoreMovieGenres();
+            if(bSuccess)
+            {
+                int movieId = -1;
+                using (var ctx = new AriadnaEntities())
+                {
+                    movieId = ctx.Movies.Where(r => r.file_path == FilePath).Select(x => x.Id).FirstOrDefault();
+                }
+
+                if(movieId != -1)
+                {
+                    // Store tables with references
+                    bSuccess = bSuccess && StoreMovieCast(movieId);
+                    bSuccess = bSuccess && StoreMovieDirectors(movieId);
+                    bSuccess = bSuccess && StoreMovieGenres(movieId);
+                }
+            }
 
             Cursor.Current = Cursors.Default;
 
@@ -342,7 +354,7 @@ namespace Ariadna
                 movie.title_original = txtTitleOriginal.Text.Trim();
                 movie.year = movieYear;
                 movie.length = TimeSpan.Parse(txtLength.Text);
-                movie.file_path = FilePath;
+                movie.file_path = txtPath.Text.Trim();
                 movie.description = txtDescription.Text;
                 movie.poster = poster;
                 movie.creation_time = File.GetCreationTimeUtc(FilePath);
@@ -365,14 +377,12 @@ namespace Ariadna
             }
             return bSuccess;
         }
-        private bool StoreMovieCast()
+        private bool StoreMovieCast(int movieId)
         {
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {
                 bool bNeedToSaveChanges = false;
-
-                int movieId = ctx.Movies.Where(r => r.file_path == FilePath).Select(x => x.Id).FirstOrDefault();
 
                 ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == movieId)));
                 ctx.SaveChanges();
@@ -400,14 +410,12 @@ namespace Ariadna
             }
             return bSuccess;
         }
-        private bool StoreMovieDirectors()
+        private bool StoreMovieDirectors(int movieId)
         {
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {
                 bool bNeedToSaveChanges = false;
-
-                int movieId = ctx.Movies.Where(r => r.file_path == FilePath).Select(x => x.Id).FirstOrDefault();
 
                 ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == movieId)));
                 ctx.SaveChanges();
@@ -435,14 +443,12 @@ namespace Ariadna
             }
             return bSuccess;
         }
-        private bool StoreMovieGenres()
+        private bool StoreMovieGenres(int movieId)
         {
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {
                 bool bNeedToSaveChanges = false;
-
-                int movieId = ctx.Movies.Where(r => r.file_path == FilePath).Select(x => x.Id).FirstOrDefault();
 
                 ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == movieId)));
                 ctx.SaveChanges();
@@ -627,7 +633,6 @@ namespace Ariadna
                 AddNewListItem(listView, imageList, name);
             }
         }
-
         private void AddNewListItem(ListView listView, ImageList imageList, string name, Bitmap image = null)
         {
             if (name == "↓")

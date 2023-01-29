@@ -16,6 +16,7 @@ namespace Ariadna
         {
             public string path { get; set; }
             public string title { get; set; }
+            public int id { get; set; }
         }
 
         public static int GENRE_IMAGE_W = 60;
