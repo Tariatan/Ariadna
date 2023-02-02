@@ -176,9 +176,9 @@ namespace Ariadna
         }
         private void MainPanel_KeyUp(object sender, KeyEventArgs e)
         {
-            if ((e.KeyCode == Keys.Delete) && e.Modifiers.HasFlag(Keys.Shift))
+            if (e.KeyCode == Keys.Delete)
             {
-                DeleteMovie();
+                DeleteMovie(e.Modifiers.HasFlag(Keys.Shift));
                 return;
             }
 
@@ -210,7 +210,7 @@ namespace Ariadna
                 AddNewMovie();
             }
         }
-        private void DeleteMovie()
+        private void DeleteMovie(bool deleteFile = false)
         {
             using (var ctx = new AriadnaEntities())
             {
@@ -219,7 +219,8 @@ namespace Ariadna
                 if (movie != null)
                 {
                     string msg = movie.title + " / " + movie.title_original + "\n" + movie.file_path;
-                    DialogResult dialogResult = MessageBox.Show(msg, "Удалить запись?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    string caption = deleteFile ? "Удалить запись и файл?" : "Удалить запись?";
+                    DialogResult dialogResult = MessageBox.Show(msg, caption, MessageBoxButtons.YesNoCancel, deleteFile ? MessageBoxIcon.Warning : MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
                     if (dialogResult == DialogResult.Yes)
                     {
                         ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == movie.Id)));
@@ -232,6 +233,12 @@ namespace Ariadna
                         SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
 
                         RebuildCache();
+
+                        if (deleteFile)
+                        {
+                            // Delete file
+                            File.Delete(lvi.ToolTipText);
+                        }
                     }
                 }
             }
