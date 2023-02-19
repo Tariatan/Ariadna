@@ -18,14 +18,25 @@ namespace Ariadna
             public string title { get; set; }
             public int id { get; set; }
         }
+        public class MovieChoiceDto
+        {
+            public string titleRu { get; set; }
+            public string titleOrig { get; set; }
+            public int year { get; set; }
+        }
 
         public static int GENRE_IMAGE_W = 60;
         public static int GENRE_IMAGE_H = 60;
+
+        public static int POSTER_W = 400;
+        public static int POSTER_H = 600;
 
         public static int PHOTO_W = 54;
         public static int PHOTO_H = 81;
 
         public static int MAX_GENRES_COUNT = 5;
+
+        public static string TMDB_API_KEY = "ec3e7f0826eb6ef92dc4b1f69f1e1dd3";
 
         public static List<string> GENRES_LIST = new List<string>
         {"Боевик", "Приключение", "Анимационный", "Биография", "Комедия", "Криминал", "Детектив", "Катастрофа", "Драма",

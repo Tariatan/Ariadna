@@ -245,7 +245,6 @@ namespace Ariadna
         }
         private void AddNewMovie()
         {
-
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.InitialDirectory = DEFAULT_MOVIES_PATH;
@@ -271,10 +270,33 @@ namespace Ariadna
                 }
             }
         }
-        private void OpenAddMovieFormDialog(string fileName)
+        private void OpenAddMovieFormDialog(string path)
         {
-            MovieData addMovie = new MovieData(fileName);
+            FetchMovieFromIMDB(path);
+        }
+        private async void FetchMovieFromIMDB(string path)
+        {
+            string query = Path.GetFileNameWithoutExtension(path);
 
+            TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
+            var results = await client.SearchMovieAsync(query, "ru-RU");
+
+            int choiceIndex = 0;
+            if (results.Results.Count > 1)
+            {
+                List<Utilities.MovieChoiceDto> titles = new List<Utilities.MovieChoiceDto>();
+                foreach (var result in results.Results.Take(20))
+                {
+                    titles.Add(new Utilities.MovieChoiceDto { titleRu = result.Title, titleOrig = result.OriginalTitle, year = result.ReleaseDate.Value.Year });
+                }
+                ChoicePopup choice = new ChoicePopup(path, titles);
+
+                choice.ShowDialog(this);
+                choiceIndex = choice.index;
+            }
+
+            MovieData addMovie = new MovieData(path);
+            addMovie.IMDBIndex = (results.Results.Count == 0) ? -1 : results.Results[choiceIndex].Id;
             addMovie.FormClosed += new FormClosedEventHandler(OnAddMovieFormClosed);
             addMovie.ShowDialog();
         }

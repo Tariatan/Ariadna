@@ -7,7 +7,9 @@ using System.Data.Entity.Validation;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using TMDbLib.Utilities.Serializer;
 
 namespace Ariadna
 {
@@ -16,6 +18,7 @@ namespace Ariadna
 
         public Utilities.EFormCloseReason FormCloseReason { get; set; }
         public string FilePath { get; set; }
+        public int IMDBIndex { get; set; }
 
         private bool mIsInUpdateMode = false;
         private bool mIsShiftPressed = false;
@@ -62,6 +65,7 @@ namespace Ariadna
                 }
                 else
                 {
+                    FillFieldsFromIMDB();
                     mIsInUpdateMode = false;
                 }
                 UpdateInsertButtonText();
@@ -69,6 +73,60 @@ namespace Ariadna
 
             var length = GetVideoDuration(FilePath);
             txtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
+        }
+        private async void FillFieldsFromIMDB()
+        {
+            if(IMDBIndex == -1)
+            {
+                return;
+            }
+
+            Cursor.Current = Cursors.WaitCursor;
+
+            TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
+            // Fetch config to client to get image sizes
+            await FetchConfig(client);
+
+            var movie = await client.GetMovieAsync(IMDBIndex, "ru-RU", null);
+
+            // Download first available movie Poster
+            var UrlOriginal = client.GetImageUrl(client.Config.Images.PosterSizes.Last(), movie.PosterPath).AbsoluteUri;
+            byte[] bts = await client.GetImageBytesAsync(client.Config.Images.PosterSizes.Last(), UrlOriginal);
+
+            // Scale image
+            var bmp = new Bitmap(Utilities.POSTER_W, Utilities.POSTER_H);
+            Graphics graph = Graphics.FromImage(bmp);
+            graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Utilities.POSTER_W, Utilities.POSTER_H));
+
+            // Set Poster image
+            picPoster.Image = bmp;
+
+            txtTitleOriginal.Text = movie.OriginalTitle;
+            txtYear.Text = movie.ReleaseDate.Value.Year.ToString();
+            txtDescription.Text = movie.Overview;
+
+            foreach (var genre in movie.Genres)
+            {
+                AddGenre(genre.Name);
+            }
+
+            Cursor.Current = Cursors.Default;
+        }
+        private static async Task FetchConfig(TMDbLib.Client.TMDbClient client)
+        {
+            FileInfo configJson = new FileInfo("config.json");
+
+            if (configJson.Exists && configJson.LastWriteTimeUtc >= DateTime.UtcNow.AddHours(-10))
+            {
+                string json = File.ReadAllText(configJson.FullName, System.Text.Encoding.UTF8);
+                client.SetConfig(TMDbLib.Utilities.Serializer.TMDbJsonSerializer.Instance.DeserializeFromString<TMDbLib.Objects.General.TMDbConfig>(json));
+            }
+            else
+            {
+                TMDbLib.Objects.General.TMDbConfig config = await client.GetConfigAsync();
+                string json = TMDbJsonSerializer.Instance.SerializeToString(config);
+                File.WriteAllText(configJson.FullName, json, System.Text.Encoding.UTF8);
+            }
         }
         private void UpdateInsertButtonText()
         {
@@ -121,7 +179,7 @@ namespace Ariadna
         }
         private void PicPoster_DoubleClick(object sender, EventArgs e)
         {
-            if (GetBitmapFromDisk(out Bitmap bmp, "Картинка (400x600) (*.*)|*.*", 400, 600))
+            if (GetBitmapFromDisk(out Bitmap bmp, "Картинка (400x600) (*.*)|*.*", Utilities.POSTER_W, Utilities.POSTER_H))
             {
                 picPoster.Image = (bmp != null) ? bmp : new Bitmap(Properties.Resources.No_Preview_Image);
             }
@@ -733,28 +791,32 @@ namespace Ariadna
             foreach (var item in Clipboard.GetText().Split(','))
             {
                 var name = item.Trim();
-                // Only single word allowed
-                if (name.Contains(" "))
-                {
-                    continue;
-                }
-
-                if (m_GenresList.FindItemWithText(name) != null)
-                {
-                    continue;
-                }
-
-                name = Utilities.CapitalizeWords(name);
-                m_GenresImages.Images.Add(name, Utilities.GetGenreImage(name));
-                m_GenresList.Items.Add(new ListViewItem(name, m_GenresImages.Images.IndexOfKey(name)));
-
-                m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
+                AddGenre(name);
 
                 if (m_GenresList.Items.Count == Utilities.MAX_GENRES_COUNT)
                 {
                     break;
                 }
             }
+        }
+        private void AddGenre(string name)
+        {
+            // Only single word allowed
+            if (name.Contains(" "))
+            {
+                return;
+            }
+
+            if (m_GenresList.FindItemWithText(name) != null)
+            {
+                return;
+            }
+
+            name = Utilities.CapitalizeWords(name);
+            m_GenresImages.Images.Add(name, Utilities.GetGenreImage(name));
+            m_GenresList.Items.Add(new ListViewItem(name, m_GenresImages.Images.IndexOfKey(name)));
+
+            m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
         }
         private void OnAddGenreClicked(object sender, EventArgs e)
         {
