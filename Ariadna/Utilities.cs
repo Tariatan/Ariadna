@@ -43,7 +43,19 @@ namespace Ariadna
          "Сказка", "Семейный", "Фэнтези", "Исторический", "Ужасы", "Детский", "Музыка", "Мистика", "Постапокалипсис",
          "Романтика", "Фантастика", "Спорт", "Триллер", "Военный", "Вестерн", "Новогодний"
         };
-
+        public static string GetGenreBySynonym(string name)
+        {
+            switch(name)
+            {
+                case "Мультфильм":
+                    return "Анимационный";
+                case "Мелодрама":
+                    return "Драма";
+                case "Приключения":
+                    return "Приключение";
+            }
+            return name;
+        }
         public static string CapitalizeWords(string words)
         {
             var wordList = words.Trim().Split(' ');
@@ -89,6 +101,33 @@ namespace Ariadna
             {
                 return new Bitmap(memoryStream);
             }
+        }
+        private static byte[] empty = new byte[] { 137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 54, 0, 0, 0, 81, 8, 6, 0, 0, 0, 153, 180, 85, 63, 0, 0, 0, 1, 115, 82, 71, 66, 0, 174, 206, 28, 233, 0, 0, 0, 4, 103, 65, 77, 65, 0, 0, 177, 143, 11, 252, 97, 5, 0, 0, 0, 9, 112, 72, 89, 115, 0, 0, 14, 195, 0, 0, 14, 195, 1, 199, 111, 168, 100, 0, 0 };
+        public static bool IsValidPreview(byte[] bytes)
+        {
+            if(bytes == null)
+            {
+                return false;
+            }
+
+            // Workaround: compare first ~85 bytes of NO_PREVIEW_IMAGE_SMALL to determine if no preview was set
+            const int NO_PREVIEW_IMAGE_SMALL_length = 1119;
+            const int NO_PREVIEW_IMAGE_SMALL_length2 = 1150;
+            if ((bytes.Length != NO_PREVIEW_IMAGE_SMALL_length) &&
+                (bytes.Length != NO_PREVIEW_IMAGE_SMALL_length2))
+            {
+                return true;
+            }
+
+            for(int i = 0; i < empty.Length; ++i)
+            {
+                if(bytes[i] != empty[i])
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
         public static Bitmap GetGenreImage(string name)
         {

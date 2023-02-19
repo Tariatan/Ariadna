@@ -62,6 +62,9 @@
             this.m_QuickListFlow = new System.Windows.Forms.FlowLayoutPanel();
             this.button1 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripLabel8 = new System.Windows.Forms.ToolStripLabel();
+            this.m_ToolStripEntriesCount = new System.Windows.Forms.ToolStripLabel();
             this.toolStrip.SuspendLayout();
             this.m_QuickListFlow.SuspendLayout();
             this.SuspendLayout();
@@ -132,7 +135,10 @@
             this.toolStripSeparator7,
             this.toolStripLabel7,
             this.m_ToolStripGenreName,
-            this.m_ToolStripClearGenreBtn});
+            this.m_ToolStripClearGenreBtn,
+            this.toolStripSeparator8,
+            this.toolStripLabel8,
+            this.m_ToolStripEntriesCount});
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
             this.toolStrip.Padding = new System.Windows.Forms.Padding(0);
@@ -398,6 +404,27 @@
             this.button2.Text = "A";
             this.button2.UseVisualStyleBackColor = false;
             // 
+            // toolStripSeparator8
+            // 
+            this.toolStripSeparator8.Name = "toolStripSeparator8";
+            this.toolStripSeparator8.Size = new System.Drawing.Size(6, 25);
+            // 
+            // toolStripLabel8
+            // 
+            this.toolStripLabel8.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.toolStripLabel8.ForeColor = System.Drawing.Color.White;
+            this.toolStripLabel8.Name = "toolStripLabel8";
+            this.toolStripLabel8.Size = new System.Drawing.Size(94, 22);
+            this.toolStripLabel8.Text = "Всего записей:";
+            // 
+            // m_ToolStripEntriesCount
+            // 
+            this.m_ToolStripEntriesCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.m_ToolStripEntriesCount.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStripEntriesCount.Name = "m_ToolStripEntriesCount";
+            this.m_ToolStripEntriesCount.Size = new System.Drawing.Size(14, 22);
+            this.m_ToolStripEntriesCount.Text = "0";
+            // 
             // MainPanel
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
@@ -459,6 +486,9 @@
         private System.Windows.Forms.ToolStripLabel toolStripLabel7;
         private System.Windows.Forms.ToolStripButton m_ToolStripClearGenreBtn;
         private System.Windows.Forms.ToolStripLabel m_ToolStripGenreName;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel8;
+        private System.Windows.Forms.ToolStripLabel m_ToolStripEntriesCount;
     }
 }
 

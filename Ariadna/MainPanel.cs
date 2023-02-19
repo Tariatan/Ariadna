@@ -76,6 +76,7 @@ namespace Ariadna
         private void SetMoviesList(List<Utilities.MovieDto> movies)
         {
             mMovies = movies;
+            m_ToolStripEntriesCount.Text = mMovies.Count().ToString();
 
             m_QuickListFlow.Controls.Clear();
 
@@ -276,29 +277,69 @@ namespace Ariadna
         }
         private async void FetchMovieFromIMDB(string path)
         {
-            string query = Path.GetFileNameWithoutExtension(path);
-
             TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
-            var results = await client.SearchMovieAsync(query, "ru-RU");
+            MovieData addMovie = new MovieData(path);
+            addMovie.TMDBMovieIndex = -1;
+            addMovie.TMDBTVShowIndex = -1;
 
-            int choiceIndex = 0;
-            if (results.Results.Count > 1)
+            if (Directory.Exists(path))
             {
-                List<Utilities.MovieChoiceDto> titles = new List<Utilities.MovieChoiceDto>();
-                foreach (var result in results.Results.Take(20))
+                DirectoryInfo dir = new DirectoryInfo(path);
+                var tvShowsResults = await client.SearchTvShowAsync(dir.Name, "ru-RU");
+                var tvShows = tvShowsResults.Results;
+                if (tvShows.Count > 0)
                 {
-                    titles.Add(new Utilities.MovieChoiceDto { titleRu = result.Title, titleOrig = result.OriginalTitle, year = result.ReleaseDate.Value.Year });
+                    int choice = (tvShows.Count > 1) ? GetBestTVShowChoice(tvShows, path) : 0;
+                    if(choice >= 0)
+                    {
+                        addMovie.TMDBTVShowIndex = tvShows[choice].Id;
+                    }
                 }
-                ChoicePopup choice = new ChoicePopup(path, titles);
+            }
+            else
+            {
+                string query = Path.GetFileNameWithoutExtension(path);
+                var moviesResults = await client.SearchMovieAsync(query, "ru-RU");
+                var movies = moviesResults.Results;
 
-                choice.ShowDialog(this);
-                choiceIndex = choice.index;
+                if (movies.Count > 0)
+                {
+                    int choice = (movies.Count > 1) ? GetBestMovieChoice(movies, path) : 0;
+                    if (choice >= 0)
+                    {
+                        addMovie.TMDBMovieIndex = movies[choice].Id;
+                    }
+                }
             }
 
-            MovieData addMovie = new MovieData(path);
-            addMovie.IMDBIndex = (results.Results.Count == 0) ? -1 : results.Results[choiceIndex].Id;
             addMovie.FormClosed += new FormClosedEventHandler(OnAddMovieFormClosed);
             addMovie.ShowDialog();
+        }
+        private int GetBestMovieChoice(List<TMDbLib.Objects.Search.SearchMovie> movies, string path)
+        {
+            List<Utilities.MovieChoiceDto> titles = new List<Utilities.MovieChoiceDto>();
+            foreach (var result in movies.Take(20))
+            {
+                int y = (result.ReleaseDate != null) ? result.ReleaseDate.Value.Year : 0;
+                titles.Add(new Utilities.MovieChoiceDto { titleRu = result.Title, titleOrig = result.OriginalTitle, year = y });
+            }
+            ChoicePopup choice = new ChoicePopup(path, titles);
+
+            choice.ShowDialog(this);
+            return choice.index;
+        }
+        private int GetBestTVShowChoice(List<TMDbLib.Objects.Search.SearchTv> movies, string path)
+        {
+            List<Utilities.MovieChoiceDto> titles = new List<Utilities.MovieChoiceDto>();
+            foreach (var result in movies.Take(20))
+            {
+                int y = (result.FirstAirDate != null) ? result.FirstAirDate.Value.Year : 0;
+                titles.Add(new Utilities.MovieChoiceDto { titleRu = result.Name, titleOrig = result.OriginalName, year = y });
+            }
+            ChoicePopup choice = new ChoicePopup(path, titles);
+
+            choice.ShowDialog(this);
+            return choice.index;
         }
         private void OnAddMovieFormClosed(object sender, FormClosedEventArgs e)
         {

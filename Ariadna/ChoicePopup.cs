@@ -23,6 +23,7 @@ namespace Ariadna
                 mResultList.Items.Add(itm);
             }
             mToolStripPath.Text = path;
+            index = -1;
         }
         private void OnSelectedIndexChanged(object sender, EventArgs e)
         {
@@ -31,6 +32,14 @@ namespace Ariadna
         private void OnDoubleClick(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                this.Close();
+            }
         }
     }
 }

@@ -15,10 +15,10 @@ namespace Ariadna
 {
     public partial class MovieData : Form
     {
-
         public Utilities.EFormCloseReason FormCloseReason { get; set; }
         public string FilePath { get; set; }
-        public int IMDBIndex { get; set; }
+        public int TMDBMovieIndex { get; set; }
+        public int TMDBTVShowIndex { get; set; }
 
         private bool mIsInUpdateMode = false;
         private bool mIsShiftPressed = false;
@@ -28,6 +28,8 @@ namespace Ariadna
         private Bitmap NO_PREVIEW_IMAGE_SMALL = new Bitmap(Properties.Resources.No_Preview_Image_small);
 
         const Int32 MAX_GENRE_COUNT_ALLOWED = 5;
+
+        TMDbLib.Client.TMDbClient mTMDbClient = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
 
         public MovieData(string filePath)
         {
@@ -55,6 +57,8 @@ namespace Ariadna
 
             mIsShiftPressed = false;
 
+            FetchClientConfig();
+
             using (var ctx = new AriadnaEntities())
             {
                 var movie = ctx.Movies.AsNoTracking().Where(r => r.file_path == FilePath).Select(x => x.file_path).FirstOrDefault();
@@ -65,7 +69,15 @@ namespace Ariadna
                 }
                 else
                 {
-                    FillFieldsFromIMDB();
+                    if (TMDBMovieIndex != -1)
+                    {
+                        FillMovieFieldsFromIMDB();
+                    }
+                    else if(TMDBTVShowIndex != -1)
+                    {
+                        FillTVShowFieldsFromIMDB();
+                    }
+
                     mIsInUpdateMode = false;
                 }
                 UpdateInsertButtonText();
@@ -73,44 +85,11 @@ namespace Ariadna
 
             var length = GetVideoDuration(FilePath);
             txtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
+
         }
-        private async void FillFieldsFromIMDB()
+        private async void FetchClientConfig()
         {
-            if(IMDBIndex == -1)
-            {
-                return;
-            }
-
-            Cursor.Current = Cursors.WaitCursor;
-
-            TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
-            // Fetch config to client to get image sizes
-            await FetchConfig(client);
-
-            var movie = await client.GetMovieAsync(IMDBIndex, "ru-RU", null);
-
-            // Download first available movie Poster
-            var UrlOriginal = client.GetImageUrl(client.Config.Images.PosterSizes.Last(), movie.PosterPath).AbsoluteUri;
-            byte[] bts = await client.GetImageBytesAsync(client.Config.Images.PosterSizes.Last(), UrlOriginal);
-
-            // Scale image
-            var bmp = new Bitmap(Utilities.POSTER_W, Utilities.POSTER_H);
-            Graphics graph = Graphics.FromImage(bmp);
-            graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Utilities.POSTER_W, Utilities.POSTER_H));
-
-            // Set Poster image
-            picPoster.Image = bmp;
-
-            txtTitleOriginal.Text = movie.OriginalTitle;
-            txtYear.Text = movie.ReleaseDate.Value.Year.ToString();
-            txtDescription.Text = movie.Overview;
-
-            foreach (var genre in movie.Genres)
-            {
-                AddGenre(genre.Name);
-            }
-
-            Cursor.Current = Cursors.Default;
+            await FetchConfig(mTMDbClient);
         }
         private static async Task FetchConfig(TMDbLib.Client.TMDbClient client)
         {
@@ -126,6 +105,45 @@ namespace Ariadna
                 TMDbLib.Objects.General.TMDbConfig config = await client.GetConfigAsync();
                 string json = TMDbJsonSerializer.Instance.SerializeToString(config);
                 File.WriteAllText(configJson.FullName, json, System.Text.Encoding.UTF8);
+            }
+        }
+        private async void FillMovieFieldsFromIMDB()
+        {
+            var entry = await mTMDbClient.GetMovieAsync(TMDBMovieIndex, "ru-RU");
+            string year = (entry.ReleaseDate != null) ? entry.ReleaseDate.Value.Year.ToString() : "0";
+            FillFields(entry.PosterPath, entry.OriginalTitle, entry.Overview, year, entry.Genres);
+        }
+        private async void FillTVShowFieldsFromIMDB()
+        {
+            var entry = await mTMDbClient.GetTvShowAsync(TMDBTVShowIndex, TMDbLib.Objects.TvShows.TvShowMethods.Undefined, "ru-RU");
+            string year = (entry.FirstAirDate != null) ? entry.FirstAirDate.Value.Year.ToString() : "0";
+            FillFields(entry.PosterPath, entry.OriginalName, entry.Overview, year, entry.Genres);
+        }
+        private async void FillFields(string posterPath, string origTitle, string overview, string year, List<TMDbLib.Objects.General.Genre> genres)
+        {
+            if (posterPath != null)
+            {
+                // Download first available Poster
+                string imgSize = mTMDbClient.Config.Images.PosterSizes.Last();
+                var UrlOriginal = mTMDbClient.GetImageUrl(imgSize, posterPath).AbsoluteUri;
+                byte[] bts = await mTMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
+
+                // Scale image
+                var bmp = new Bitmap(Utilities.POSTER_W, Utilities.POSTER_H);
+                Graphics graph = Graphics.FromImage(bmp);
+                graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Utilities.POSTER_W, Utilities.POSTER_H));
+
+                // Set Poster image
+                picPoster.Image = bmp;
+            }
+
+            txtTitleOriginal.Text = origTitle;
+            txtYear.Text = year;
+            txtDescription.Text = overview;
+
+            foreach (var genre in genres)
+            {
+                AddGenre(genre.Name);
             }
         }
         private void UpdateInsertButtonText()
@@ -658,6 +676,46 @@ namespace Ariadna
                 return;
             }
         }
+        private async void FetchPreviews(ListView listView, ImageList imageList)
+        {
+            Cursor.Current = Cursors.WaitCursor;
+
+            foreach (ListViewItem item in listView.Items)
+            {
+                // Skip entries with valid preview set
+                if(Utilities.IsValidPreview(Utilities.ImageToBytes(imageList.Images[imageList.Images.IndexOfKey(item.Text)])))
+                {
+                    continue;
+                }
+
+                TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Search.SearchPerson> results = mTMDbClient.SearchPersonAsync(item.Text, "ru-RU").Result;
+
+                if(results.Results.Count > 0)
+                {
+                    var person = results.Results.First();
+                    if (person.ProfilePath == null)
+                    {
+                        continue;
+                    }
+
+                    // Download first available Photo
+                    string imgSize = mTMDbClient.Config.Images.ProfileSizes.Last();
+                    var UrlOriginal = mTMDbClient.GetImageUrl(imgSize, person.ProfilePath).AbsoluteUri;
+                    byte[] bts = await mTMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
+
+                    // Scale image
+                    var bmp = new Bitmap(Utilities.PHOTO_W, Utilities.PHOTO_H);
+                    Graphics graph = Graphics.FromImage(bmp);
+                    graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Utilities.PHOTO_W, Utilities.PHOTO_H));
+
+                    // Set Photo image
+                    imageList.Images[imageList.Images.IndexOfKey(item.Text)] = bmp;
+                    listView.Refresh();
+                }
+            }
+
+            Cursor.Current = Cursors.Default;
+        }
         private void OnDescriptionKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Control && (e.KeyCode == Keys.V))
@@ -690,6 +748,8 @@ namespace Ariadna
 
                 AddNewListItem(listView, imageList, name);
             }
+
+            FetchPreviews(listView, imageList);
         }
         private void AddNewListItem(ListView listView, ImageList imageList, string name, Bitmap image = null)
         {
@@ -720,7 +780,7 @@ namespace Ariadna
                         Actor actor = ctx.Actors.AsNoTracking().Where(r => r.name == name).FirstOrDefault();
                         if (actor != null)
                         {
-                            if (actor.photo != null)
+                            if ((actor.photo != null) && Utilities.IsValidPreview(actor.photo))
                             {
                                 image = Utilities.BytesToBitmap(actor.photo);
                             }
@@ -813,6 +873,7 @@ namespace Ariadna
             }
 
             name = Utilities.CapitalizeWords(name);
+            name = Utilities.GetGenreBySynonym(name);
             m_GenresImages.Images.Add(name, Utilities.GetGenreImage(name));
             m_GenresList.Items.Add(new ListViewItem(name, m_GenresImages.Images.IndexOfKey(name)));
 
