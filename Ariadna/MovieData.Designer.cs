@@ -128,6 +128,7 @@
             this.txtPath.Name = "txtPath";
             this.txtPath.Size = new System.Drawing.Size(400, 22);
             this.txtPath.TabIndex = 3;
+            this.txtPath.TextChanged += new System.EventHandler(this.OnFilePathChanged);
             // 
             // txtTitleOriginal
             // 

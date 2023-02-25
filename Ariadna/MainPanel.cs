@@ -211,12 +211,36 @@ namespace Ariadna
                 AddNewMovie();
             }
         }
+        private string FindStoredMoviePathById(string sId)
+        {
+            Int32 id = -1;
+            Int32.TryParse(sId, out id);
+            if (id != -1)
+            {
+                using (var ctx = new AriadnaEntities())
+                {
+                    Movie movie = ctx.Movies.Where(r => r.Id == id).FirstOrDefault();
+                    if (movie != null)
+                    {
+                        return movie.file_path;
+                    }
+                }
+            }
+
+            return "";
+        }
         private void DeleteMovie(bool deleteFile = false)
         {
+            Int32 id = -1;
+            Int32.TryParse(listView.FocusedItem.ToolTipText, out id);
+            if (id == -1)
+            {
+                return;
+            }
+
             using (var ctx = new AriadnaEntities())
             {
-                var lvi = listView.FocusedItem;
-                Movie movie = ctx.Movies.Where(r => r.file_path == lvi.ToolTipText).FirstOrDefault();
+                Movie movie = ctx.Movies.Where(r => r.Id == id).FirstOrDefault();
                 if (movie != null)
                 {
                     string msg = movie.title + " / " + movie.title_original + "\n" + movie.file_path;
@@ -235,10 +259,12 @@ namespace Ariadna
 
                         RebuildCache();
 
+                        m_ToolStripMovieName.Text = "";
+
                         if (deleteFile)
                         {
                             // Delete file
-                            File.Delete(lvi.ToolTipText);
+                            File.Delete(movie.file_path);
                         }
                     }
                 }
@@ -249,7 +275,7 @@ namespace Ariadna
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.InitialDirectory = DEFAULT_MOVIES_PATH;
-                openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.ts|All files (*.*)|*.*";
+                openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.m4v;*.ts|All files (*.*)|*.*";
                 openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
 
@@ -348,7 +374,7 @@ namespace Ariadna
             {
                 using (var ctx = new AriadnaEntities())
                 {
-                    Movie movie = ctx.Movies.AsNoTracking().Where(r => r.file_path == movieData.FilePath).FirstOrDefault();
+                    Movie movie = ctx.Movies.AsNoTracking().Where(r => r.Id == movieData.StoredDBMovieID).FirstOrDefault();
 
                     // Retrieve poster
                     Bitmap bmp = new Bitmap(171, 256);
@@ -362,7 +388,7 @@ namespace Ariadna
                     int index = 0;
                     for (; index < mMovies.Count; ++index)
                     {
-                        if (mMovies[index].path.Equals(movieData.FilePath))
+                        if (mMovies[index].id.Equals(movieData.StoredDBMovieID))
                         {
                             break;
                         }
@@ -371,7 +397,7 @@ namespace Ariadna
                     // Update poster and title if item already in the list
                     if (index < mMovies.Count)
                     {
-                        imageList.Images[imageList.Images.IndexOfKey(movieData.FilePath)] = bmp;
+                        imageList.Images[imageList.Images.IndexOfKey(movieData.StoredDBMovieID.ToString())] = bmp;
                         listView.Items[index].Text = movie.title;
                         listView.Refresh();
                     }
@@ -389,21 +415,21 @@ namespace Ariadna
             var movie = mMovies[index];
             using (var ctx = new AriadnaEntities())
             {
-                var poster = ctx.Movies.AsNoTracking().Where(r => r.file_path == movie.path).Select(x => new { x.poster }).FirstOrDefault().poster;
+                var poster = ctx.Movies.AsNoTracking().Where(r => r.Id == movie.id).Select(x => new { x.poster }).FirstOrDefault().poster;
 
                 Bitmap image = (poster.Length != 0) ? Utilities.BytesToBitmap(poster) : new Bitmap(Properties.Resources.No_Preview_Image);
 
                 try
                 {
-                    imageList.Images.Add(movie.path, image);
+                    imageList.Images.Add(movie.id.ToString(), image);
                 }
                 catch (InvalidOperationException)
                 {
                 }
 
-                ListViewItem lvi = new ListViewItem(movie.title, imageList.Images.IndexOfKey(movie.path))
+                ListViewItem lvi = new ListViewItem(movie.title, imageList.Images.IndexOfKey(movie.id.ToString()))
                 {
-                    ToolTipText = movie.path
+                    ToolTipText = movie.id.ToString()
                 };
 
                 return lvi;
@@ -451,17 +477,25 @@ namespace Ariadna
 
             // Show Movie details on Mouse Right Click
             ListView lv = sender as ListView;
-            MovieData addMovie = new MovieData(lv.FocusedItem.ToolTipText);
-            // No Taskbar icon for helper dialog
-            addMovie.ShowInTaskbar = false;
+            var path = FindStoredMoviePathById(lv.FocusedItem.ToolTipText);
+            if(string.IsNullOrEmpty(path))
+            {
+                return;
+            }
 
+            MovieData addMovie = new MovieData(path);
             addMovie.FormClosed += new FormClosedEventHandler(OnAddMovieFormClosed);
             addMovie.ShowDialog();
         }
         private void ListView_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             ListView lv = sender as ListView;
-            var path = lv.FocusedItem.ToolTipText;
+            var path = FindStoredMoviePathById(lv.FocusedItem.ToolTipText);
+            if (string.IsNullOrEmpty(path))
+            {
+                return;
+            }
+
             // Check if it is a file first
             if (File.Exists(path))
             {
@@ -482,6 +516,10 @@ namespace Ariadna
                     UseShellExecute = true,
                     Verb = "open"
                 });
+            }
+            else
+            {
+                MessageBox.Show(path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
         //The basic VirtualMode function. Dynamically returns a ListViewItem with the required properties.

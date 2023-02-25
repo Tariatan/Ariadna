@@ -17,6 +17,7 @@ namespace Ariadna
     {
         public Utilities.EFormCloseReason FormCloseReason { get; set; }
         public string FilePath { get; set; }
+        public int StoredDBMovieID { get; set; }
         public int TMDBMovieIndex { get; set; }
         public int TMDBTVShowIndex { get; set; }
 
@@ -34,7 +35,7 @@ namespace Ariadna
         public MovieData(string filePath)
         {
             FilePath = filePath;
-
+            StoredDBMovieID = -1;
             InitializeComponent();
         }
         private void AddMovie_Load(object sender, EventArgs e)
@@ -52,7 +53,7 @@ namespace Ariadna
             // Get path name
             txtTitle.Text = FilePath.Substring(FilePath.LastIndexOf('\\') + 1);
             // Remove extension
-            txtTitle.Text = txtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mpg", "").Replace(".ts", "");
+            txtTitle.Text = txtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mp4", "").Replace(".mpg", "").Replace(".ts", "");
             txtPath.Text = FilePath;
 
             mIsShiftPressed = false;
@@ -61,27 +62,32 @@ namespace Ariadna
 
             using (var ctx = new AriadnaEntities())
             {
-                var movie = ctx.Movies.AsNoTracking().Where(r => r.file_path == FilePath).Select(x => x.file_path).FirstOrDefault();
+                var movie = ctx.Movies.AsNoTracking().Where(r => r.file_path == FilePath).FirstOrDefault();
                 if (movie != null)
                 {
-                    FillFieldsFromFile();
-                    mIsInUpdateMode = true;
+                    StoredDBMovieID = movie.Id;
                 }
-                else
-                {
-                    if (TMDBMovieIndex != -1)
-                    {
-                        FillMovieFieldsFromIMDB();
-                    }
-                    else if(TMDBTVShowIndex != -1)
-                    {
-                        FillTVShowFieldsFromIMDB();
-                    }
-
-                    mIsInUpdateMode = false;
-                }
-                UpdateInsertButtonText();
             }
+
+            if (StoredDBMovieID != -1)
+            {
+                FillFieldsFromFile();
+                mIsInUpdateMode = true;
+            }
+            else
+            {
+                if (TMDBMovieIndex != -1)
+                {
+                    FillMovieFieldsFromIMDB();
+                }
+                else if(TMDBTVShowIndex != -1)
+                {
+                    FillTVShowFieldsFromIMDB();
+                }
+
+                mIsInUpdateMode = false;
+            }
+            UpdateInsertButtonText();
 
             var length = GetVideoDuration(FilePath);
             txtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
@@ -262,18 +268,12 @@ namespace Ariadna
 
             if(bSuccess)
             {
-                int movieId = -1;
-                using (var ctx = new AriadnaEntities())
-                {
-                    movieId = ctx.Movies.Where(r => r.file_path == FilePath).Select(x => x.Id).FirstOrDefault();
-                }
-
-                if(movieId != -1)
+                if(StoredDBMovieID != -1)
                 {
                     // Store tables with references
-                    bSuccess = bSuccess && StoreMovieCast(movieId);
-                    bSuccess = bSuccess && StoreMovieDirectors(movieId);
-                    bSuccess = bSuccess && StoreMovieGenres(movieId);
+                    bSuccess = bSuccess && StoreMovieCast(StoredDBMovieID);
+                    bSuccess = bSuccess && StoreMovieDirectors(StoredDBMovieID);
+                    bSuccess = bSuccess && StoreMovieGenres(StoredDBMovieID);
                 }
             }
 
@@ -414,10 +414,7 @@ namespace Ariadna
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {
-                Movie movie = ctx.Movies.Where(r => r.file_path == FilePath).FirstOrDefault();
-
-                Int32 movieYear = 1900;
-                Int32.TryParse(txtYear.Text, out movieYear);
+                Movie movie = ctx.Movies.Where(r => r.Id == StoredDBMovieID).FirstOrDefault();
 
                 bool bAddMovie = false;
                 if (movie == null)
@@ -425,6 +422,9 @@ namespace Ariadna
                     bAddMovie = true;
                     movie = new Movie();
                 }
+
+                Int32 movieYear = 1900;
+                Int32.TryParse(txtYear.Text, out movieYear);
 
                 movie.title = movieTitle;
                 movie.title_original = txtTitleOriginal.Text.Trim();
@@ -438,7 +438,7 @@ namespace Ariadna
 
                 if (bAddMovie)
                 {
-                    ctx.Movies.Add(movie);
+                    StoredDBMovieID = ctx.Movies.Add(movie).Id;
                 }
 
                 try
@@ -984,6 +984,10 @@ namespace Ariadna
             {
                 mFloatingPanel.Hide();
             }
+        }
+        private void OnFilePathChanged(object sender, EventArgs e)
+        {
+            FilePath = txtPath.Text;
         }
     }
 }
