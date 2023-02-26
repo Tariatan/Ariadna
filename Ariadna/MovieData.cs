@@ -53,7 +53,7 @@ namespace Ariadna
             // Get path name
             txtTitle.Text = FilePath.Substring(FilePath.LastIndexOf('\\') + 1);
             // Remove extension
-            txtTitle.Text = txtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mp4", "").Replace(".mpg", "").Replace(".ts", "");
+            txtTitle.Text = txtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mp4", "").Replace(".mpg", "").Replace(".ts", "").Replace(".mpeg", "");
             txtPath.Text = FilePath;
 
             mIsShiftPressed = false;
@@ -412,9 +412,14 @@ namespace Ariadna
             }
 
             bool bSuccess = true;
+            string path = "";
             using (var ctx = new AriadnaEntities())
             {
-                Movie movie = ctx.Movies.Where(r => r.Id == StoredDBMovieID).FirstOrDefault();
+                Movie movie = null;
+                if(StoredDBMovieID != -1)
+                {
+                    movie = ctx.Movies.Where(r => r.Id == StoredDBMovieID).FirstOrDefault();
+                }
 
                 bool bAddMovie = false;
                 if (movie == null)
@@ -438,7 +443,7 @@ namespace Ariadna
 
                 if (bAddMovie)
                 {
-                    StoredDBMovieID = ctx.Movies.Add(movie).Id;
+                    ctx.Movies.Add(movie);
                 }
 
                 try
@@ -450,11 +455,28 @@ namespace Ariadna
                     MessageBox.Show(movieTitle, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     bSuccess = false;
                 }
+
+                path = movie.file_path;
             }
+
+            if(bSuccess)
+            {
+                using (var ctx = new AriadnaEntities())
+                {
+                    StoredDBMovieID = ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(x => new { x.Id }).FirstOrDefault().Id;
+                    bSuccess = (StoredDBMovieID != -1);
+                }
+            }
+
             return bSuccess;
         }
         private bool StoreMovieCast(int movieId)
         {
+            if(m_CastList.Items.Count == 0)
+            {
+                return true;
+            }
+
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {
@@ -488,6 +510,11 @@ namespace Ariadna
         }
         private bool StoreMovieDirectors(int movieId)
         {
+            if(m_DirectorsList.Items.Count == 0)
+            {
+                return true;
+            }
+
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {
@@ -521,6 +548,11 @@ namespace Ariadna
         }
         private bool StoreMovieGenres(int movieId)
         {
+            if(m_GenresList.Items.Count == 0)
+            {
+                return true;
+            }
+
             bool bSuccess = true;
             using (var ctx = new AriadnaEntities())
             {

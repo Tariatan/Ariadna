@@ -219,10 +219,10 @@ namespace Ariadna
             {
                 using (var ctx = new AriadnaEntities())
                 {
-                    Movie movie = ctx.Movies.Where(r => r.Id == id).FirstOrDefault();
-                    if (movie != null)
+                    var path = ctx.Movies.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault().file_path;
+                    if (!string.IsNullOrEmpty(path))
                     {
-                        return movie.file_path;
+                        return path;
                     }
                 }
             }
@@ -263,8 +263,29 @@ namespace Ariadna
 
                         if (deleteFile)
                         {
-                            // Delete file
-                            File.Delete(movie.file_path);
+                            if (File.Exists(movie.file_path))
+                            {
+                                // Delete file
+                                File.Delete(movie.file_path);
+                            }
+                            // Checked if it is a directory
+                            else if (Directory.Exists(movie.file_path))
+                            {
+                                try
+                                {
+                                    var dir = new DirectoryInfo(movie.file_path);
+                                    dir.Attributes = dir.Attributes & ~FileAttributes.ReadOnly;
+                                    dir.Delete(true);
+                                }
+                                catch (IOException ex)
+                                {
+                                    MessageBox.Show(ex.Message);
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show(movie.file_path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
                         }
                     }
                 }
@@ -370,43 +391,45 @@ namespace Ariadna
         private void OnAddMovieFormClosed(object sender, FormClosedEventArgs e)
         {
             MovieData movieData = (MovieData)sender;
-            if (movieData.FormCloseReason == Utilities.EFormCloseReason.SUCCESS)
+            if (movieData.FormCloseReason != Utilities.EFormCloseReason.SUCCESS)
             {
-                using (var ctx = new AriadnaEntities())
+                return;
+            }
+
+            using (var ctx = new AriadnaEntities())
+            {
+                Movie movie = ctx.Movies.AsNoTracking().Where(r => r.Id == movieData.StoredDBMovieID).FirstOrDefault();
+
+                // Retrieve poster
+                Bitmap bmp = new Bitmap(171, 256);
+                Graphics graph = Graphics.FromImage(bmp);
+                Image img = (movie.poster.Length != 0) ? Utilities.BytesToBitmap(movie.poster) :
+                                                            new Bitmap(Properties.Resources.No_Preview_Image);
+
+                graph.DrawImage(img, new Rectangle(0, 0, 171, 256));
+
+                // Find if item index is already in the list
+                int index = 0;
+                for (; index < mMovies.Count; ++index)
                 {
-                    Movie movie = ctx.Movies.AsNoTracking().Where(r => r.Id == movieData.StoredDBMovieID).FirstOrDefault();
-
-                    // Retrieve poster
-                    Bitmap bmp = new Bitmap(171, 256);
-                    Graphics graph = Graphics.FromImage(bmp);
-                    Image img = (movie.poster.Length != 0) ? Utilities.BytesToBitmap(movie.poster) :
-                                                                new Bitmap(Properties.Resources.No_Preview_Image);
-
-                    graph.DrawImage(img, new Rectangle(0, 0, 171, 256));
-
-                    // Find if item index is already in the list
-                    int index = 0;
-                    for (; index < mMovies.Count; ++index)
+                    if (mMovies[index].id.Equals(movieData.StoredDBMovieID))
                     {
-                        if (mMovies[index].id.Equals(movieData.StoredDBMovieID))
-                        {
-                            break;
-                        }
+                        break;
                     }
+                }
 
-                    // Update poster and title if item already in the list
-                    if (index < mMovies.Count)
-                    {
-                        imageList.Images[imageList.Images.IndexOfKey(movieData.StoredDBMovieID.ToString())] = bmp;
-                        listView.Items[index].Text = movie.title;
-                        listView.Refresh();
-                    }
-                    // Simply update list and list count to reflect changes
-                    else
-                    {
-                        SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
-                        RebuildCache();
-                    }
+                // Update poster and title if item already in the list
+                if (index < mMovies.Count)
+                {
+                    imageList.Images[imageList.Images.IndexOfKey(movieData.StoredDBMovieID.ToString())] = bmp;
+                    listView.Items[index].Text = movie.title;
+                    listView.Refresh();
+                }
+                // Simply update list and list count to reflect changes
+                else
+                {
+                    SetMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
+                    RebuildCache();
                 }
             }
         }
