@@ -26,12 +26,12 @@ namespace Ariadna
         }
     
         public virtual DbSet<Actor> Actors { get; set; }
+        public virtual DbSet<Director> Directors { get; set; }
         public virtual DbSet<Genre> Genres { get; set; }
+        public virtual DbSet<Ignore> Ignores { get; set; }
         public virtual DbSet<Movie> Movies { get; set; }
         public virtual DbSet<MovieCast> MovieCasts { get; set; }
-        public virtual DbSet<MovieGenre> MovieGenres { get; set; }
-        public virtual DbSet<Director> Directors { get; set; }
         public virtual DbSet<MovieDirector> MovieDirectors { get; set; }
-        public virtual DbSet<Ignore> Ignores { get; set; }
+        public virtual DbSet<MovieGenre> MovieGenres { get; set; }
     }
 }

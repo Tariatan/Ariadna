@@ -37,6 +37,7 @@ namespace Ariadna
         public static int MAX_GENRES_COUNT = 5;
 
         public static string TMDB_API_KEY = "ec3e7f0826eb6ef92dc4b1f69f1e1dd3";
+        public static string POSTERS_ROOT_PATH = @"G:/Ariadna/posters/";
 
         public static List<string> GENRES_LIST = new List<string>
         {"Боевик", "Приключение", "Анимационный", "Биография", "Комедия", "Криминал", "Детектив", "Катастрофа", "Драма",
@@ -48,6 +49,7 @@ namespace Ariadna
             switch(name)
             {
                 case "Мультфильм":
+                case "Анимация":
                     return "Анимационный";
                 case "Мелодрама":
                     return "Драма";

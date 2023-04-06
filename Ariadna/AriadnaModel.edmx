@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-    <Schema Namespace="AriadnaModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+      <Schema Namespace="AriadnaModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="Actor">
           <Key>
             <PropertyRef Name="Id" />
@@ -181,7 +181,8 @@
             <End Role="MovieGenre" EntitySet="MovieGenre" />
           </AssociationSet>
         </EntityContainer>
-      </Schema></edmx:StorageModels>
+      </Schema>
+    </edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="AriadnaModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -194,6 +195,15 @@
           <Property Name="photo" Type="Binary" MaxLength="Max" FixedLength="false" />
           <NavigationProperty Name="MovieCasts" Relationship="Self.movie_cast_actor_FK" FromRole="Actor" ToRole="MovieCast" />
         </EntityType>
+        <EntityType Name="Director">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <NavigationProperty Name="MovieDirectors" Relationship="Self.movie_director_director_FK" FromRole="Director" ToRole="MovieDirector" />
+        </EntityType>
         <EntityType Name="Genre">
           <Key>
             <PropertyRef Name="Id" />
@@ -201,6 +211,13 @@
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
           <NavigationProperty Name="MovieGenres" Relationship="Self.movie_genre_genre_FK" FromRole="Genre" ToRole="MovieGenre" />
+        </EntityType>
+        <EntityType Name="Ignore">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="path" Type="String" MaxLength="256" FixedLength="false" Unicode="true" Nullable="false" />
         </EntityType>
         <EntityType Name="Movie">
           <Key>
@@ -214,12 +231,12 @@
           <Property Name="rating" Type="Double" />
           <Property Name="poster" Type="Binary" MaxLength="Max" FixedLength="false" />
           <Property Name="file_path" Type="String" MaxLength="256" FixedLength="false" Unicode="true" Nullable="false" />
-          <NavigationProperty Name="MovieCasts" Relationship="Self.movie_cast_movie_FK" FromRole="Movie" ToRole="MovieCast" />
-          <NavigationProperty Name="MovieGenres" Relationship="Self.movie_genre_movie_FK" FromRole="Movie" ToRole="MovieGenre" />
-          <NavigationProperty Name="MovieDirectors" Relationship="AriadnaModel.movie_director_movie_FK" FromRole="Movie" ToRole="MovieDirector" />
           <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="creation_time" Type="DateTime" Precision="0" />
           <Property Name="want_to_see" Type="Boolean" />
+          <NavigationProperty Name="MovieCasts" Relationship="Self.movie_cast_movie_FK" FromRole="Movie" ToRole="MovieCast" />
+          <NavigationProperty Name="MovieDirectors" Relationship="Self.movie_director_movie_FK" FromRole="Movie" ToRole="MovieDirector" />
+          <NavigationProperty Name="MovieGenres" Relationship="Self.movie_genre_movie_FK" FromRole="Movie" ToRole="MovieGenre" />
         </EntityType>
         <EntityType Name="MovieCast">
           <Key>
@@ -230,6 +247,16 @@
           <Property Name="actorId" Type="Int32" />
           <NavigationProperty Name="Actor" Relationship="Self.movie_cast_actor_FK" FromRole="MovieCast" ToRole="Actor" />
           <NavigationProperty Name="Movie" Relationship="Self.movie_cast_movie_FK" FromRole="MovieCast" ToRole="Movie" />
+        </EntityType>
+        <EntityType Name="MovieDirector">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="movieId" Type="Int32" />
+          <Property Name="directorId" Type="Int32" />
+          <NavigationProperty Name="Director" Relationship="Self.movie_director_director_FK" FromRole="MovieDirector" ToRole="Director" />
+          <NavigationProperty Name="Movie" Relationship="Self.movie_director_movie_FK" FromRole="MovieDirector" ToRole="Movie" />
         </EntityType>
         <EntityType Name="MovieGenre">
           <Key>
@@ -250,6 +277,18 @@
             </Principal>
             <Dependent Role="MovieCast">
               <PropertyRef Name="actorId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="movie_director_director_FK">
+          <End Role="Director" Type="Self.Director" Multiplicity="0..1" />
+          <End Role="MovieDirector" Type="Self.MovieDirector" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Director">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieDirector">
+              <PropertyRef Name="directorId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -277,6 +316,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="movie_director_movie_FK">
+          <End Role="Movie" Type="Self.Movie" Multiplicity="0..1" />
+          <End Role="MovieDirector" Type="Self.MovieDirector" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Movie">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="MovieDirector">
+              <PropertyRef Name="movieId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="movie_genre_movie_FK">
           <End Role="Movie" Type="Self.Movie" Multiplicity="1" />
           <End Role="MovieGenre" Type="Self.MovieGenre" Multiplicity="*" />
@@ -291,13 +342,20 @@
         </Association>
         <EntityContainer Name="AriadnaEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="Actors" EntityType="Self.Actor" />
+          <EntitySet Name="Directors" EntityType="Self.Director" />
           <EntitySet Name="Genres" EntityType="Self.Genre" />
+          <EntitySet Name="Ignores" EntityType="Self.Ignore" />
           <EntitySet Name="Movies" EntityType="Self.Movie" />
           <EntitySet Name="MovieCasts" EntityType="Self.MovieCast" />
+          <EntitySet Name="MovieDirectors" EntityType="Self.MovieDirector" />
           <EntitySet Name="MovieGenres" EntityType="Self.MovieGenre" />
           <AssociationSet Name="movie_cast_actor_FK" Association="Self.movie_cast_actor_FK">
             <End Role="Actor" EntitySet="Actors" />
             <End Role="MovieCast" EntitySet="MovieCasts" />
+          </AssociationSet>
+          <AssociationSet Name="movie_director_director_FK" Association="Self.movie_director_director_FK">
+            <End Role="Director" EntitySet="Directors" />
+            <End Role="MovieDirector" EntitySet="MovieDirectors" />
           </AssociationSet>
           <AssociationSet Name="movie_genre_genre_FK" Association="Self.movie_genre_genre_FK">
             <End Role="Genre" EntitySet="Genres" />
@@ -307,72 +365,15 @@
             <End Role="Movie" EntitySet="Movies" />
             <End Role="MovieCast" EntitySet="MovieCasts" />
           </AssociationSet>
+          <AssociationSet Name="movie_director_movie_FK" Association="Self.movie_director_movie_FK">
+            <End Role="Movie" EntitySet="Movies" />
+            <End Role="MovieDirector" EntitySet="MovieDirectors" />
+          </AssociationSet>
           <AssociationSet Name="movie_genre_movie_FK" Association="Self.movie_genre_movie_FK">
             <End Role="Movie" EntitySet="Movies" />
             <End Role="MovieGenre" EntitySet="MovieGenres" />
           </AssociationSet>
-          <EntitySet Name="Directors" EntityType="AriadnaModel.Director" />
-          <EntitySet Name="MovieDirectors" EntityType="AriadnaModel.MovieDirector" />
-          <AssociationSet Name="movie_director_director_FK" Association="AriadnaModel.movie_director_director_FK">
-            <End Role="Director" EntitySet="Directors" />
-            <End Role="MovieDirector" EntitySet="MovieDirectors" />
-          </AssociationSet>
-          <AssociationSet Name="movie_director_movie_FK" Association="AriadnaModel.movie_director_movie_FK">
-            <End Role="Movie" EntitySet="Movies" />
-            <End Role="MovieDirector" EntitySet="MovieDirectors" />
-          </AssociationSet>
-          <EntitySet Name="Ignores" EntityType="AriadnaModel.Ignore" />
         </EntityContainer>
-        <EntityType Name="Director">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="name" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <NavigationProperty Name="MovieDirectors" Relationship="AriadnaModel.movie_director_director_FK" FromRole="Director" ToRole="MovieDirector" />
-          <Property Name="photo" Type="Binary" MaxLength="Max" FixedLength="false" />
-        </EntityType>
-        <EntityType Name="MovieDirector">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="movieId" Type="Int32" />
-          <Property Name="directorId" Type="Int32" />
-          <NavigationProperty Name="Director" Relationship="AriadnaModel.movie_director_director_FK" FromRole="MovieDirector" ToRole="Director" />
-          <NavigationProperty Name="Movie" Relationship="AriadnaModel.movie_director_movie_FK" FromRole="MovieDirector" ToRole="Movie" />
-        </EntityType>
-        <Association Name="movie_director_director_FK">
-          <End Type="AriadnaModel.Director" Role="Director" Multiplicity="0..1" />
-          <End Type="AriadnaModel.MovieDirector" Role="MovieDirector" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Director">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="MovieDirector">
-              <PropertyRef Name="directorId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="movie_director_movie_FK">
-          <End Type="AriadnaModel.Movie" Role="Movie" Multiplicity="0..1" />
-          <End Type="AriadnaModel.MovieDirector" Role="MovieDirector" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Movie">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="MovieDirector">
-              <PropertyRef Name="movieId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <EntityType Name="Ignore">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" />
-          <Property Name="path" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
-        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -388,6 +389,15 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="Directors">
+            <EntityTypeMapping TypeName="AriadnaModel.Director">
+              <MappingFragment StoreEntitySet="Director">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="photo" ColumnName="photo" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="Genres">
             <EntityTypeMapping TypeName="AriadnaModel.Genre">
               <MappingFragment StoreEntitySet="Genre">
@@ -396,12 +406,17 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="Ignores">
+            <EntityTypeMapping TypeName="AriadnaModel.Ignore">
+              <MappingFragment StoreEntitySet="Ignore">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="path" ColumnName="path" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="Movies">
             <EntityTypeMapping TypeName="AriadnaModel.Movie">
               <MappingFragment StoreEntitySet="Movie">
-                <ScalarProperty Name="want_to_see" ColumnName="want_to_see" />
-                <ScalarProperty Name="creation_time" ColumnName="creation_time" />
-                <ScalarProperty Name="description" ColumnName="description" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="title" ColumnName="title" />
                 <ScalarProperty Name="title_original" ColumnName="title_original" />
@@ -410,6 +425,9 @@
                 <ScalarProperty Name="rating" ColumnName="rating" />
                 <ScalarProperty Name="poster" ColumnName="poster" />
                 <ScalarProperty Name="file_path" ColumnName="file_path" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="creation_time" ColumnName="creation_time" />
+                <ScalarProperty Name="want_to_see" ColumnName="want_to_see" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -422,38 +440,21 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="MovieDirectors">
+            <EntityTypeMapping TypeName="AriadnaModel.MovieDirector">
+              <MappingFragment StoreEntitySet="MovieDirector">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="movieId" ColumnName="movieId" />
+                <ScalarProperty Name="directorId" ColumnName="directorId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
           <EntitySetMapping Name="MovieGenres">
             <EntityTypeMapping TypeName="AriadnaModel.MovieGenre">
               <MappingFragment StoreEntitySet="MovieGenre">
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="movieId" ColumnName="movieId" />
                 <ScalarProperty Name="genreId" ColumnName="genreId" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Directors">
-            <EntityTypeMapping TypeName="AriadnaModel.Director">
-              <MappingFragment StoreEntitySet="Director">
-                <ScalarProperty Name="photo" ColumnName="photo" />
-                <ScalarProperty Name="name" ColumnName="name" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="MovieDirectors">
-            <EntityTypeMapping TypeName="AriadnaModel.MovieDirector">
-              <MappingFragment StoreEntitySet="MovieDirector">
-                <ScalarProperty Name="directorId" ColumnName="directorId" />
-                <ScalarProperty Name="movieId" ColumnName="movieId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Ignores">
-            <EntityTypeMapping TypeName="AriadnaModel.Ignore">
-              <MappingFragment StoreEntitySet="Ignore">
-                <ScalarProperty Name="path" ColumnName="path" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

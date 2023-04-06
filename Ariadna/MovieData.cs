@@ -15,22 +15,24 @@ namespace Ariadna
 {
     public partial class MovieData : Form
     {
+        #region Public Fields
         public Utilities.EFormCloseReason FormCloseReason { get; set; }
         public string FilePath { get; set; }
         public int StoredDBMovieID { get; set; }
         public int TMDBMovieIndex { get; set; }
         public int TMDBTVShowIndex { get; set; }
+        #endregion
 
-        private bool mIsInUpdateMode = false;
-        private bool mIsShiftPressed = false;
+        #region Private Fields
+        private bool m_IsInUpdateMode = false;
+        private bool m_IsShiftPressed = false;
 
-        private FloatingPanel mFloatingPanel = new FloatingPanel();
+        private FloatingPanel m_FloatingPanel = new FloatingPanel();
+        private TMDbLib.Client.TMDbClient m_TMDbClient = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
 
-        private Bitmap NO_PREVIEW_IMAGE_SMALL = new Bitmap(Properties.Resources.No_Preview_Image_small);
-
-        const Int32 MAX_GENRE_COUNT_ALLOWED = 5;
-
-        TMDbLib.Client.TMDbClient mTMDbClient = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
+        private readonly Bitmap NO_PREVIEW_IMAGE_SMALL = new Bitmap(Properties.Resources.No_Preview_Image_small);
+        private const Int32 MAX_GENRE_COUNT_ALLOWED = 5;
+        #endregion
 
         public MovieData(string filePath)
         {
@@ -45,7 +47,7 @@ namespace Ariadna
                 return;
             }
 
-            mFloatingPanel.Deactivate += new System.EventHandler(OnFloatingPanelClosed);
+            m_FloatingPanel.Deactivate += new System.EventHandler(OnFloatingPanelClosed);
 
             m_CastPhotos.ImageSize = new Size(Utilities.PHOTO_W, Utilities.PHOTO_H);
             m_DirectorsPhotos.ImageSize = new Size(Utilities.PHOTO_W, Utilities.PHOTO_H);
@@ -56,7 +58,7 @@ namespace Ariadna
             txtTitle.Text = txtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mp4", "").Replace(".mpg", "").Replace(".ts", "").Replace(".mpeg", "");
             txtPath.Text = FilePath;
 
-            mIsShiftPressed = false;
+            m_IsShiftPressed = false;
 
             FetchClientConfig();
 
@@ -72,7 +74,7 @@ namespace Ariadna
             if (StoredDBMovieID != -1)
             {
                 FillFieldsFromFile();
-                mIsInUpdateMode = true;
+                m_IsInUpdateMode = true;
             }
             else
             {
@@ -85,7 +87,7 @@ namespace Ariadna
                     FillTVShowFieldsFromIMDB();
                 }
 
-                mIsInUpdateMode = false;
+                m_IsInUpdateMode = false;
             }
             UpdateInsertButtonText();
 
@@ -95,7 +97,7 @@ namespace Ariadna
         }
         private async void FetchClientConfig()
         {
-            await FetchConfig(mTMDbClient);
+            await FetchConfig(m_TMDbClient);
         }
         private static async Task FetchConfig(TMDbLib.Client.TMDbClient client)
         {
@@ -115,13 +117,13 @@ namespace Ariadna
         }
         private async void FillMovieFieldsFromIMDB()
         {
-            var entry = await mTMDbClient.GetMovieAsync(TMDBMovieIndex, "ru-RU");
+            var entry = await m_TMDbClient.GetMovieAsync(TMDBMovieIndex, "ru-RU");
             string year = (entry.ReleaseDate != null) ? entry.ReleaseDate.Value.Year.ToString() : "0";
             FillFields(entry.PosterPath, entry.OriginalTitle, entry.Overview, year, entry.Genres);
         }
         private async void FillTVShowFieldsFromIMDB()
         {
-            var entry = await mTMDbClient.GetTvShowAsync(TMDBTVShowIndex, TMDbLib.Objects.TvShows.TvShowMethods.Undefined, "ru-RU");
+            var entry = await m_TMDbClient.GetTvShowAsync(TMDBTVShowIndex, TMDbLib.Objects.TvShows.TvShowMethods.Undefined, "ru-RU");
             string year = (entry.FirstAirDate != null) ? entry.FirstAirDate.Value.Year.ToString() : "0";
             FillFields(entry.PosterPath, entry.OriginalName, entry.Overview, year, entry.Genres);
         }
@@ -130,9 +132,9 @@ namespace Ariadna
             if (posterPath != null)
             {
                 // Download first available Poster
-                string imgSize = mTMDbClient.Config.Images.PosterSizes.Last();
-                var UrlOriginal = mTMDbClient.GetImageUrl(imgSize, posterPath).AbsoluteUri;
-                byte[] bts = await mTMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
+                string imgSize = m_TMDbClient.Config.Images.PosterSizes.Last();
+                var UrlOriginal = m_TMDbClient.GetImageUrl(imgSize, posterPath).AbsoluteUri;
+                byte[] bts = await m_TMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
 
                 // Scale image
                 var bmp = new Bitmap(Utilities.POSTER_W, Utilities.POSTER_H);
@@ -154,7 +156,7 @@ namespace Ariadna
         }
         private void UpdateInsertButtonText()
         {
-            if (mIsInUpdateMode)
+            if (m_IsInUpdateMode)
             {
                 Text = "Обновление записи";
                 btnInsert.Text = "Обновить";
@@ -167,7 +169,7 @@ namespace Ariadna
         }
         private void MovieData_KeyDown(object sender, KeyEventArgs e)
         {
-            mIsShiftPressed = e.Modifiers.HasFlag(Keys.Shift);
+            m_IsShiftPressed = e.Modifiers.HasFlag(Keys.Shift);
 
             if (e.Modifiers.HasFlag(Keys.Shift))
             {
@@ -176,13 +178,13 @@ namespace Ariadna
 
             if (e.KeyCode == Keys.Escape)
             {
-                if (mFloatingPanel.Visible)
+                if (m_FloatingPanel.Visible)
                 {
-                    mFloatingPanel.Hide();
+                    m_FloatingPanel.Hide();
                     return;
                 }
 
-                this.Close();
+                Close();
                 return;
             }
 
@@ -194,7 +196,7 @@ namespace Ariadna
         }
         private void MovieData_KeyUp(object sender, KeyEventArgs e)
         {
-            mIsShiftPressed = e.Modifiers.HasFlag(Keys.Shift);
+            m_IsShiftPressed = e.Modifiers.HasFlag(Keys.Shift);
 
             if (e.Modifiers.HasFlag(Keys.Shift) == false)
             {
@@ -246,7 +248,7 @@ namespace Ariadna
         }
         private void AddUpdateMovie()
         {
-            if (mIsShiftPressed)
+            if (m_IsShiftPressed)
             {
                 AddToIgnoreList();
                 return;
@@ -404,13 +406,6 @@ namespace Ariadna
                 return false;
             }
 
-            var poster = Utilities.ImageToBytes(picPoster.Image);
-            if (poster == null)
-            {
-                MessageBox.Show("Ошибка сохранения постера", "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-
             bool bSuccess = true;
             string path = "";
             using (var ctx = new AriadnaEntities())
@@ -437,7 +432,6 @@ namespace Ariadna
                 movie.length = TimeSpan.Parse(txtLength.Text);
                 movie.file_path = txtPath.Text.Trim();
                 movie.description = txtDescription.Text;
-                movie.poster = poster;
                 movie.creation_time = File.GetCreationTimeUtc(FilePath);
                 movie.want_to_see = checkToSee.Checked;
 
@@ -465,6 +459,18 @@ namespace Ariadna
                 {
                     StoredDBMovieID = ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(x => new { x.Id }).FirstOrDefault().Id;
                     bSuccess = (StoredDBMovieID != -1);
+                }
+            }
+
+            if (bSuccess)
+            {
+                try
+                {
+                    picPoster.Image.Save(Utilities.POSTERS_ROOT_PATH + StoredDBMovieID.ToString(), System.Drawing.Imaging.ImageFormat.Png);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Ошибка сохранения постера", "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
 
@@ -601,8 +607,17 @@ namespace Ariadna
                 txtDescription.Text = DecorateDescription(movie.description);
                 checkToSee.Checked = Convert.ToBoolean(movie.want_to_see);
 
-                picPoster.Image = (movie.poster.Length != 0) ? Utilities.BytesToBitmap(movie.poster) :
-                                                               new Bitmap(Properties.Resources.No_Preview_Image);
+                Image image = null;
+                string filename = Utilities.POSTERS_ROOT_PATH + movie.Id.ToString();
+                if (File.Exists(filename))
+                {
+                    using (var bmpTemp = new Bitmap(filename))
+                    {
+                        image = new Bitmap(bmpTemp);
+                    }
+                }
+
+                picPoster.Image = (image != null) ? image : new Bitmap(Properties.Resources.No_Preview_Image);
 
                 var castSet = ctx.MovieCasts.AsNoTracking().ToArray().Where(r => (r.movieId == movie.Id));
                 foreach (var cast in castSet)
@@ -662,8 +677,12 @@ namespace Ariadna
                 outBmp = new Bitmap(width, height);
                 Graphics graph = Graphics.FromImage(outBmp);
 
-                Image img = new Bitmap(fileName);
-                graph.DrawImage(img, new Rectangle(0, 0, width, height));
+                Image image = null;
+                using (var bmpTemp = new Bitmap(fileName))
+                {
+                    image = new Bitmap(bmpTemp);
+                }
+                graph.DrawImage(image, new Rectangle(0, 0, width, height));
 
                 return true;
             }
@@ -720,7 +739,7 @@ namespace Ariadna
                     continue;
                 }
 
-                TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Search.SearchPerson> results = mTMDbClient.SearchPersonAsync(item.Text, "ru-RU").Result;
+                TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Search.SearchPerson> results = m_TMDbClient.SearchPersonAsync(item.Text, "ru-RU").Result;
 
                 if(results.Results.Count > 0)
                 {
@@ -731,9 +750,9 @@ namespace Ariadna
                     }
 
                     // Download first available Photo
-                    string imgSize = mTMDbClient.Config.Images.ProfileSizes.Last();
-                    var UrlOriginal = mTMDbClient.GetImageUrl(imgSize, person.ProfilePath).AbsoluteUri;
-                    byte[] bts = await mTMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
+                    string imgSize = m_TMDbClient.Config.Images.ProfileSizes.Last();
+                    var UrlOriginal = m_TMDbClient.GetImageUrl(imgSize, person.ProfilePath).AbsoluteUri;
+                    byte[] bts = await m_TMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
 
                     // Scale image
                     var bmp = new Bitmap(Utilities.PHOTO_W, Utilities.PHOTO_H);
@@ -913,9 +932,9 @@ namespace Ariadna
         }
         private void OnAddGenreClicked(object sender, EventArgs e)
         {
-            if (mFloatingPanel.Visible)
+            if (m_FloatingPanel.Visible)
             {
-                mFloatingPanel.Hide();
+                m_FloatingPanel.Hide();
                 return;
             }
 
@@ -930,25 +949,25 @@ namespace Ariadna
                 values[name] = Utilities.GetGenreImage(name);
             }
 
-            mFloatingPanel.Location = new Point(this.Location.X + m_GenresList.Location.X + 12,
+            m_FloatingPanel.Location = new Point(this.Location.X + m_GenresList.Location.X + 12,
                                                this.Location.Y + m_GenresList.Location.Y + SystemInformation.CaptionHeight + m_GenresList.Size.Height + 12);
-            mFloatingPanel.Size = new Size(m_GenresList.Size.Width, Utilities.GENRE_IMAGE_H * 7 - 10);
-            mFloatingPanel.BackColor = this.BackColor;
+            m_FloatingPanel.Size = new Size(m_GenresList.Size.Width, Utilities.GENRE_IMAGE_H * 7 - 10);
+            m_FloatingPanel.BackColor = this.BackColor;
 
-            mFloatingPanel.UpdateListView(values, FloatingPanel.EPanelContentType.GENRES, false, false, Utilities.GENRE_IMAGE_W, Utilities.GENRE_IMAGE_H);
-            if (!mFloatingPanel.Visible)
+            m_FloatingPanel.UpdateListView(values, FloatingPanel.EPanelContentType.GENRES, false, false, Utilities.GENRE_IMAGE_W, Utilities.GENRE_IMAGE_H);
+            if (!m_FloatingPanel.Visible)
             {
-                mFloatingPanel.Show(this);
+                m_FloatingPanel.Show(this);
             }
         }
         private void OnFloatingPanelClosed(object sender, EventArgs e)
         {
-            if (mFloatingPanel.Visible)
+            if (m_FloatingPanel.Visible)
             {
                 return;
             }
 
-            var name = mFloatingPanel.EntryNames.FirstOrDefault();
+            var name = m_FloatingPanel.EntryNames.FirstOrDefault();
             if (name != null)
             {
                 name = Utilities.CapitalizeWords(name);
@@ -1012,9 +1031,9 @@ namespace Ariadna
         }
         private void HideFloatingPanel(object sender, EventArgs e)
         {
-            if (mFloatingPanel.Visible)
+            if (m_FloatingPanel.Visible)
             {
-                mFloatingPanel.Hide();
+                m_FloatingPanel.Hide();
             }
         }
         private void OnFilePathChanged(object sender, EventArgs e)

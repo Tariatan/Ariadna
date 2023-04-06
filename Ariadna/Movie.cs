@@ -18,8 +18,8 @@ namespace Ariadna
         public Movie()
         {
             this.MovieCasts = new HashSet<MovieCast>();
-            this.MovieGenres = new HashSet<MovieGenre>();
             this.MovieDirectors = new HashSet<MovieDirector>();
+            this.MovieGenres = new HashSet<MovieGenre>();
         }
     
         public int Id { get; set; }
@@ -37,8 +37,8 @@ namespace Ariadna
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<MovieCast> MovieCasts { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<MovieGenre> MovieGenres { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<MovieDirector> MovieDirectors { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<MovieGenre> MovieGenres { get; set; }
     }
 }
