@@ -1,7 +1,6 @@
-﻿using System.Drawing;
+﻿using Manina.Windows.Forms;
+using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Windows.Forms;
-using Manina.Windows.Forms;
 
 namespace Ariadna
 {
@@ -11,7 +10,7 @@ namespace Ariadna
         private readonly int padTop = 12;
         private readonly int padBtm = 6;
         private readonly Brush textBrush = new SolidBrush(Color.White);
-        private readonly StringFormat stringFormat = new StringFormat() 
+        private readonly StringFormat stringFormat = new StringFormat()
         {
             Alignment = StringAlignment.Center,
             LineAlignment = StringAlignment.Center,
@@ -78,7 +77,7 @@ namespace Ariadna
             bool isSelected = ((state & ItemState.Selected) == ItemState.Selected);
             bool isHovered = ((state & ItemState.Hovered) == ItemState.Hovered);
 
-            if(!isSelected && !isHovered)
+            if (!isSelected && !isHovered)
             {
                 return;
             }
@@ -110,13 +109,13 @@ namespace Ariadna
                 g.DrawRectangle(pen, pos.X + 1, pos.Y + 1, pos.Width - 2, pos.Height - 2);
             }
 
-/*
-            using (Brush brush = new LinearGradientBrush(new Point(pos.X - padW, pos.Y - padTop), new Point(pos.X - padW, pos.Y + pos.Height + padTop + padBtm), from, to))
-            using (Pen pen = new Pen(brush))
-            {
-                g.DrawRectangle(pen, pos.X - padW, pos.Y - padTop + 1, pos.Width + 2 * padW - 1, pos.Height + padTop + padBtm - 1);
-            }
-*/
+            /*
+                        using (Brush brush = new LinearGradientBrush(new Point(pos.X - padW, pos.Y - padTop), new Point(pos.X - padW, pos.Y + pos.Height + padTop + padBtm), from, to))
+                        using (Pen pen = new Pen(brush))
+                        {
+                            g.DrawRectangle(pen, pos.X - padW, pos.Y - padTop + 1, pos.Width + 2 * padW - 1, pos.Height + padTop + padBtm - 1);
+                        }
+            */
         }
         private void DrawImage(Graphics g, Image img, Rectangle bounds)
         {

@@ -82,7 +82,7 @@ namespace Ariadna
                 {
                     FillMovieFieldsFromIMDB();
                 }
-                else if(TMDBTVShowIndex != -1)
+                else if (TMDBTVShowIndex != -1)
                 {
                     FillTVShowFieldsFromIMDB();
                 }
@@ -220,7 +220,7 @@ namespace Ariadna
             using (var shell = ShellObject.FromParsingName(filePath))
             {
                 IShellProperty prop = shell.Properties.System.Media.Duration;
-                if(prop.ValueAsObject == null)
+                if (prop.ValueAsObject == null)
                 {
                     return TimeSpan.Zero;
                 }
@@ -268,9 +268,9 @@ namespace Ariadna
 
             bSuccess = bSuccess && StoreMovie();
 
-            if(bSuccess)
+            if (bSuccess)
             {
-                if(StoredDBMovieID != -1)
+                if (StoredDBMovieID != -1)
                 {
                     // Store tables with references
                     bSuccess = bSuccess && StoreMovieCast(StoredDBMovieID);
@@ -411,7 +411,7 @@ namespace Ariadna
             using (var ctx = new AriadnaEntities())
             {
                 Movie movie = null;
-                if(StoredDBMovieID != -1)
+                if (StoredDBMovieID != -1)
                 {
                     movie = ctx.Movies.Where(r => r.Id == StoredDBMovieID).FirstOrDefault();
                 }
@@ -453,7 +453,7 @@ namespace Ariadna
                 path = movie.file_path;
             }
 
-            if(bSuccess)
+            if (bSuccess)
             {
                 using (var ctx = new AriadnaEntities())
                 {
@@ -478,7 +478,7 @@ namespace Ariadna
         }
         private bool StoreMovieCast(int movieId)
         {
-            if(m_CastList.Items.Count == 0)
+            if (m_CastList.Items.Count == 0)
             {
                 return true;
             }
@@ -516,7 +516,7 @@ namespace Ariadna
         }
         private bool StoreMovieDirectors(int movieId)
         {
-            if(m_DirectorsList.Items.Count == 0)
+            if (m_DirectorsList.Items.Count == 0)
             {
                 return true;
             }
@@ -554,7 +554,7 @@ namespace Ariadna
         }
         private bool StoreMovieGenres(int movieId)
         {
-            if(m_GenresList.Items.Count == 0)
+            if (m_GenresList.Items.Count == 0)
             {
                 return true;
             }
@@ -734,14 +734,14 @@ namespace Ariadna
             foreach (ListViewItem item in listView.Items)
             {
                 // Skip entries with valid preview set
-                if(Utilities.IsValidPreview(Utilities.ImageToBytes(imageList.Images[imageList.Images.IndexOfKey(item.Text)])))
+                if (Utilities.IsValidPreview(Utilities.ImageToBytes(imageList.Images[imageList.Images.IndexOfKey(item.Text)])))
                 {
                     continue;
                 }
 
                 TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Search.SearchPerson> results = m_TMDbClient.SearchPersonAsync(item.Text, "ru-RU").Result;
 
-                if(results.Results.Count > 0)
+                if (results.Results.Count > 0)
                 {
                     var person = results.Results.First();
                     if (person.ProfilePath == null)
@@ -809,7 +809,7 @@ namespace Ariadna
                 return;
             }
 
-            if(listView.FindItemWithText(name) != null)
+            if (listView.FindItemWithText(name) != null)
             {
                 return;
             }
@@ -843,7 +843,7 @@ namespace Ariadna
                     image = NO_PREVIEW_IMAGE_SMALL;
                 }
             }
-            
+
             imageList.Images.Add(name, image);
             listView.Items.Add(new ListViewItem(name, imageList.Images.IndexOfKey(name)));
         }

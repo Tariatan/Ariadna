@@ -16,6 +16,8 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                NO_PREVIEW_IMAGE_SMALL.Dispose();
+                m_TMDbClient.Dispose();
             }
             base.Dispose(disposing);
         }

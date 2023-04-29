@@ -16,6 +16,8 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                m_ListViewRenderer.Dispose();
+                m_PosterImageAdaptor.Dispose();
             }
             base.Dispose(disposing);
         }

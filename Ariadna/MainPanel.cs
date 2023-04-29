@@ -1,13 +1,12 @@
-﻿using System;
+﻿using Manina.Windows.Forms;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
-using Manina.Windows.Forms;
 
 namespace Ariadna
 {
@@ -82,6 +81,74 @@ namespace Ariadna
 
             FillQuickList(firstChars);
         }
+        private void QueryMovies()
+        {
+            HideFloatingPanel();
+
+            Cursor.Current = Cursors.WaitCursor;
+
+            using (var ctx = new AriadnaEntities())
+            {
+                IQueryable<Movie> query = ctx.Movies.AsNoTracking();
+
+                // -- Search Movie Name --
+                if (m_ToolStrip_MovieName.Text.Length > 0)
+                {
+                    var toSearch = m_ToolStrip_MovieName.Text.ToUpper();
+                    query = query.Where(r => r.title.ToUpper().Contains(toSearch) ||
+                                             r.title_original.ToUpper().Contains(toSearch) ||
+                                             r.file_path.ToUpper().Contains(toSearch));
+                }
+                // -- WISH LIST --
+                if (m_ToolStrip_WishlistBtn.Checked)
+                {
+                    query = query.Where(r => (r.want_to_see == true));
+                }
+                // -- RECENTLY Added --
+                if (m_ToolStrip_RecentBtn.Checked)
+                {
+                    var now = DateTime.Now.AddMonths(-6);
+                    var ct = DateTime.Now;
+                    query = query.Where(r => ((r.creation_time.Value.Year >= now.Year) && (r.creation_time.Value.Month >= now.Month)));
+                }
+                // -- NEW Movies --
+                if (m_ToolStrip_NewBtn.Checked)
+                {
+                    query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
+                }
+                // -- DIRECTOR NAME --
+                if (m_ToolStrip_DirectorName.Text.Length > 0)
+                {
+                    var entry = ctx.Directors.AsNoTracking().Where(r => r.name == m_ToolStrip_DirectorName.Text).FirstOrDefault();
+                    if (entry != null)
+                    {
+                        query = query.Where(r => r.MovieDirectors.Any(l => (l.directorId == entry.Id)));
+                    }
+                }
+                // -- ACTOR NAME --
+                if (m_ToolStrip_ActorName.Text.Length > 0)
+                {
+                    var entry = ctx.Actors.AsNoTracking().Where(r => r.name == m_ToolStrip_ActorName.Text).FirstOrDefault();
+                    if (entry != null)
+                    {
+                        query = query.Where(r => r.MovieCasts.Any(l => (l.actorId == entry.Id)));
+                    }
+                }
+                // -- GENRE --
+                if (m_ToolStrip_GenreName.Text.Length > 0)
+                {
+                    var entry = ctx.Genres.AsNoTracking().Where(r => r.name == m_ToolStrip_GenreName.Text).FirstOrDefault();
+                    if (entry != null)
+                    {
+                        query = query.Where(r => r.MovieGenres.Any(l => (l.genreId == entry.Id)));
+                    }
+                }
+
+                UpdateMoviesList(query.OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
+            }
+
+            Cursor.Current = Cursors.Default;
+        }
         private void FillQuickList(HashSet<string> firstChars)
         {
             m_QuickListFlow.Controls.Clear();
@@ -126,7 +193,7 @@ namespace Ariadna
         }
         private void MainPanel_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if(e.KeyChar == '+')
+            if (e.KeyChar == '+')
             {
                 e.Handled = true;
 
@@ -320,7 +387,7 @@ namespace Ariadna
                 if (tvShows.Count > 0)
                 {
                     int choice = (tvShows.Count > 1) ? GetBestTVShowChoice(tvShows, path) : 0;
-                    if(choice >= 0)
+                    if (choice >= 0)
                     {
                         addMovie.TMDBTVShowIndex = tvShows[choice].Id;
                     }
@@ -396,7 +463,7 @@ namespace Ariadna
         private void ListView_MouseClicked(object sender, MouseEventArgs e)
         {
             HideFloatingPanel();
-            if(e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left)
             {
                 return;
             }
@@ -407,7 +474,7 @@ namespace Ariadna
             {
                 return;
             }
-            
+
             var path = FindStoredMoviePathById((string)lv.Items.FocusedItem.VirtualItemKey);
             if (string.IsNullOrEmpty(path))
             {
@@ -454,74 +521,6 @@ namespace Ariadna
             }
         }
         #endregion
-        private void QueryMovies()
-        {
-            HideFloatingPanel();
-
-            Cursor.Current = Cursors.WaitCursor;
-
-            using (var ctx = new AriadnaEntities())
-            {
-                IQueryable<Movie> query = ctx.Movies.AsNoTracking();
-
-                // -- Search Movie Name --
-                if (m_ToolStrip_MovieName.Text.Length > 0)
-                {
-                    var toSearch = m_ToolStrip_MovieName.Text.ToUpper();
-                    query = query.Where(r => r.title.ToUpper().Contains(toSearch) || 
-                                             r.title_original.ToUpper().Contains(toSearch) ||
-                                             r.file_path.ToUpper().Contains(toSearch));
-                }
-                // -- WISH LIST --
-                if (m_ToolStrip_WishlistBtn.Checked)
-                {
-                    query = query.Where(r => (r.want_to_see == true));
-                }
-                // -- RECENTLY Added --
-                if (m_ToolStrip_RecentBtn.Checked)
-                {
-                    var now = DateTime.Now.AddMonths(-6);
-                    var ct = DateTime.Now;
-                    query = query.Where(r => ((r.creation_time.Value.Year >= now.Year) && (r.creation_time.Value.Month >= now.Month)));
-                }
-                // -- NEW Movies --
-                if (m_ToolStrip_NewBtn.Checked)
-                {
-                    query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
-                }
-                // -- DIRECTOR NAME --
-                if (m_ToolStrip_DirectorName.Text.Length > 0)
-                {
-                    var entry = ctx.Directors.AsNoTracking().Where(r => r.name == m_ToolStrip_DirectorName.Text).FirstOrDefault();
-                    if (entry != null)
-                    {
-                        query = query.Where(r => r.MovieDirectors.Any(l => (l.directorId == entry.Id)));
-                    }
-                }
-                // -- ACTOR NAME --
-                if (m_ToolStrip_ActorName.Text.Length > 0)
-                {
-                    var entry = ctx.Actors.AsNoTracking().Where(r => r.name == m_ToolStrip_ActorName.Text).FirstOrDefault();
-                    if (entry != null)
-                    {
-                        query = query.Where(r => r.MovieCasts.Any(l => (l.actorId == entry.Id)));
-                    }
-                }
-                // -- GENRE --
-                if (m_ToolStrip_GenreName.Text.Length > 0)
-                {
-                    var entry = ctx.Genres.AsNoTracking().Where(r => r.name == m_ToolStrip_GenreName.Text).FirstOrDefault();
-                    if (entry != null)
-                    {
-                        query = query.Where(r => r.MovieGenres.Any(l => (l.genreId == entry.Id)));
-                    }
-                }
-
-                UpdateMoviesList(query.OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
-            }
-
-            Cursor.Current = Cursors.Default;
-        }
         #region ToolStrip Handlers
         private void ToolStrip_AddBtn_MouseUp(object sender, MouseEventArgs e)
         {
