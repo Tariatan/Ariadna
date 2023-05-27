@@ -127,6 +127,9 @@
   <data name="animation" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\animation.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="AriadnaGames" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\AriadnaGames.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="biography" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\biography.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -157,6 +160,12 @@
   <data name="fantasy" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\fantasy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="fighting" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\fighting.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="fps" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\fps.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="historical" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\historical.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -168,6 +177,9 @@
   </data>
   <data name="icon_unchecked" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\icon_unchecked.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="isometric" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\isometric.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="kid" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\kid.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -187,8 +199,20 @@
   <data name="No_Preview_Image_small" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\No_Preview_Image_small.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="No_Preview_Image_Wide" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\No_Preview_Image_Wide.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="No_Preview_Image_Wide_small" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\No_Preview_Image_Wide_small.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="platformer" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\platformer.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="postapocalypse" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\postapocalypse.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="racing" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\racing.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="romance" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\romance.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -196,11 +220,26 @@
   <data name="scifi" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\scifi.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="simulator" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\simulator.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="sport" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\sport.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="strategy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\strategy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="thriller" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\thriller.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="towerdefense" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\towerdefense.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tps" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\tps.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="turnbased" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\genres\turnbased.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="war" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\war.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

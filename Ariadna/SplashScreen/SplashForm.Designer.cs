@@ -1,4 +1,5 @@
-﻿namespace Ariadna
+﻿using Ariadna.Themes;
+namespace Ariadna
 {
     partial class SplashForm
     {
@@ -39,12 +40,12 @@
             // 
             this.m_StatusInfoLbl.BackColor = System.Drawing.Color.Black;
             this.m_StatusInfoLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_StatusInfoLbl.ForeColor = System.Drawing.Color.DarkMagenta;
+            this.m_StatusInfoLbl.ForeColor = Theme.SplashScreenForeColor;
             this.m_StatusInfoLbl.Location = new System.Drawing.Point(12, 373);
             this.m_StatusInfoLbl.Name = "m_StatusInfoLbl";
-            this.m_StatusInfoLbl.Size = new System.Drawing.Size(136, 23);
+            this.m_StatusInfoLbl.Size = new System.Drawing.Size(153, 23);
             this.m_StatusInfoLbl.TabIndex = 0;
-            this.m_StatusInfoLbl.Text = "Loading database";
+            this.m_StatusInfoLbl.Text = "Loading database...";
             // 
             // m_SplashAnimation
             // 
@@ -62,7 +63,7 @@
             // 
             this.m_Label.BackColor = System.Drawing.Color.Black;
             this.m_Label.Font = new System.Drawing.Font("Bauhaus 93", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.m_Label.ForeColor = System.Drawing.Color.DarkMagenta;
+            this.m_Label.ForeColor = Theme.SplashScreenForeColor;
             this.m_Label.Location = new System.Drawing.Point(40, 40);
             this.m_Label.Name = "m_Label";
             this.m_Label.Size = new System.Drawing.Size(176, 41);
@@ -75,8 +76,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.DarkMagenta;
             this.ClientSize = new System.Drawing.Size(405, 405);
-            this.Controls.Add(this.m_Label);
             this.Controls.Add(this.m_StatusInfoLbl);
+            this.Controls.Add(this.m_Label);
             this.Controls.Add(this.m_SplashAnimation);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

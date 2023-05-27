@@ -23,7 +23,6 @@ namespace Ariadna
         public SplashForm()
         {
             InitializeComponent();
-            m_StatusInfoLbl.Text = "";
         }
 
 

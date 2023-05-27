@@ -1,4 +1,5 @@
-﻿using Manina.Windows.Forms;
+﻿using Ariadna.Themes;
+using Manina.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
@@ -9,7 +10,7 @@ namespace Ariadna
         private readonly int padW = 20;
         private readonly int padTop = 12;
         private readonly int padBtm = 6;
-        private readonly Brush textBrush = new SolidBrush(Color.White);
+        private readonly Brush textBrush = new SolidBrush(Theme.ListViewForeColor);
         private readonly StringFormat stringFormat = new StringFormat()
         {
             Alignment = StringAlignment.Center,
@@ -29,9 +30,18 @@ namespace Ariadna
             mBlinkTimer.Tick += new System.EventHandler(Blink);
             mBlinkTimer.Interval = BLINK_INTERVAL_MS;
         }
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            // Dispose local resources
+            textBrush.Dispose();
+            stringFormat.Dispose();
+            mBlinkTimer.Dispose();
+        }
         public override void DrawBackground(Graphics g, Rectangle bounds)
         {
-            using (Brush brush = new LinearGradientBrush(bounds, Color.Purple, Color.Black, LinearGradientMode.Vertical))
+            using (Brush brush = new LinearGradientBrush(bounds, Theme.ListViewGradFromColor, Theme.ListViewGradToColor, LinearGradientMode.Vertical))
             {
                 g.FillRectangle(brush, bounds);
             }
@@ -82,8 +92,8 @@ namespace Ariadna
                 return;
             }
 
-            Color from = Color.FromArgb(isSelected ? 110 : 65, Color.White);
-            Color to = Color.FromArgb(16, 16, 16);
+            Color from = Color.FromArgb(isSelected ? 110 : 65, Theme.ListViewItemBgFromColor);
+            Color to = Theme.ListViewItemBgToColor;
 
             using (Brush brush = new LinearGradientBrush(new Point(pos.X - padW, pos.Y - padTop), new Point(pos.X - padW, pos.Y + pos.Height + padTop + padBtm), from, to))
             {
@@ -100,22 +110,11 @@ namespace Ariadna
                 return;
             }
 
-            Color from = Color.FromArgb(isSelected ? 95 : 128, (mBlinkState == EBlinkState.TICK) ? Color.Gray : Color.White);
-            Color to = Color.FromArgb(16, 16, 16);
-
-            using (SolidBrush brush = new SolidBrush((mBlinkState == EBlinkState.TICK) ? Color.White : Color.Gray))
+            using (SolidBrush brush = new SolidBrush((mBlinkState == EBlinkState.TICK) ? Theme.ListViewItemBorderTickColor : Theme.ListViewItemBorderTuckColor))
             using (Pen pen = new Pen(brush))
             {
                 g.DrawRectangle(pen, pos.X + 1, pos.Y + 1, pos.Width - 2, pos.Height - 2);
             }
-
-            /*
-                        using (Brush brush = new LinearGradientBrush(new Point(pos.X - padW, pos.Y - padTop), new Point(pos.X - padW, pos.Y + pos.Height + padTop + padBtm), from, to))
-                        using (Pen pen = new Pen(brush))
-                        {
-                            g.DrawRectangle(pen, pos.X - padW, pos.Y - padTop + 1, pos.Width + 2 * padW - 1, pos.Height + padTop + padBtm - 1);
-                        }
-            */
         }
         private void DrawImage(Graphics g, Image img, Rectangle bounds)
         {

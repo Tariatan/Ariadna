@@ -12,6 +12,7 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -24,7 +25,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -126,6 +126,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuxiliaryPopups\DetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AuxiliaryPopups\DetailsForm.Designer.cs">
+      <DependentUpon>DetailsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AuxiliaryPopups\GameDetailsForm .cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DBStrategies\AbstractDBStrategy.cs" />
     <Compile Include="Actor.cs">
       <DependentUpon>AriadnaModel.tt</DependentUpon>
     </Compile>
@@ -144,40 +154,48 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AriadnaModel.edmx</DependentUpon>
     </Compile>
-    <Compile Include="ChoicePopup.cs">
+    <Compile Include="AuxiliaryPopups\ChoicePopup.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ChoicePopup.Designer.cs">
+    <Compile Include="AuxiliaryPopups\ChoicePopup.Designer.cs">
       <DependentUpon>ChoicePopup.cs</DependentUpon>
     </Compile>
+    <Compile Include="DBStrategies\GamesDBStrategy.cs" />
+    <Compile Include="DBStrategies\MoviesDBStrategy.cs" />
     <Compile Include="Director.cs">
       <DependentUpon>AriadnaModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="FloatingPanel.cs">
+    <Compile Include="AuxiliaryPopups\FloatingPanel.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="FloatingPanel.Designer.cs">
+    <Compile Include="AuxiliaryPopups\FloatingPanel.Designer.cs">
       <DependentUpon>FloatingPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Game.cs">
+      <DependentUpon>AriadnaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="GameGenre.cs">
+      <DependentUpon>AriadnaModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Genre.cs">
+      <DependentUpon>AriadnaModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="GenreOfGame.cs">
       <DependentUpon>AriadnaModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Ignore.cs">
       <DependentUpon>AriadnaModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="ImageFromFileAdaptor.cs" />
-    <Compile Include="ImageListViewRenderer.cs" />
+    <Compile Include="ImageListHelpers\PosterFromFileAdaptor.cs" />
+    <Compile Include="ImageListHelpers\ImageListViewRenderer.cs" />
     <Compile Include="Movie.cs">
       <DependentUpon>AriadnaModel.tt</DependentUpon>
     </Compile>
     <Compile Include="MovieCast.cs">
       <DependentUpon>AriadnaModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="MovieData.cs">
+    <Compile Include="AuxiliaryPopups\MovieDetailsForm.cs">
       <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="MovieData.Designer.cs">
-      <DependentUpon>MovieData.cs</DependentUpon>
     </Compile>
     <Compile Include="MainPanel.cs">
       <SubType>Form</SubType>
@@ -193,33 +211,37 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Splasher.cs" />
-    <Compile Include="SplashForm.cs">
+    <Compile Include="SplashScreen\Splasher.cs" />
+    <Compile Include="SplashScreen\SplashForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SplashForm.Designer.cs">
+    <Compile Include="SplashScreen\SplashForm.Designer.cs">
       <DependentUpon>SplashForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Themes\Theme.cs" />
+    <Compile Include="Themes\ThemeGames.cs" />
+    <Compile Include="Themes\ThemeMovies.cs" />
     <Compile Include="Utilities.cs" />
-    <EmbeddedResource Include="ChoicePopup.resx">
+    <EmbeddedResource Include="AuxiliaryPopups\ChoicePopup.resx">
       <DependentUpon>ChoicePopup.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FloatingPanel.resx">
+    <EmbeddedResource Include="AuxiliaryPopups\FloatingPanel.resx">
       <DependentUpon>FloatingPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MovieData.resx">
-      <DependentUpon>MovieData.cs</DependentUpon>
+    <EmbeddedResource Include="AuxiliaryPopups\DetailsForm.resx">
+      <DependentUpon>DetailsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="MainPanel.resx">
       <DependentUpon>MainPanel.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="SplashForm.resx">
+    <EmbeddedResource Include="SplashScreen\SplashForm.resx">
       <DependentUpon>SplashForm.cs</DependentUpon>
     </EmbeddedResource>
     <EntityDeploy Include="AriadnaModel.edmx">
@@ -253,6 +275,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Ariadna.ico" />
+    <None Include="Resources\genres\tps.png" />
+    <None Include="AriadnaGames.ico" />
     <Content Include="AriadnaModel.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>AriadnaModel.edmx</DependentUpon>
@@ -263,7 +287,20 @@
       <DependentUpon>AriadnaModel.edmx</DependentUpon>
       <LastGenOutput>AriadnaModel.cs</LastGenOutput>
     </Content>
+    <None Include="Resources\AriadnaGames.png" />
     <Content Include="Resources\empty_icon.png" />
+    <None Include="Resources\genres\isometric.png" />
+    <None Include="Resources\genres\isometric.jpg" />
+    <None Include="Resources\genres\fps.png" />
+    <None Include="Resources\genres\racing.png" />
+    <None Include="Resources\genres\towerdefense.png" />
+    <None Include="Resources\genres\strategy.png" />
+    <None Include="Resources\genres\simulator.png" />
+    <None Include="Resources\genres\turnbased.png" />
+    <None Include="Resources\genres\platformer.png" />
+    <None Include="Resources\genres\fighting.png" />
+    <None Include="Resources\No_Preview_Image_Wide_small.bmp" />
+    <None Include="Resources\No_Preview_Image_Wide.bmp" />
     <None Include="Resources\genres\xmas.png" />
     <None Include="Resources\genres\western.png" />
     <None Include="Resources\genres\war.png" />

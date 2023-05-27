@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace Ariadna
 {
@@ -11,40 +12,111 @@ namespace Ariadna
             None = 0,
             SUCCESS,
         }
-        // Movie Data Transfer Object
-        public class MovieDto
+        // Entry Data Transfer Object
+        public class EntryDto
         {
-            public string path { get; set; }
-            public string title { get; set; }
-            public int id { get; set; }
+            public string Path { get; set; }
+            public string Title { get; set; }
+            public int Id { get; set; }
         }
         public class MovieChoiceDto
         {
-            public string titleRu { get; set; }
-            public string titleOrig { get; set; }
-            public int year { get; set; }
+            public string Title { get; set; }
+            public string TitleOrig { get; set; }
+            public int Year { get; set; }
+        }
+        public class EntryInfo
+        {
+            public string Title { get; set; }
+            public string TitleOrig { get; set; }
+            public string Path { get; set; }
         }
 
-        public static int GENRE_IMAGE_W = 60;
-        public static int GENRE_IMAGE_H = 60;
+        public static readonly int GENRE_IMAGE_W = 60;
+        public static readonly int GENRE_IMAGE_H = 60;
 
-        public static int POSTER_W = 400;
-        public static int POSTER_H = 600;
+        public static readonly int POSTER_W = 400;
+        public static readonly int POSTER_H = 600;
 
-        public static int PHOTO_W = 54;
-        public static int PHOTO_H = 81;
+        public static readonly int PHOTO_W = 54;
+        public static readonly int PHOTO_H = 81;
 
-        public static int MAX_GENRES_COUNT = 5;
+        public static readonly int PREVIEW_W = 603;
+        public static readonly int PREVIEW_H = 339;
 
-        public static string TMDB_API_KEY = "ec3e7f0826eb6ef92dc4b1f69f1e1dd3";
-        public static string POSTERS_ROOT_PATH = @"G:/Ariadna/posters/";
+        public static readonly int PREVIEW_SMALL_W = 137;
+        public static readonly int PREVIEW_SMALL_H = 77;
 
-        public static List<string> GENRES_LIST = new List<string>
-        {"Боевик", "Приключение", "Анимационный", "Биография", "Комедия", "Криминал", "Детектив", "Катастрофа", "Драма",
-         "Сказка", "Семейный", "Фэнтези", "Исторический", "Ужасы", "Детский", "Музыка", "Мистика", "Постапокалипсис",
-         "Романтика", "Фантастика", "Спорт", "Триллер", "Военный", "Вестерн", "Новогодний"
+        public static readonly int MAX_GENRES_COUNT = 5;
+
+        public static readonly string TMDB_API_KEY = "ec3e7f0826eb6ef92dc4b1f69f1e1dd3";
+        public static readonly string MOVIE_POSTERS_ROOT_PATH = @"G:/Ariadna/movies/";
+        public static readonly string GAME_POSTERS_ROOT_PATH = @"G:/Ariadna/games/";
+        public static readonly string DEFAULT_GAMES_PATH = @"A:\GAMES\";
+        public static readonly string DEFAULT_MOVIES_PATH = @"M:\";
+        public static readonly string DEFAULT_SERIES_PATH = @"S:\";
+        public static readonly string MEDIA_PLAYER_PATH = "C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe";
+        public static readonly string PREVIEW_SUFFIX = "_preview";
+
+        public static Dictionary<string, Bitmap> MOVIE_GENRES = new Dictionary<string, Bitmap>
+        {
+            {"Боевик", Properties.Resources.action},
+            {"Приключение", Properties.Resources.adventure},
+            {"Анимационный", Properties.Resources.animation},
+            {"Биография", Properties.Resources.biography},
+            {"Комедия", Properties.Resources.comedy},
+            {"Криминал", Properties.Resources.criminal},
+            {"Детектив", Properties.Resources.detective},
+            {"Катастрофа", Properties.Resources.disaster},
+            {"Драма", Properties.Resources.drama},
+            {"Сказка", Properties.Resources.fairytail},
+            {"Семейный", Properties.Resources.family},
+            {"Фэнтези", Properties.Resources.fantasy},
+            {"Исторический", Properties.Resources.historical},
+            {"Ужасы", Properties.Resources.horror},
+            {"Детский", Properties.Resources.kid},
+            {"Музыка", Properties.Resources.musical},
+            {"Мистика", Properties.Resources.mystic},
+            {"Постапокалипсис", Properties.Resources.postapocalypse},
+            {"Романтика", Properties.Resources.romance},
+            {"Фантастика", Properties.Resources.scifi},
+            {"Спорт", Properties.Resources.sport},
+            {"Триллер", Properties.Resources.thriller},
+            {"Военный", Properties.Resources.war},
+            {"Вестерн", Properties.Resources.western},
+            {"Новогодний", Properties.Resources.xmas},
         };
-        public static string GetGenreBySynonym(string name)
+        public static Dictionary<string, Bitmap> GAME_GENRES = new Dictionary<string, Bitmap>
+        {
+            {"Adventure", Properties.Resources.adventure},
+            {"Fighting", Properties.Resources.fighting},
+            {"Action", Properties.Resources.action},
+            {"Quest", Properties.Resources.detective},
+            {"Platformer", Properties.Resources.platformer},
+            {"Postapocalypse", Properties.Resources.postapocalypse},
+            {"RPG", Properties.Resources.historical},
+            {"Turn-Based", Properties.Resources.turnbased},
+            {"Simulator", Properties.Resources.simulator},
+            {"Strategy", Properties.Resources.strategy},
+            {"Tower Defense", Properties.Resources.towerdefense},
+            {"Racing", Properties.Resources.racing},
+            {"Sport", Properties.Resources.sport},
+            {"Sci-Fi", Properties.Resources.scifi},
+            {"Fantasy", Properties.Resources.fantasy},
+            {"FPS", Properties.Resources.fps},
+            {"3rd View", Properties.Resources.tps},
+            {"Isometric", Properties.Resources.isometric},
+            {"Horror", Properties.Resources.horror},
+        };
+        public static Bitmap GetMovieGenreImage(string name)
+        {
+            if(MOVIE_GENRES.ContainsKey(name))
+                return MOVIE_GENRES[name];
+
+            return Properties.Resources.No_Image;
+            //return new Bitmap(Properties.Resources.No_Image);
+        }
+        public static string GetMovieGenreBySynonym(string name)
         {
             switch (name)
             {
@@ -58,27 +130,39 @@ namespace Ariadna
             }
             return name;
         }
-        public static string CapitalizeWords(string words)
+        public static Bitmap GetGameGenreImage(string name)
         {
-            var wordList = words.Trim().Split(' ');
-            var result = "";
-            for (int i = 0; i < wordList.Length; ++i)
-            {
-                if (wordList[i].Length == 0)
-                {
-                    continue;
-                }
+            if (GAME_GENRES.ContainsKey(name))
+                return GAME_GENRES[name];
 
-                wordList[i] = wordList[i][0].ToString().ToUpper() + wordList[i].Substring(1);
-                if (result.Length > 0)
-                {
-                    result += " ";
-                }
-                result += wordList[i];
-            }
-
-            return result;
+            return Properties.Resources.No_Image;
+            //return new Bitmap(Properties.Resources.No_Image);
         }
+        public static string GetGameGenreBySynonym(string name)
+        {
+            return name;
+        }
+        public static string CapitalizeWords(string words)
+            {
+                var wordList = words.Trim().Split(' ');
+                var result = "";
+                for (int i = 0; i < wordList.Length; ++i)
+                {
+                    if (wordList[i].Length == 0)
+                    {
+                        continue;
+                    }
+
+                    wordList[i] = wordList[i][0].ToString().ToUpper() + wordList[i].Substring(1);
+                    if (result.Length > 0)
+                    {
+                        result += " ";
+                    }
+                    result += wordList[i];
+                }
+
+                return result;
+            }
         public static byte[] ImageToBytes(Image img)
         {
             try
@@ -131,36 +215,52 @@ namespace Ariadna
 
             return false;
         }
-        public static Bitmap GetGenreImage(string name)
+        public static int ConvertId(string sId)
         {
-            switch (name)
+            Int32.TryParse(sId, out int id);
+            return id;
+        }
+        public static bool GetBitmapFromDisk(out Bitmap outBmp, string filter, int width, int height)
+        {
+            outBmp = null;
+
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                case "Боевик":              return new Bitmap(Properties.Resources.action);
-                case "Приключение":         return new Bitmap(Properties.Resources.adventure);
-                case "Анимационный":        return new Bitmap(Properties.Resources.animation);
-                case "Биография":           return new Bitmap(Properties.Resources.biography);
-                case "Комедия":             return new Bitmap(Properties.Resources.comedy);
-                case "Криминал":            return new Bitmap(Properties.Resources.criminal);
-                case "Детектив":            return new Bitmap(Properties.Resources.detective);
-                case "Катастрофа":          return new Bitmap(Properties.Resources.disaster);
-                case "Драма":               return new Bitmap(Properties.Resources.drama);
-                case "Сказка":              return new Bitmap(Properties.Resources.fairytail);
-                case "Семейный":            return new Bitmap(Properties.Resources.family);
-                case "Фэнтези":             return new Bitmap(Properties.Resources.fantasy);
-                case "Исторический":        return new Bitmap(Properties.Resources.historical);
-                case "Ужасы":               return new Bitmap(Properties.Resources.horror);
-                case "Детский":             return new Bitmap(Properties.Resources.kid);
-                case "Музыка":              return new Bitmap(Properties.Resources.musical);
-                case "Мистика":             return new Bitmap(Properties.Resources.mystic);
-                case "Постапокалипсис":     return new Bitmap(Properties.Resources.postapocalypse);
-                case "Романтика":           return new Bitmap(Properties.Resources.romance);
-                case "Фантастика":          return new Bitmap(Properties.Resources.scifi);
-                case "Спорт":               return new Bitmap(Properties.Resources.sport);
-                case "Триллер":             return new Bitmap(Properties.Resources.thriller);
-                case "Военный":             return new Bitmap(Properties.Resources.war);
-                case "Вестерн":             return new Bitmap(Properties.Resources.western);
-                case "Новогодний":          return new Bitmap(Properties.Resources.xmas);
-                default:                    return new Bitmap(Properties.Resources.No_Image);
+                openFileDialog.InitialDirectory = "T:\\Downloads\\";
+                openFileDialog.Filter = filter;
+                openFileDialog.FilterIndex = 1;
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() != DialogResult.OK)
+                {
+                    return false;
+                }
+
+                var fileName = openFileDialog.FileName;
+                var extStartPos = fileName.LastIndexOf('.') + 1;
+                string ext = "";
+                if (extStartPos > 0)
+                {
+                    ext = fileName.Substring(extStartPos).ToUpper();
+                }
+
+                // Check supported extensions
+                HashSet<string> exts = new HashSet<string> { "BMP", "GIF", "EXIF", "JPG", "JPEG", "PNG", "TIFF" };
+                if ((ext.Length > 0) && !exts.Contains(ext))
+                {
+                    return false;
+                }
+
+                outBmp = new Bitmap(width, height);
+                Graphics graph = Graphics.FromImage(outBmp);
+
+                using (var bmpTemp = new Bitmap(fileName))
+                {
+                    Image image = new Bitmap(bmpTemp);
+                    graph.DrawImage(image, new Rectangle(0, 0, width, height));
+                }
+
+                return true;
             }
         }
     }

@@ -40,7 +40,7 @@ namespace Ariadna
             var empty = new Bitmap(Properties.Resources.No_Preview_Image_small);
             foreach (var value in values)
             {
-                mPanelImageView.Images.Add(value.Key, (value.Value != null) ? value.Value : empty);
+                mPanelImageView.Images.Add(value.Key, value.Value ?? empty);
                 mPanelListView.Items.Add(new ListViewItem(value.Key, mPanelImageView.Images.IndexOfKey(value.Key)));
             }
         }
@@ -48,7 +48,7 @@ namespace Ariadna
         {
             if (e.KeyCode == Keys.Escape)
             {
-                this.Hide();
+                Hide();
                 return;
             }
         }
@@ -57,7 +57,7 @@ namespace Ariadna
             EntryNames.Add(mPanelListView.FocusedItem.Text);
 
             FormCloseReason = Utilities.EFormCloseReason.SUCCESS;
-            this.Hide();
+            Hide();
         }
 
         private void OnListItemChecked(object sender, ItemCheckedEventArgs e)

@@ -19,6 +19,11 @@
         <AssociationConnector Association="AriadnaModel.movie_cast_movie_FK" ManuallyRouted="false" />
         <AssociationConnector Association="AriadnaModel.movie_director_movie_FK" ManuallyRouted="false" />
         <AssociationConnector Association="AriadnaModel.movie_genre_movie_FK" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="AriadnaModel.Game" Width="1.5" PointX="6.875" PointY="6" />
+        <EntityTypeShape EntityType="AriadnaModel.GameGenre" Width="1.5" PointX="9.375" PointY="6" />
+        <EntityTypeShape EntityType="AriadnaModel.GenreOfGame" Width="1.5" PointX="11.625" PointY="6" />
+        <AssociationConnector Association="AriadnaModel.game_genre_game_FK" />
+        <AssociationConnector Association="AriadnaModel.game_genre_genre_FK" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

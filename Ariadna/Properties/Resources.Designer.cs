@@ -22,7 +22,7 @@ namespace Ariadna.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Ariadna.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Ariadna.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace Ariadna.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap action {
+        public static System.Drawing.Bitmap action {
             get {
                 object obj = ResourceManager.GetObject("action", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -73,7 +73,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap adventure {
+        public static System.Drawing.Bitmap adventure {
             get {
                 object obj = ResourceManager.GetObject("adventure", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -83,7 +83,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap animation {
+        public static System.Drawing.Bitmap animation {
             get {
                 object obj = ResourceManager.GetObject("animation", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -91,9 +91,19 @@ namespace Ariadna.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
+        public static System.Drawing.Icon AriadnaGames {
+            get {
+                object obj = ResourceManager.GetObject("AriadnaGames", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap biography {
+        public static System.Drawing.Bitmap biography {
             get {
                 object obj = ResourceManager.GetObject("biography", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -103,7 +113,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap comedy {
+        public static System.Drawing.Bitmap comedy {
             get {
                 object obj = ResourceManager.GetObject("comedy", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -113,7 +123,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap criminal {
+        public static System.Drawing.Bitmap criminal {
             get {
                 object obj = ResourceManager.GetObject("criminal", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -123,7 +133,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap detective {
+        public static System.Drawing.Bitmap detective {
             get {
                 object obj = ResourceManager.GetObject("detective", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -133,7 +143,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap disaster {
+        public static System.Drawing.Bitmap disaster {
             get {
                 object obj = ResourceManager.GetObject("disaster", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -143,7 +153,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap drama {
+        public static System.Drawing.Bitmap drama {
             get {
                 object obj = ResourceManager.GetObject("drama", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -153,7 +163,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap empty_icon {
+        public static System.Drawing.Bitmap empty_icon {
             get {
                 object obj = ResourceManager.GetObject("empty_icon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -163,7 +173,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap fairytail {
+        public static System.Drawing.Bitmap fairytail {
             get {
                 object obj = ResourceManager.GetObject("fairytail", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -173,7 +183,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap family {
+        public static System.Drawing.Bitmap family {
             get {
                 object obj = ResourceManager.GetObject("family", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -183,7 +193,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap fantasy {
+        public static System.Drawing.Bitmap fantasy {
             get {
                 object obj = ResourceManager.GetObject("fantasy", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -193,7 +203,27 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap historical {
+        public static System.Drawing.Bitmap fighting {
+            get {
+                object obj = ResourceManager.GetObject("fighting", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap fps {
+            get {
+                object obj = ResourceManager.GetObject("fps", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap historical {
             get {
                 object obj = ResourceManager.GetObject("historical", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -203,7 +233,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap horror {
+        public static System.Drawing.Bitmap horror {
             get {
                 object obj = ResourceManager.GetObject("horror", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -213,7 +243,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap icon_checked {
+        public static System.Drawing.Bitmap icon_checked {
             get {
                 object obj = ResourceManager.GetObject("icon_checked", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -223,7 +253,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap icon_unchecked {
+        public static System.Drawing.Bitmap icon_unchecked {
             get {
                 object obj = ResourceManager.GetObject("icon_unchecked", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -233,7 +263,17 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap kid {
+        public static System.Drawing.Bitmap isometric {
+            get {
+                object obj = ResourceManager.GetObject("isometric", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap kid {
             get {
                 object obj = ResourceManager.GetObject("kid", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -243,7 +283,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap musical {
+        public static System.Drawing.Bitmap musical {
             get {
                 object obj = ResourceManager.GetObject("musical", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -253,7 +293,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap mystic {
+        public static System.Drawing.Bitmap mystic {
             get {
                 object obj = ResourceManager.GetObject("mystic", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -263,7 +303,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap No_Image {
+        public static System.Drawing.Bitmap No_Image {
             get {
                 object obj = ResourceManager.GetObject("No_Image", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -273,7 +313,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap No_Preview_Image {
+        public static System.Drawing.Bitmap No_Preview_Image {
             get {
                 object obj = ResourceManager.GetObject("No_Preview_Image", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -283,7 +323,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap No_Preview_Image_small {
+        public static System.Drawing.Bitmap No_Preview_Image_small {
             get {
                 object obj = ResourceManager.GetObject("No_Preview_Image_small", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -293,7 +333,37 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap postapocalypse {
+        public static System.Drawing.Bitmap No_Preview_Image_Wide {
+            get {
+                object obj = ResourceManager.GetObject("No_Preview_Image_Wide", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap No_Preview_Image_Wide_small {
+            get {
+                object obj = ResourceManager.GetObject("No_Preview_Image_Wide_small", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap platformer {
+            get {
+                object obj = ResourceManager.GetObject("platformer", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap postapocalypse {
             get {
                 object obj = ResourceManager.GetObject("postapocalypse", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -303,7 +373,17 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap romance {
+        public static System.Drawing.Bitmap racing {
+            get {
+                object obj = ResourceManager.GetObject("racing", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap romance {
             get {
                 object obj = ResourceManager.GetObject("romance", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -313,7 +393,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap scifi {
+        public static System.Drawing.Bitmap scifi {
             get {
                 object obj = ResourceManager.GetObject("scifi", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -323,7 +403,17 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap sport {
+        public static System.Drawing.Bitmap simulator {
+            get {
+                object obj = ResourceManager.GetObject("simulator", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap sport {
             get {
                 object obj = ResourceManager.GetObject("sport", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -333,7 +423,17 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap thriller {
+        public static System.Drawing.Bitmap strategy {
+            get {
+                object obj = ResourceManager.GetObject("strategy", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap thriller {
             get {
                 object obj = ResourceManager.GetObject("thriller", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -343,7 +443,37 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap war {
+        public static System.Drawing.Bitmap towerdefense {
+            get {
+                object obj = ResourceManager.GetObject("towerdefense", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap tps {
+            get {
+                object obj = ResourceManager.GetObject("tps", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap turnbased {
+            get {
+                object obj = ResourceManager.GetObject("turnbased", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap war {
             get {
                 object obj = ResourceManager.GetObject("war", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -353,7 +483,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap western {
+        public static System.Drawing.Bitmap western {
             get {
                 object obj = ResourceManager.GetObject("western", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -363,7 +493,7 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap xmas {
+        public static System.Drawing.Bitmap xmas {
             get {
                 object obj = ResourceManager.GetObject("xmas", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));

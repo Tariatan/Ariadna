@@ -13,7 +13,7 @@ namespace Ariadna
 
             foreach (var result in results)
             {
-                var itm = new ListViewItem(new string[] { result.titleRu, result.titleOrig, result.year.ToString() });
+                var itm = new ListViewItem(new string[] { result.Title, result.TitleOrig, result.Year.ToString() });
                 mResultList.Items.Add(itm);
             }
             mToolStripPath.Text = path;

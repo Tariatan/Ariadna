@@ -1,4 +1,6 @@
-﻿namespace Ariadna
+﻿using Ariadna.Themes;
+
+namespace Ariadna
 {
     partial class MainPanel
     {
@@ -17,7 +19,6 @@
             {
                 components.Dispose();
                 m_ListViewRenderer.Dispose();
-                m_PosterImageAdaptor.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -30,14 +31,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainPanel));
             this.m_ImageListView = new Manina.Windows.Forms.ImageListView();
             this.m_ToolStrip = new System.Windows.Forms.ToolStrip();
             this.m_ToolStrip_AddBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_NameLbl = new System.Windows.Forms.ToolStripLabel();
-            this.m_ToolStrip_MovieName = new System.Windows.Forms.ToolStripTextBox();
+            this.m_ToolStrip_EntryName = new System.Windows.Forms.ToolStripTextBox();
             this.m_ToolStrip_ClearTitleBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_WishlistLbl = new System.Windows.Forms.ToolStripLabel();
@@ -52,11 +52,11 @@
             this.m_ToolStrip_DirectorLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_DirectorName = new System.Windows.Forms.ToolStripTextBox();
             this.m_ToolStrip_ClearDirectorBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStrip_DirectorSprt = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_ActorLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_ActorName = new System.Windows.Forms.ToolStripTextBox();
             this.m_ToolStrip_ClearActorBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStrip_ActorSprt = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_GenreNameLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_GenreName = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_ClearGenreBtn = new System.Windows.Forms.ToolStripButton();
@@ -65,38 +65,32 @@
             this.m_ToolStripEntriesCount = new System.Windows.Forms.ToolStripLabel();
             this.m_QuickListFlow = new System.Windows.Forms.FlowLayoutPanel();
             this.m_ToolStrip.SuspendLayout();
-            this.m_QuickListFlow.SuspendLayout();
             this.SuspendLayout();
-
             // 
             // m_ImageListView
             // 
+            this.m_ImageListView.AllowItemReorder = false;
+            this.m_ImageListView.DefaultImage = global::Ariadna.Properties.Resources.empty_icon;
             this.m_ImageListView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.m_ImageListView.Location = new System.Drawing.Point(0, 0);
+            this.m_ImageListView.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.m_ImageListView.Location = new System.Drawing.Point(0, 25);
+            this.m_ImageListView.MultiSelect = false;
             this.m_ImageListView.Name = "m_ImageListView";
             this.m_ImageListView.PersistentCacheDirectory = "";
             this.m_ImageListView.PersistentCacheSize = ((long)(100));
             this.m_ImageListView.Size = new System.Drawing.Size(1272, 632);
-            this.m_ImageListView.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_ImageListView.ForeColor = System.Drawing.Color.White;
             this.m_ImageListView.TabIndex = 1;
-            this.m_ImageListView.UseWIC = true;
-            this.m_ImageListView.MultiSelect = false;
-            this.m_ImageListView.AllowDrag = false;
-            this.m_ImageListView.AllowItemReorder = false;
-            this.m_ImageListView.ShowFileIcons = false;
             this.m_ImageListView.ThumbnailSize = new System.Drawing.Size(214, 321);
-            this.m_ImageListView.DefaultImage = Properties.Resources.empty_icon;
+            this.m_ImageListView.UseWIC = true;
+            this.m_ImageListView.SelectionChanged += new System.EventHandler(this.ListView_ItemSelectionChanged);
             this.m_ImageListView.Click += new System.EventHandler(this.OnListViewClick);
+            this.m_ImageListView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnListViewKeyDown);
             this.m_ImageListView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ListView_MouseDoubleClick);
             this.m_ImageListView.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ListView_MouseClicked);
-            this.m_ImageListView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnListViewKeyDown);
-            this.m_ImageListView.SelectionChanged += new System.EventHandler(this.ListView_ItemSelectionChanged);
-
             // 
-            // toolStrip
+            // m_ToolStrip
             // 
-            this.m_ToolStrip.BackColor = System.Drawing.Color.Purple;
+            this.m_ToolStrip.BackColor = Theme.MainBackColor;
             this.m_ToolStrip.CanOverflow = false;
             this.m_ToolStrip.GripMargin = new System.Windows.Forms.Padding(2, 2, 2, 5);
             this.m_ToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
@@ -104,7 +98,7 @@
             this.m_ToolStrip_AddBtn,
             this.toolStripSeparator1,
             this.m_ToolStrip_NameLbl,
-            this.m_ToolStrip_MovieName,
+            this.m_ToolStrip_EntryName,
             this.m_ToolStrip_ClearTitleBtn,
             this.toolStripSeparator3,
             this.m_ToolStrip_WishlistLbl,
@@ -119,11 +113,11 @@
             this.m_ToolStrip_DirectorLbl,
             this.m_ToolStrip_DirectorName,
             this.m_ToolStrip_ClearDirectorBtn,
-            this.toolStripSeparator6,
+            this.m_ToolStrip_DirectorSprt,
             this.m_ToolStrip_ActorLbl,
             this.m_ToolStrip_ActorName,
             this.m_ToolStrip_ClearActorBtn,
-            this.toolStripSeparator7,
+            this.m_ToolStrip_ActorSprt,
             this.m_ToolStrip_GenreNameLbl,
             this.m_ToolStrip_GenreName,
             this.m_ToolStrip_ClearGenreBtn,
@@ -140,9 +134,8 @@
             // m_ToolStrip_AddBtn
             // 
             this.m_ToolStrip_AddBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.m_ToolStrip_AddBtn.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_AddBtn.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_AddBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_AddBtn.Image")));
-            this.m_ToolStrip_AddBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.m_ToolStrip_AddBtn.Name = "m_ToolStrip_AddBtn";
             this.m_ToolStrip_AddBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_AddBtn.Text = "Добавить";
@@ -155,29 +148,28 @@
             // 
             // m_ToolStrip_NameLbl
             // 
-            this.m_ToolStrip_NameLbl.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_NameLbl.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_NameLbl.Name = "m_ToolStrip_NameLbl";
             this.m_ToolStrip_NameLbl.Size = new System.Drawing.Size(59, 22);
             this.m_ToolStrip_NameLbl.Text = "Название";
             // 
-            // m_ToolStrip_MovieName
+            // m_ToolStrip_EntryName
             // 
-            this.m_ToolStrip_MovieName.AutoSize = false;
-            this.m_ToolStrip_MovieName.BackColor = System.Drawing.Color.DarkMagenta;
-            this.m_ToolStrip_MovieName.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.m_ToolStrip_MovieName.ForeColor = System.Drawing.Color.White;
-            this.m_ToolStrip_MovieName.MaxLength = 50;
-            this.m_ToolStrip_MovieName.Name = "m_ToolStrip_MovieName";
-            this.m_ToolStrip_MovieName.Size = new System.Drawing.Size(150, 23);
-            this.m_ToolStrip_MovieName.Enter += new System.EventHandler(this.OnMovieNameTextEntered);
-            this.m_ToolStrip_MovieName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnMovieNameConfirmed);
-            this.m_ToolStrip_MovieName.TextChanged += new System.EventHandler(this.OnMovieNameTextChanged);
+            this.m_ToolStrip_EntryName.AutoSize = false;
+            this.m_ToolStrip_EntryName.BackColor = Theme.ControlsBackColor;
+            this.m_ToolStrip_EntryName.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.m_ToolStrip_EntryName.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_EntryName.MaxLength = 50;
+            this.m_ToolStrip_EntryName.Name = "m_ToolStrip_EntryName";
+            this.m_ToolStrip_EntryName.Size = new System.Drawing.Size(150, 23);
+            this.m_ToolStrip_EntryName.Enter += new System.EventHandler(this.OnEntryNameTextEntered);
+            this.m_ToolStrip_EntryName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnEntryNameConfirmed);
+            this.m_ToolStrip_EntryName.TextChanged += new System.EventHandler(this.OnEntryNameTextChanged);
             // 
             // m_ToolStrip_ClearTitleBtn
             // 
             this.m_ToolStrip_ClearTitleBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.m_ToolStrip_ClearTitleBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStripClearTitleBtn.Image")));
-            this.m_ToolStrip_ClearTitleBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.m_ToolStrip_ClearTitleBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_ClearTitleBtn.Image")));
             this.m_ToolStrip_ClearTitleBtn.Name = "m_ToolStrip_ClearTitleBtn";
             this.m_ToolStrip_ClearTitleBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_ClearTitleBtn.ToolTipText = "Очистить";
@@ -190,7 +182,7 @@
             // 
             // m_ToolStrip_WishlistLbl
             // 
-            this.m_ToolStrip_WishlistLbl.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_WishlistLbl.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_WishlistLbl.Name = "m_ToolStrip_WishlistLbl";
             this.m_ToolStrip_WishlistLbl.Size = new System.Drawing.Size(52, 22);
             this.m_ToolStrip_WishlistLbl.Text = "Хотелки";
@@ -199,7 +191,6 @@
             // 
             this.m_ToolStrip_WishlistBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.m_ToolStrip_WishlistBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_WishlistBtn.Image")));
-            this.m_ToolStrip_WishlistBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.m_ToolStrip_WishlistBtn.Name = "m_ToolStrip_WishlistBtn";
             this.m_ToolStrip_WishlistBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_WishlistBtn.ToolTipText = "Хотелки";
@@ -212,7 +203,7 @@
             // 
             // m_ToolStrip_RecentLbl
             // 
-            this.m_ToolStrip_RecentLbl.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_RecentLbl.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_RecentLbl.Name = "m_ToolStrip_RecentLbl";
             this.m_ToolStrip_RecentLbl.Size = new System.Drawing.Size(60, 22);
             this.m_ToolStrip_RecentLbl.Text = "Недавние";
@@ -221,7 +212,6 @@
             // 
             this.m_ToolStrip_RecentBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.m_ToolStrip_RecentBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_RecentBtn.Image")));
-            this.m_ToolStrip_RecentBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.m_ToolStrip_RecentBtn.Name = "m_ToolStrip_RecentBtn";
             this.m_ToolStrip_RecentBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_RecentBtn.Text = "Недавние";
@@ -234,7 +224,7 @@
             // 
             // m_ToolStrip_NewLbl
             // 
-            this.m_ToolStrip_NewLbl.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_NewLbl.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_NewLbl.Name = "m_ToolStrip_NewLbl";
             this.m_ToolStrip_NewLbl.Size = new System.Drawing.Size(56, 22);
             this.m_ToolStrip_NewLbl.Text = "Новинки";
@@ -243,7 +233,6 @@
             // 
             this.m_ToolStrip_NewBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.m_ToolStrip_NewBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_NewBtn.Image")));
-            this.m_ToolStrip_NewBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.m_ToolStrip_NewBtn.Name = "m_ToolStrip_NewBtn";
             this.m_ToolStrip_NewBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_NewBtn.Text = "Новинки";
@@ -256,7 +245,7 @@
             // 
             // m_ToolStrip_DirectorLbl
             // 
-            this.m_ToolStrip_DirectorLbl.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_DirectorLbl.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_DirectorLbl.Name = "m_ToolStrip_DirectorLbl";
             this.m_ToolStrip_DirectorLbl.Size = new System.Drawing.Size(55, 22);
             this.m_ToolStrip_DirectorLbl.Text = "Режисер";
@@ -264,9 +253,9 @@
             // m_ToolStrip_DirectorName
             // 
             this.m_ToolStrip_DirectorName.AutoSize = false;
-            this.m_ToolStrip_DirectorName.BackColor = System.Drawing.Color.DarkMagenta;
+            this.m_ToolStrip_DirectorName.BackColor = Theme.ControlsBackColor;
             this.m_ToolStrip_DirectorName.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.m_ToolStrip_DirectorName.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_DirectorName.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_DirectorName.MaxLength = 20;
             this.m_ToolStrip_DirectorName.Name = "m_ToolStrip_DirectorName";
             this.m_ToolStrip_DirectorName.Size = new System.Drawing.Size(100, 25);
@@ -276,21 +265,20 @@
             // m_ToolStrip_ClearDirectorBtn
             // 
             this.m_ToolStrip_ClearDirectorBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.m_ToolStrip_ClearDirectorBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStripClearDirectorBtn.Image")));
-            this.m_ToolStrip_ClearDirectorBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.m_ToolStrip_ClearDirectorBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_ClearDirectorBtn.Image")));
             this.m_ToolStrip_ClearDirectorBtn.Name = "m_ToolStrip_ClearDirectorBtn";
             this.m_ToolStrip_ClearDirectorBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_ClearDirectorBtn.ToolTipText = "Очистить";
             this.m_ToolStrip_ClearDirectorBtn.Click += new System.EventHandler(this.ToolStrip_ClearDirectorBtn_Clicked);
             // 
-            // toolStripSeparator6
+            // m_ToolStrip_DirectorSprt
             // 
-            this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(6, 25);
+            this.m_ToolStrip_DirectorSprt.Name = "m_ToolStrip_DirectorSprt";
+            this.m_ToolStrip_DirectorSprt.Size = new System.Drawing.Size(6, 25);
             // 
             // m_ToolStrip_ActorLbl
             // 
-            this.m_ToolStrip_ActorLbl.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_ActorLbl.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_ActorLbl.Name = "m_ToolStrip_ActorLbl";
             this.m_ToolStrip_ActorLbl.Size = new System.Drawing.Size(39, 22);
             this.m_ToolStrip_ActorLbl.Text = "Актёр";
@@ -298,9 +286,9 @@
             // m_ToolStrip_ActorName
             // 
             this.m_ToolStrip_ActorName.AutoSize = false;
-            this.m_ToolStrip_ActorName.BackColor = System.Drawing.Color.DarkMagenta;
+            this.m_ToolStrip_ActorName.BackColor = Theme.ControlsBackColor;
             this.m_ToolStrip_ActorName.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.m_ToolStrip_ActorName.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_ActorName.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_ActorName.MaxLength = 20;
             this.m_ToolStrip_ActorName.Name = "m_ToolStrip_ActorName";
             this.m_ToolStrip_ActorName.Size = new System.Drawing.Size(100, 25);
@@ -310,30 +298,29 @@
             // m_ToolStrip_ClearActorBtn
             // 
             this.m_ToolStrip_ClearActorBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.m_ToolStrip_ClearActorBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStripClearActorBtn.Image")));
-            this.m_ToolStrip_ClearActorBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.m_ToolStrip_ClearActorBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_ClearActorBtn.Image")));
             this.m_ToolStrip_ClearActorBtn.Name = "m_ToolStrip_ClearActorBtn";
             this.m_ToolStrip_ClearActorBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_ClearActorBtn.ToolTipText = "Очистить";
             this.m_ToolStrip_ClearActorBtn.Click += new System.EventHandler(this.ToolStrip_ClearActorBtn_Clicked);
             // 
-            // toolStripSeparator7
+            // m_ToolStrip_ActorSprt
             // 
-            this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(6, 25);
+            this.m_ToolStrip_ActorSprt.Name = "m_ToolStrip_ActorSprt";
+            this.m_ToolStrip_ActorSprt.Size = new System.Drawing.Size(6, 25);
             // 
             // m_ToolStrip_GenreNameLbl
             // 
             this.m_ToolStrip_GenreNameLbl.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_ToolStrip_GenreNameLbl.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_GenreNameLbl.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_GenreNameLbl.Name = "m_ToolStrip_GenreNameLbl";
             this.m_ToolStrip_GenreNameLbl.Size = new System.Drawing.Size(39, 22);
             this.m_ToolStrip_GenreNameLbl.Text = "Жанр";
             // 
             // m_ToolStrip_GenreName
             // 
-            this.m_ToolStrip_GenreName.BackColor = System.Drawing.Color.DarkMagenta;
-            this.m_ToolStrip_GenreName.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_GenreName.BackColor = Theme.ControlsBackColor;
+            this.m_ToolStrip_GenreName.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_GenreName.Name = "m_ToolStrip_GenreName";
             this.m_ToolStrip_GenreName.Size = new System.Drawing.Size(22, 22);
             this.m_ToolStrip_GenreName.Text = ". . .";
@@ -342,8 +329,7 @@
             // m_ToolStrip_ClearGenreBtn
             // 
             this.m_ToolStrip_ClearGenreBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.m_ToolStrip_ClearGenreBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStripClearGenreBtn.Image")));
-            this.m_ToolStrip_ClearGenreBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.m_ToolStrip_ClearGenreBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_ClearGenreBtn.Image")));
             this.m_ToolStrip_ClearGenreBtn.Name = "m_ToolStrip_ClearGenreBtn";
             this.m_ToolStrip_ClearGenreBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_ClearGenreBtn.ToolTipText = "Очистить";
@@ -357,7 +343,7 @@
             // m_ToolStrip_EntriesCountLbl
             // 
             this.m_ToolStrip_EntriesCountLbl.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_ToolStrip_EntriesCountLbl.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStrip_EntriesCountLbl.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_EntriesCountLbl.Name = "m_ToolStrip_EntriesCountLbl";
             this.m_ToolStrip_EntriesCountLbl.Size = new System.Drawing.Size(94, 22);
             this.m_ToolStrip_EntriesCountLbl.Text = "Всего записей:";
@@ -365,14 +351,14 @@
             // m_ToolStripEntriesCount
             // 
             this.m_ToolStripEntriesCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_ToolStripEntriesCount.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStripEntriesCount.ForeColor = Theme.MainForeColor;
             this.m_ToolStripEntriesCount.Name = "m_ToolStripEntriesCount";
             this.m_ToolStripEntriesCount.Size = new System.Drawing.Size(14, 22);
             this.m_ToolStripEntriesCount.Text = "0";
             // 
             // m_QuickListFlow
             // 
-            this.m_QuickListFlow.BackColor = System.Drawing.Color.Purple;
+            this.m_QuickListFlow.BackColor = Theme.MainBackColor;
             this.m_QuickListFlow.Dock = System.Windows.Forms.DockStyle.Right;
             this.m_QuickListFlow.Location = new System.Drawing.Point(1272, 0);
             this.m_QuickListFlow.Name = "m_QuickListFlow";
@@ -383,7 +369,7 @@
             // MainPanel
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
-            this.BackColor = System.Drawing.Color.Purple;
+            this.BackColor = Theme.MainBackColor;
             this.ClientSize = new System.Drawing.Size(1365, 657);
             this.Controls.Add(this.m_ImageListView);
             this.Controls.Add(this.m_ToolStrip);
@@ -402,7 +388,6 @@
             this.Resize += new System.EventHandler(this.OnPanelResized);
             this.m_ToolStrip.ResumeLayout(false);
             this.m_ToolStrip.PerformLayout();
-            this.m_QuickListFlow.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -410,7 +395,6 @@
 
         #endregion
         private Manina.Windows.Forms.ImageListView m_ImageListView;
-        private System.Windows.Forms.ToolStrip m_ToolStrip;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_AddBtn;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_RecentBtn;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
@@ -420,27 +404,28 @@
         private System.Windows.Forms.ToolStripButton m_ToolStrip_NewBtn;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_NameLbl;
-        private System.Windows.Forms.ToolStripTextBox m_ToolStrip_MovieName;
+        private System.Windows.Forms.ToolStripTextBox m_ToolStrip_EntryName;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_WishlistLbl;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_WishlistBtn;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.FlowLayoutPanel m_QuickListFlow;
-        private System.Windows.Forms.ToolStripLabel m_ToolStrip_DirectorLbl;
-        private System.Windows.Forms.ToolStripTextBox m_ToolStrip_DirectorName;
-        private System.Windows.Forms.ToolStripButton m_ToolStrip_ClearDirectorBtn;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
-        private System.Windows.Forms.ToolStripLabel m_ToolStrip_ActorLbl;
-        private System.Windows.Forms.ToolStripTextBox m_ToolStrip_ActorName;
-        private System.Windows.Forms.ToolStripButton m_ToolStrip_ClearActorBtn;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_ClearTitleBtn;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_GenreNameLbl;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_ClearGenreBtn;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_GenreName;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_EntriesCountLbl;
         private System.Windows.Forms.ToolStripLabel m_ToolStripEntriesCount;
+        public System.Windows.Forms.ToolStripLabel m_ToolStrip_DirectorLbl;
+        public System.Windows.Forms.ToolStripTextBox m_ToolStrip_DirectorName;
+        public System.Windows.Forms.ToolStripButton m_ToolStrip_ClearDirectorBtn;
+        public System.Windows.Forms.ToolStripLabel m_ToolStrip_ActorLbl;
+        public System.Windows.Forms.ToolStripTextBox m_ToolStrip_ActorName;
+        public System.Windows.Forms.ToolStripButton m_ToolStrip_ClearActorBtn;
+        public System.Windows.Forms.ToolStripSeparator m_ToolStrip_DirectorSprt;
+        public System.Windows.Forms.ToolStripSeparator m_ToolStrip_ActorSprt;
+        public System.Windows.Forms.ToolStrip m_ToolStrip;
     }
 }
 

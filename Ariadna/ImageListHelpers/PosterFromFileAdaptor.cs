@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Ariadna
 {
-    public class ImageFromFileAdaptor : Manina.Windows.Forms.ImageListView.ImageListViewItemAdaptor
+    public class PosterFromFileAdaptor : Manina.Windows.Forms.ImageListView.ImageListViewItemAdaptor
     {
         public string RootPath { get; set; }
 

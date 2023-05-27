@@ -1,4 +1,5 @@
-﻿using Manina.Windows.Forms;
+﻿using Ariadna.Themes;
+using Manina.Windows.Forms;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -15,12 +16,13 @@ namespace Ariadna
         #region Private Fields
         private bool m_SuppressNameChangedEvent = false;
 
-        private ImageFromFileAdaptor m_PosterImageAdaptor = new ImageFromFileAdaptor();
-        private ImageListViewAriadnaRenderer m_ListViewRenderer = new ImageListViewAriadnaRenderer();
+        private AbstractDBStrategy m_DBStrategy = null;
 
-        private FloatingPanel m_FloatingPanel = new FloatingPanel();
+        private readonly ImageListViewAriadnaRenderer m_ListViewRenderer = new ImageListViewAriadnaRenderer();
 
-        private System.Windows.Forms.Timer m_TypeTimer = new System.Windows.Forms.Timer();
+        private readonly FloatingPanel m_FloatingPanel = new FloatingPanel();
+
+        private readonly Timer m_TypeTimer = new Timer();
         private enum ETypeField { None = 0, TITLE, DIRECTOR, ACTOR }
         private ETypeField m_TypeField = ETypeField.None;
         private const int TYPE_TIMOUT_MS = 200;
@@ -28,28 +30,23 @@ namespace Ariadna
         private const int MAX_SEARCH_FILTER_COUNT = 200;
 
         private const string EMPTY_DOTS = ". . .";
-        private const string MEDIA_PLAYER_PATH = "C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe";
-        private const string DEFAULT_MOVIES_PATH = @"M:\";
-        private const string DEFAULT_SERIES_PATH = @"S:\";
         #endregion
 
-        public MainPanel()
+        public MainPanel(AbstractDBStrategy strategy)
         {
             InitializeComponent();
 
-            m_PosterImageAdaptor.RootPath = Utilities.POSTERS_ROOT_PATH;
+            m_DBStrategy = strategy;
+            m_DBStrategy.FilterControls(this);
+            m_DBStrategy.EntryInserted += new AbstractDBStrategy.EntryInsertedEventHandler(OnNewEntryInserted);
 
             m_ImageListView.SetRenderer(m_ListViewRenderer);
 
-            using (var ctx = new AriadnaEntities())
-            {
-                var movies = ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList();
-                UpdateMoviesList(movies);
-            }
+            UpdateImageList(m_DBStrategy.GetEntries());
 
             // Type timer
             m_TypeField = ETypeField.None;
-            m_TypeTimer.Tick += new EventHandler(onTypeTimer);
+            m_TypeTimer.Tick += new EventHandler(OnTypeTimer);
             m_TypeTimer.Interval = TYPE_TIMOUT_MS;
         }
         private void MainPanel_Load(object sender, EventArgs e)
@@ -59,93 +56,46 @@ namespace Ariadna
 
             Splasher.Close();
 
-            m_ToolStrip_MovieName.Focus();
+            m_ToolStrip_EntryName.Focus();
         }
-        private void UpdateMoviesList(List<Utilities.MovieDto> movies)
+        private void UpdateImageList(List<Utilities.EntryDto> entries)
         {
-            m_ToolStripEntriesCount.Text = movies.Count().ToString();
+            m_ToolStripEntriesCount.Text = entries.Count().ToString();
 
             m_ImageListView.Items.Clear();
 
-            HashSet<string> firstChars = new HashSet<string>(movies.Count);
-            List<ImageListViewItem> listViewItems = new List<ImageListViewItem>(movies.Count);
-            foreach (var movie in movies)
+            HashSet<string> firstChars = new HashSet<string>(entries.Count);
+            List<ImageListViewItem> listViewItems = new List<ImageListViewItem>(entries.Count);
+            foreach (var entry in entries)
             {
-                firstChars.Add(movie.title.Substring(0, 1));
+                firstChars.Add(entry.Title.Substring(0, 1));
 
-                ImageListViewItem item = new ImageListViewItem(movie.id.ToString(), movie.title);
+                ImageListViewItem item = new ImageListViewItem(entry.Id.ToString(), entry.Title);
                 listViewItems.Add(item);
             }
 
-            m_ImageListView.Items.AddRange(listViewItems.ToArray(), m_PosterImageAdaptor);
+            m_ImageListView.Items.AddRange(listViewItems.ToArray(), m_DBStrategy.GetPosterImageAdapter());
 
             FillQuickList(firstChars);
         }
-        private void QueryMovies()
+        private void QueryEntries()
         {
             HideFloatingPanel();
 
             Cursor.Current = Cursors.WaitCursor;
 
-            using (var ctx = new AriadnaEntities())
+            AbstractDBStrategy.QueryParams values = new AbstractDBStrategy.QueryParams()
             {
-                IQueryable<Movie> query = ctx.Movies.AsNoTracking();
+                Name = m_ToolStrip_EntryName.Text,
+                Director = m_ToolStrip_DirectorName.Text,
+                Actor = m_ToolStrip_ActorName.Text,
+                Genre = m_ToolStrip_GenreName.Text,
+                IsWish = m_ToolStrip_WishlistBtn.Checked,
+                IsRecent = m_ToolStrip_RecentBtn.Checked,
+                IsNew = m_ToolStrip_NewBtn.Checked,
+            };
 
-                // -- Search Movie Name --
-                if (m_ToolStrip_MovieName.Text.Length > 0)
-                {
-                    var toSearch = m_ToolStrip_MovieName.Text.ToUpper();
-                    query = query.Where(r => r.title.ToUpper().Contains(toSearch) ||
-                                             r.title_original.ToUpper().Contains(toSearch) ||
-                                             r.file_path.ToUpper().Contains(toSearch));
-                }
-                // -- WISH LIST --
-                if (m_ToolStrip_WishlistBtn.Checked)
-                {
-                    query = query.Where(r => (r.want_to_see == true));
-                }
-                // -- RECENTLY Added --
-                if (m_ToolStrip_RecentBtn.Checked)
-                {
-                    var now = DateTime.Now.AddMonths(-6);
-                    var ct = DateTime.Now;
-                    query = query.Where(r => ((r.creation_time.Value.Year >= now.Year) && (r.creation_time.Value.Month >= now.Month)));
-                }
-                // -- NEW Movies --
-                if (m_ToolStrip_NewBtn.Checked)
-                {
-                    query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
-                }
-                // -- DIRECTOR NAME --
-                if (m_ToolStrip_DirectorName.Text.Length > 0)
-                {
-                    var entry = ctx.Directors.AsNoTracking().Where(r => r.name == m_ToolStrip_DirectorName.Text).FirstOrDefault();
-                    if (entry != null)
-                    {
-                        query = query.Where(r => r.MovieDirectors.Any(l => (l.directorId == entry.Id)));
-                    }
-                }
-                // -- ACTOR NAME --
-                if (m_ToolStrip_ActorName.Text.Length > 0)
-                {
-                    var entry = ctx.Actors.AsNoTracking().Where(r => r.name == m_ToolStrip_ActorName.Text).FirstOrDefault();
-                    if (entry != null)
-                    {
-                        query = query.Where(r => r.MovieCasts.Any(l => (l.actorId == entry.Id)));
-                    }
-                }
-                // -- GENRE --
-                if (m_ToolStrip_GenreName.Text.Length > 0)
-                {
-                    var entry = ctx.Genres.AsNoTracking().Where(r => r.name == m_ToolStrip_GenreName.Text).FirstOrDefault();
-                    if (entry != null)
-                    {
-                        query = query.Where(r => r.MovieGenres.Any(l => (l.genreId == entry.Id)));
-                    }
-                }
-
-                UpdateMoviesList(query.OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
-            }
+            UpdateImageList(m_DBStrategy.QueryEntries(values));
 
             Cursor.Current = Cursors.Default;
         }
@@ -160,8 +110,8 @@ namespace Ariadna
                     Text = firstChar,
                     AutoSize = false,
                     Size = new Size(40, 40),
-                    BackColor = Color.DarkMagenta,
-                    ForeColor = Color.White,
+                    BackColor = Theme.MainBackColor,
+                    ForeColor = Theme.MainForeColor,
                     FlatStyle = FlatStyle.Flat,
                     Font = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold),
                 };
@@ -171,7 +121,7 @@ namespace Ariadna
         }
         private void OnQuickListClicked(object sender, EventArgs e)
         {
-            Button charBtn = (Button)sender;
+            Button charBtn = sender as Button;
 
             var selection = m_ImageListView.Items.Where(x => x.Text.StartsWith(charBtn.Text)).FirstOrDefault();
             m_ImageListView.EnsureVisible(selection.Index);
@@ -181,7 +131,7 @@ namespace Ariadna
         {
             if (e.KeyCode == Keys.Delete)
             {
-                DeleteMovie(e.Modifiers.HasFlag(Keys.Shift));
+                RemoveEntry(e.Modifiers.HasFlag(Keys.Shift));
                 return;
             }
 
@@ -197,100 +147,23 @@ namespace Ariadna
             {
                 e.Handled = true;
 
-                if (FindFirstNotInsertedMovie())
-                {
-                    return;
-                }
-                else if (FindFirstNotInsertedSeries())
+                if(FindNextEntryAutomatically())
                 {
                     return;
                 }
 
-                AddNewMovie();
+                m_DBStrategy.FindNextEntryManually();
             }
         }
-        private string FindStoredMoviePathById(string sId)
-        {
-            Int32 id = -1;
-            Int32.TryParse(sId, out id);
-            if (id != -1)
-            {
-                using (var ctx = new AriadnaEntities())
-                {
-                    var path = ctx.Movies.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault().file_path;
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        return path;
-                    }
-                }
-            }
-
-            return "";
-        }
-        private bool FindFirstNotInsertedMovie()
-        {
-            return FindFirstNotInserted(Directory.GetFiles(DEFAULT_MOVIES_PATH));
-        }
-        private bool FindFirstNotInsertedSeries()
-        {
-            return FindFirstNotInserted(Directory.GetDirectories(DEFAULT_SERIES_PATH));
-        }
-        private bool FindFirstNotInserted(String[] paths)
+        private bool FindNextEntryAutomatically()
         {
             Cursor.Current = Cursors.WaitCursor;
-
-            bool bFound = false;
-            using (var ctx = new AriadnaEntities())
-            {
-                foreach (var path in paths)
-                {
-                    if (ctx.Ignores.AsNoTracking().Where(r => r.path == path).FirstOrDefault() != null)
-                    {
-                        continue;
-                    }
-
-                    if (ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() == null)
-                    {
-                        OpenAddMovieFormDialog(path);
-                        bFound = true;
-
-                        break;
-                    }
-                }
-            }
-
+            bool bNotInsertedEntryFound = m_DBStrategy.FindNextEntryAutomatically();
             Cursor.Current = Cursors.Default;
 
-            return bFound;
+            return bNotInsertedEntryFound;
         }
-        private void AddNewMovie()
-        {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.InitialDirectory = DEFAULT_MOVIES_PATH;
-                openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.m4v;*.ts|All files (*.*)|*.*";
-                openFileDialog.FilterIndex = 1;
-                openFileDialog.RestoreDirectory = true;
-
-                // Allow folders too
-                openFileDialog.ValidateNames = false;
-                openFileDialog.CheckFileExists = false;
-                openFileDialog.CheckPathExists = true;
-                const string folderFlag = "File or folder";
-                openFileDialog.FileName = folderFlag;
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    string path = openFileDialog.FileName;
-                    if (path.Contains(folderFlag))
-                    {
-                        path = Path.GetDirectoryName(openFileDialog.FileName);
-                    }
-                    OpenAddMovieFormDialog(path);
-                }
-            }
-        }
-        private void DeleteMovie(bool deleteFile = false)
+        private void RemoveEntry(bool deleteFile = false)
         {
             if (m_ImageListView.Items.FocusedItem == null)
             {
@@ -304,154 +177,56 @@ namespace Ariadna
                 return;
             }
 
-            using (var ctx = new AriadnaEntities())
-            {
-                Movie movie = ctx.Movies.Where(r => r.Id == id).FirstOrDefault();
-                if (movie == null)
-                {
-                    return;
-                }
+            var info = m_DBStrategy.GetEntryInfo(id);
 
-                string msg = movie.title + " / " + movie.title_original + "\n" + movie.file_path;
-                string caption = deleteFile ? "Удалить запись и файл?" : "Удалить запись?";
-                DialogResult dialogResult = MessageBox.Show(msg, caption, MessageBoxButtons.YesNoCancel, deleteFile ? MessageBoxIcon.Warning : MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-                if (dialogResult != DialogResult.Yes)
-                {
-                    return;
-                }
-
-                ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == movie.Id)));
-                ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == movie.Id)));
-                ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == movie.Id)));
-
-                ctx.Movies.Remove(movie);
-
-                ctx.SaveChanges();
-
-                string posterPath = Utilities.POSTERS_ROOT_PATH + movie.Id;
-                if (File.Exists(posterPath))
-                {
-                    File.Delete(posterPath);
-                }
-
-                UpdateMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
-
-                m_ToolStrip_MovieName.Text = "";
-
-                if (!deleteFile)
-                {
-                    return;
-                }
-
-                if (File.Exists(movie.file_path))
-                {
-                    // Delete file
-                    File.Delete(movie.file_path);
-                }
-                // Checked if it is a directory
-                else if (Directory.Exists(movie.file_path))
-                {
-                    try
-                    {
-                        var dir = new DirectoryInfo(movie.file_path);
-                        dir.Attributes = dir.Attributes & ~FileAttributes.ReadOnly;
-                        dir.Delete(true);
-                    }
-                    catch (IOException ex)
-                    {
-                        MessageBox.Show(ex.Message);
-                    }
-                }
-                else
-                {
-                    MessageBox.Show(movie.file_path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-        }
-        private void OpenAddMovieFormDialog(string path)
-        {
-            FetchMovieFromIMDB(path);
-        }
-        private async void FetchMovieFromIMDB(string path)
-        {
-            TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
-            MovieData addMovie = new MovieData(path);
-            addMovie.TMDBMovieIndex = -1;
-            addMovie.TMDBTVShowIndex = -1;
-
-            if (Directory.Exists(path))
-            {
-                DirectoryInfo dir = new DirectoryInfo(path);
-                var tvShowsResults = await client.SearchTvShowAsync(dir.Name, "ru-RU");
-                var tvShows = tvShowsResults.Results;
-                if (tvShows.Count > 0)
-                {
-                    int choice = (tvShows.Count > 1) ? GetBestTVShowChoice(tvShows, path) : 0;
-                    if (choice >= 0)
-                    {
-                        addMovie.TMDBTVShowIndex = tvShows[choice].Id;
-                    }
-                }
-            }
-            else
-            {
-                string query = Path.GetFileNameWithoutExtension(path);
-                var moviesResults = await client.SearchMovieAsync(query, "ru-RU");
-                var movies = moviesResults.Results;
-
-                if (movies.Count > 0)
-                {
-                    int choice = (movies.Count > 1) ? GetBestMovieChoice(movies, path) : 0;
-                    if (choice >= 0)
-                    {
-                        addMovie.TMDBMovieIndex = movies[choice].Id;
-                    }
-                }
-            }
-
-            addMovie.FormClosed += new FormClosedEventHandler(OnAddMovieFormClosed);
-            addMovie.ShowDialog();
-        }
-        private int GetBestMovieChoice(List<TMDbLib.Objects.Search.SearchMovie> movies, string path)
-        {
-            List<Utilities.MovieChoiceDto> titles = new List<Utilities.MovieChoiceDto>();
-            foreach (var result in movies.Take(20))
-            {
-                int y = (result.ReleaseDate != null) ? result.ReleaseDate.Value.Year : 0;
-                titles.Add(new Utilities.MovieChoiceDto { titleRu = result.Title, titleOrig = result.OriginalTitle, year = y });
-            }
-            ChoicePopup choice = new ChoicePopup(path, titles);
-
-            choice.ShowDialog(this);
-            return choice.index;
-        }
-        private int GetBestTVShowChoice(List<TMDbLib.Objects.Search.SearchTv> movies, string path)
-        {
-            List<Utilities.MovieChoiceDto> titles = new List<Utilities.MovieChoiceDto>();
-            foreach (var result in movies.Take(20))
-            {
-                int y = (result.FirstAirDate != null) ? result.FirstAirDate.Value.Year : 0;
-                titles.Add(new Utilities.MovieChoiceDto { titleRu = result.Name, titleOrig = result.OriginalName, year = y });
-            }
-            ChoicePopup choice = new ChoicePopup(path, titles);
-
-            choice.ShowDialog(this);
-            return choice.index;
-        }
-        private void OnAddMovieFormClosed(object sender, FormClosedEventArgs e)
-        {
-            MovieData movieData = (MovieData)sender;
-            if (movieData.FormCloseReason != Utilities.EFormCloseReason.SUCCESS)
+            string msg = info.Title + " / " + info.TitleOrig + "\n" + info.Path;
+            string caption = deleteFile ? "Удалить запись и файл?" : "Удалить запись?";
+            DialogResult dialogResult = MessageBox.Show(msg, caption, MessageBoxButtons.YesNoCancel, deleteFile ? MessageBoxIcon.Warning : MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+            if (dialogResult != DialogResult.Yes)
             {
                 return;
             }
 
-            using (var ctx = new AriadnaEntities())
+            m_DBStrategy.RemoveEntry(id);
+
+            UpdateImageList(m_DBStrategy.GetEntries());
+
+            m_ToolStrip_EntryName.Text = "";
+
+            if (!deleteFile)
             {
-                UpdateMoviesList(ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.MovieDto { path = x.file_path, title = x.title, id = x.Id }).ToList());
+                return;
             }
 
-            var selection = m_ImageListView.Items.Where(x => (string)x.VirtualItemKey == movieData.StoredDBMovieID.ToString()).FirstOrDefault();
+            if (File.Exists(info.Path))
+            {
+                // Delete file
+                File.Delete(info.Path);
+            }
+            // Checked if it is a directory
+            else if (Directory.Exists(info.Path))
+            {
+                try
+                {
+                    var dir = new DirectoryInfo(info.Path);
+                    dir.Attributes = dir.Attributes & ~FileAttributes.ReadOnly;
+                    dir.Delete(true);
+                }
+                catch (IOException ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+            else
+            {
+                MessageBox.Show(info.Path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        private void OnNewEntryInserted(object sender, AbstractDBStrategy.EntryInsertedEventArgs e)
+        {
+            UpdateImageList(m_DBStrategy.GetEntries());
+
+            var selection = m_ImageListView.Items.Where(x => (string)x.VirtualItemKey == e.Id.ToString()).FirstOrDefault();
             m_ImageListView.EnsureVisible(selection.Index);
             selection.Selected = true;
         }
@@ -463,62 +238,25 @@ namespace Ariadna
         private void ListView_MouseClicked(object sender, MouseEventArgs e)
         {
             HideFloatingPanel();
+
+            // Show Entry details on Mouse Right Click
             if (e.Button == MouseButtons.Left)
             {
                 return;
             }
 
-            // Show Movie details on Mouse Right Click
             ImageListView lv = sender as ImageListView;
             if (lv.Items.FocusedItem == null)
             {
                 return;
             }
 
-            var path = FindStoredMoviePathById((string)lv.Items.FocusedItem.VirtualItemKey);
-            if (string.IsNullOrEmpty(path))
-            {
-                return;
-            }
-
-            MovieData addMovie = new MovieData(path);
-            addMovie.FormClosed += new FormClosedEventHandler(OnAddMovieFormClosed);
-            addMovie.ShowDialog();
+            m_DBStrategy.ShowEntryDetails(Utilities.ConvertId((string)lv.Items.FocusedItem.VirtualItemKey));
         }
         private void ListView_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             ImageListView lv = sender as ImageListView;
-            var path = FindStoredMoviePathById((string)lv.Items.FocusedItem.VirtualItemKey);
-            if (string.IsNullOrEmpty(path))
-            {
-                return;
-            }
-
-            // Check if it is a file first
-            if (File.Exists(path))
-            {
-                if (!File.Exists(MEDIA_PLAYER_PATH))
-                {
-                    return;
-                }
-
-                // Enclose the path in quotes as required by MPC
-                Process.Start(MEDIA_PLAYER_PATH, "\"" + path + "\"");
-            }
-            // Checked if it is a directory
-            else if (Directory.Exists(path))
-            {
-                Process.Start(new ProcessStartInfo()
-                {
-                    FileName = path,
-                    UseShellExecute = true,
-                    Verb = "open"
-                });
-            }
-            else
-            {
-                MessageBox.Show(path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
+            m_DBStrategy.ExecuteEntry(Utilities.ConvertId((string)lv.Items.FocusedItem.VirtualItemKey));
         }
         #endregion
         #region ToolStrip Handlers
@@ -527,13 +265,13 @@ namespace Ariadna
             // Auto search on left click
             if (e.Button == MouseButtons.Left)
             {
-                if (FindFirstNotInsertedMovie() || FindFirstNotInsertedSeries())
+                if (FindNextEntryAutomatically())
                 {
                     return;
                 }
             }
 
-            AddNewMovie();
+            m_DBStrategy.FindNextEntryManually();
         }
         private void ToolStrip_RecentBtn_Clicked(object sender, EventArgs e)
         {
@@ -548,7 +286,7 @@ namespace Ariadna
                 m_ToolStrip_RecentBtn.Checked = true;
             }
 
-            QueryMovies();
+            QueryEntries();
         }
         private void ToolStrip_NewBtn_Clicked(object sender, EventArgs e)
         {
@@ -563,7 +301,7 @@ namespace Ariadna
                 m_ToolStrip_NewBtn.Checked = true;
             }
 
-            QueryMovies();
+            QueryEntries();
         }
         private void ToolStrip_WishlistBtn_Clicked(object sender, EventArgs e)
         {
@@ -578,21 +316,11 @@ namespace Ariadna
                 m_ToolStrip_WishlistBtn.Checked = true;
             }
 
-            QueryMovies();
+            QueryEntries();
         }
         private void ToolStrip_Genre_Clicked(object sender, EventArgs e)
         {
-            SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
-            using (var ctx = new AriadnaEntities())
-            {
-                var genres = ctx.Genres.AsNoTracking().ToList();
-
-                foreach (var genre in genres)
-                {
-                    values[genre.name] = Utilities.GetGenreImage(genre.name);
-                }
-            }
-
+            var values = m_DBStrategy.GetGenres(m_ToolStrip_GenreName.Text.ToUpper());
             ShowFloatingPanel(values, FloatingPanel.EPanelContentType.GENRES, false, false, Utilities.GENRE_IMAGE_W, Utilities.GENRE_IMAGE_H);
         }
         private void ToolStrip_ClearDirectorBtn_Clicked(object sender, EventArgs e)
@@ -601,7 +329,7 @@ namespace Ariadna
             if (m_ToolStrip_DirectorName.Text.Length > 0)
             {
                 m_ToolStrip_DirectorName.Text = "";
-                QueryMovies();
+                QueryEntries();
             }
         }
         private void ToolStrip_ClearActorBtn_Clicked(object sender, EventArgs e)
@@ -612,15 +340,15 @@ namespace Ariadna
             if (m_ToolStrip_ActorName.Text.Length > 0)
             {
                 m_ToolStrip_ActorName.Text = "";
-                QueryMovies();
+                QueryEntries();
             }
         }
         private void ToolStrip_ClearTitleBtn_Clicked(object sender, EventArgs e)
         {
-            if (m_ToolStrip_MovieName.Text.Length > 0)
+            if (m_ToolStrip_EntryName.Text.Length > 0)
             {
-                m_ToolStrip_MovieName.Text = "";
-                QueryMovies();
+                m_ToolStrip_EntryName.Text = "";
+                QueryEntries();
             }
         }
         private void ToolStrip_ClearGenreBtn_Clicked(object sender, EventArgs e)
@@ -628,24 +356,25 @@ namespace Ariadna
             //DeleteUnusedGenres();
 
             HideFloatingPanel();
-            if ((m_ToolStrip_GenreName.Text.Length > 0) && (m_ToolStrip_GenreName.Text != EMPTY_DOTS))
+            
+            if (!string.IsNullOrEmpty(m_ToolStrip_GenreName.Text) && (m_ToolStrip_GenreName.Text != EMPTY_DOTS))
             {
 
                 m_ToolStrip_GenreName.Text = EMPTY_DOTS;
-                QueryMovies();
+                QueryEntries();
             }
         }
         #endregion
         #region Edit Fields operations
-        private void OnMovieNameConfirmed(object sender, KeyEventArgs e)
+        private void OnEntryNameConfirmed(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
-                QueryMovies();
+                QueryEntries();
             }
         }
-        private void OnMovieNameTextChanged(object sender, EventArgs e)
+        private void OnEntryNameTextChanged(object sender, EventArgs e)
         {
             m_TypeTimer.Stop();
             m_TypeField = ETypeField.TITLE;
@@ -663,7 +392,7 @@ namespace Ariadna
             m_TypeField = ETypeField.ACTOR;
             m_TypeTimer.Start();
         }
-        private void onTypeTimer(object sender, EventArgs e)
+        private void OnTypeTimer(object sender, EventArgs e)
         {
             m_TypeTimer.Stop();
             var typeField = m_TypeField;
@@ -672,20 +401,20 @@ namespace Ariadna
             switch (typeField)
             {
                 case ETypeField.TITLE:
-                    QueryMovies();
+                    QueryEntries();
                     break;
                 case ETypeField.DIRECTOR:
-                    onDirectorTypeTimer();
+                    OnDirectorTypeTimer();
                     break;
                 case ETypeField.ACTOR:
-                    onActorTypeTimer();
+                    OnActorTypeTimer();
                     break;
 
                 default:
                     break;
             }
         }
-        private void onDirectorTypeTimer()
+        private void OnDirectorTypeTimer()
         {
             if (m_SuppressNameChangedEvent)
             {
@@ -699,26 +428,15 @@ namespace Ariadna
             }
 
             Cursor.Current = Cursors.WaitCursor;
-
-            SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
-            using (var ctx = new AriadnaEntities())
             {
-                var name = m_ToolStrip_DirectorName.Text.ToUpper();
-                var directors = ctx.MovieDirectors.AsNoTracking().Where(r => r.Director.name.ToUpper().Contains(name)).Take(MAX_SEARCH_FILTER_COUNT);
-
-                foreach (var director in directors)
-                {
-                    values[director.Director.name] = Utilities.BytesToBitmap(director.Director.photo);
-                }
+                var values = m_DBStrategy.GetDirectors(m_ToolStrip_DirectorName.Text.ToUpper(), MAX_SEARCH_FILTER_COUNT);
+                ShowFloatingPanel(values, FloatingPanel.EPanelContentType.DIRECTORS, false, false, Utilities.PHOTO_W, Utilities.PHOTO_H);
             }
-
-            ShowFloatingPanel(values, FloatingPanel.EPanelContentType.DIRECTORS, false, false, Utilities.PHOTO_W, Utilities.PHOTO_H);
+            Cursor.Current = Cursors.Default;
 
             m_ToolStrip_DirectorName.Focus();
-
-            Cursor.Current = Cursors.Default;
         }
-        private void onActorTypeTimer()
+        private void OnActorTypeTimer()
         {
             if (m_SuppressNameChangedEvent)
             {
@@ -732,68 +450,13 @@ namespace Ariadna
             }
 
             Cursor.Current = Cursors.WaitCursor;
-
-            SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
-            using (var ctx = new AriadnaEntities())
             {
-                var name = m_ToolStrip_ActorName.Text.ToUpper();
-                var actors = ctx.MovieCasts.AsNoTracking().Where(r => (r.Actor.name.ToUpper().Contains(name))).Take(MAX_SEARCH_FILTER_COUNT);
-
-                foreach (var actor in actors)
-                {
-                    values[actor.Actor.name] = Utilities.BytesToBitmap(actor.Actor.photo);
-                }
+                var values = m_DBStrategy.GetActors(m_ToolStrip_ActorName.Text.ToUpper(), MAX_SEARCH_FILTER_COUNT);
+                ShowFloatingPanel(values, FloatingPanel.EPanelContentType.CAST, false, false, Utilities.PHOTO_W, Utilities.PHOTO_H);
             }
-
-            ShowFloatingPanel(values, FloatingPanel.EPanelContentType.CAST, false, false, Utilities.PHOTO_W, Utilities.PHOTO_H);
+            Cursor.Current = Cursors.Default;
 
             m_ToolStrip_ActorName.Focus();
-
-            Cursor.Current = Cursors.Default;
-        }
-        private void DeleteUnusedActors()
-        {
-            using (var ctx = new AriadnaEntities())
-            {
-                var actors = ctx.Actors.ToList();
-
-                bool bNeedToSaveChanges = false;
-                foreach (var actor in actors)
-                {
-                    var usedActor = ctx.MovieCasts.Where(r => (r.actorId == actor.Id)).FirstOrDefault();
-                    if (usedActor == null)
-                    {
-                        ctx.Actors.Remove(actor);
-                        bNeedToSaveChanges = true;
-                    }
-                }
-                if (bNeedToSaveChanges)
-                {
-                    ctx.SaveChanges();
-                }
-            }
-        }
-        private void DeleteUnusedGenres()
-        {
-            using (var ctx = new AriadnaEntities())
-            {
-                var genres = ctx.Genres.ToList();
-
-                bool bNeedToSaveChanges = false;
-                foreach (var genre in genres)
-                {
-                    var usedGenres = ctx.MovieGenres.Where(r => (r.genreId == genre.Id)).FirstOrDefault();
-                    if (usedGenres == null)
-                    {
-                        ctx.Genres.Remove(genre);
-                        bNeedToSaveChanges = true;
-                    }
-                }
-                if (bNeedToSaveChanges)
-                {
-                    ctx.SaveChanges();
-                }
-            }
         }
         #endregion
         #region Floating Panel operations
@@ -825,34 +488,41 @@ namespace Ariadna
         }
         private void OnFloatingPanelClosed(object sender, EventArgs e)
         {
-            if (!m_FloatingPanel.Visible)
+            if (m_FloatingPanel.Visible)
             {
-                m_SuppressNameChangedEvent = true;
-                if (m_FloatingPanel.PanelContentType == FloatingPanel.EPanelContentType.DIRECTORS)
-                {
-                    m_ToolStrip_DirectorName.Text = m_FloatingPanel.EntryNames.FirstOrDefault();
-                }
-                else if (m_FloatingPanel.PanelContentType == FloatingPanel.EPanelContentType.CAST)
-                {
-                    m_ToolStrip_ActorName.Text = m_FloatingPanel.EntryNames.FirstOrDefault();
-                }
-                else if (m_FloatingPanel.PanelContentType == FloatingPanel.EPanelContentType.GENRES)
-                {
-                    m_ToolStrip_GenreName.Text = m_FloatingPanel.EntryNames.FirstOrDefault();
-                }
-
-                QueryMovies();
-                m_SuppressNameChangedEvent = false;
+                return;
             }
+
+            var result = m_FloatingPanel.EntryNames.FirstOrDefault();
+            if(string.IsNullOrEmpty(result))
+            {
+                return;
+            }
+
+            switch (m_FloatingPanel.PanelContentType)
+            {
+                case FloatingPanel.EPanelContentType.DIRECTORS:
+                    m_ToolStrip_DirectorName.Text = result;
+                    break;
+                case FloatingPanel.EPanelContentType.CAST:
+                    m_ToolStrip_ActorName.Text = result;
+                    break;
+                case FloatingPanel.EPanelContentType.GENRES:
+                    m_ToolStrip_GenreName.Text = result;
+                    break;
+            }
+
+            m_SuppressNameChangedEvent = true;
+            QueryEntries();
+            m_SuppressNameChangedEvent = false;
         }
         private void OnFloatingPanelItemSelected(object sender, EventArgs e)
         {
             if (m_FloatingPanel.Visible)
             {
-                var genres = string.Join(" ", m_FloatingPanel.EntryNames.ToArray());
-                m_ToolStrip_GenreName.Text = genres;
+                m_ToolStrip_GenreName.Text = string.Join(" ", m_FloatingPanel.EntryNames.ToArray());
 
-                QueryMovies();
+                QueryEntries();
             }
         }
         #endregion
@@ -881,7 +551,7 @@ namespace Ariadna
         {
             HideFloatingPanel();
         }
-        private void OnMovieNameTextEntered(object sender, EventArgs e)
+        private void OnEntryNameTextEntered(object sender, EventArgs e)
         {
             HideFloatingPanel();
         }
