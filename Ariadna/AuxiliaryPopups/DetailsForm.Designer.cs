@@ -70,6 +70,8 @@ namespace Ariadna
             this.m_VR = new System.Windows.Forms.CheckBox();
             this.m_LblVersion = new System.Windows.Forms.Label();
             this.m_TxtVersion = new System.Windows.Forms.TextBox();
+            this.m_LblVolume = new System.Windows.Forms.Label();
+            this.m_TxtVolume = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview2)).BeginInit();
@@ -98,7 +100,7 @@ namespace Ariadna
             this.m_TxtPath.ForeColor = Theme.DetailsFormForeColorDimmed;
             this.m_TxtPath.Location = new System.Drawing.Point(7, 627);
             this.m_TxtPath.Name = "m_TxtPath";
-            this.m_TxtPath.Size = new System.Drawing.Size(400, 22);
+            this.m_TxtPath.Size = new System.Drawing.Size(323, 22);
             this.m_TxtPath.TabIndex = 3;
             this.m_TxtPath.TextChanged += new System.EventHandler(this.OnFilePathChanged);
             // 
@@ -551,12 +553,37 @@ namespace Ariadna
             this.m_TxtVersion.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.m_TxtVersion.Visible = false;
             // 
+            // m_LblVolume
+            // 
+            this.m_LblVolume.BackColor = Theme.DetailsFormBackColor;
+            this.m_LblVolume.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblVolume.AutoSize = true;
+            this.m_LblVolume.Location = new System.Drawing.Point(336, 613);
+            this.m_LblVolume.Name = "m_LblVolume";
+            this.m_LblVolume.Size = new System.Drawing.Size(46, 13);
+            this.m_LblVolume.TabIndex = 47;
+            this.m_LblVolume.Text = "Размер";
+            // 
+            // m_TxtVolume
+            // 
+            this.m_TxtVolume.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtVolume.ForeColor = Theme.DetailsFormForeColor;
+            this.m_TxtVolume.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.m_TxtVolume.Enabled = false;
+            this.m_TxtVolume.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.m_TxtVolume.Location = new System.Drawing.Point(336, 627);
+            this.m_TxtVolume.Name = "m_TxtVolume";
+            this.m_TxtVolume.Size = new System.Drawing.Size(71, 22);
+            this.m_TxtVolume.TabIndex = 48;
+            // 
             // DetailsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = Theme.DetailsFormBackColor;
             this.ClientSize = new System.Drawing.Size(1027, 656);
+            this.Controls.Add(this.m_TxtVolume);
+            this.Controls.Add(this.m_LblVolume);
             this.Controls.Add(this.m_LblVersion);
             this.Controls.Add(this.m_TxtVersion);
             this.Controls.Add(this.m_VR);
@@ -594,6 +621,8 @@ namespace Ariadna
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "DetailsForm";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
@@ -650,5 +679,7 @@ namespace Ariadna
         protected System.Windows.Forms.CheckBox m_VR;
         protected System.Windows.Forms.Label m_LblVersion;
         protected System.Windows.Forms.TextBox m_TxtVersion;
+        protected System.Windows.Forms.Label m_LblVolume;
+        protected System.Windows.Forms.TextBox m_TxtVolume;
     }
 }

@@ -113,6 +113,16 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        public static System.Drawing.Bitmap city_building {
+            get {
+                object obj = ResourceManager.GetObject("city_building", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         public static System.Drawing.Bitmap comedy {
             get {
                 object obj = ResourceManager.GetObject("comedy", resourceCulture);

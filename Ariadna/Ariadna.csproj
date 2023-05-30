@@ -275,6 +275,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Ariadna.ico" />
+    <None Include="Resources\genres\city_building.png" />
     <None Include="Resources\genres\tps.png" />
     <None Include="AriadnaGames.ico" />
     <Content Include="AriadnaModel.Context.tt">

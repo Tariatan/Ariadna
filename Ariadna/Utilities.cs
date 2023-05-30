@@ -107,6 +107,7 @@ namespace Ariadna
             {"3rd View", Properties.Resources.tps},
             {"Isometric", Properties.Resources.isometric},
             {"Horror", Properties.Resources.horror},
+            {"City Building", Properties.Resources.city_building},
         };
         public static Bitmap GetMovieGenreImage(string name)
         {

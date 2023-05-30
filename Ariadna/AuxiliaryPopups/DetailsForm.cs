@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -57,6 +58,8 @@ namespace Ariadna
             m_TxtTitle.Text = FilePath.Substring(FilePath.LastIndexOf('\\') + 1);
             m_TxtPath.Text = FilePath;
 
+            m_TxtVolume.Text = CalculateVolume(FilePath);
+
             m_IsShiftPressed = false;
 
             // Delegate to derived class
@@ -65,6 +68,36 @@ namespace Ariadna
             m_IsInUpdateMode = (StoredDBEntryID != -1);
             UpdateInsertButtonText();
             m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
+        }
+        private string CalculateVolume(string path)
+        {
+            long volume = 0;
+            // Check if it is a file first
+            if (File.Exists(path))
+            {
+                FileInfo fi = new FileInfo(path);
+                volume = fi.Length;
+            }
+            // Checked if it is a directory
+            else if (Directory.Exists(path))
+            {
+                volume = GetDirSize(path);
+            }
+
+            volume /= 1024 * 1024;
+            string v = volume.ToString();
+            if(v.Length > 3)
+            {
+                v = v.Insert(v.Length - 3, " ");
+            }
+            v += " Mb";
+
+            return v;
+        }
+        private long GetDirSize(string path)
+        {
+            return Directory.EnumerateFiles(path).Sum(x => new FileInfo(x).Length)
+                 + Directory.EnumerateDirectories(path).Sum(x => GetDirSize(x));
         }
         private void UpdateInsertButtonText()
         {
