@@ -35,6 +35,7 @@ namespace Ariadna
         public MainPanel(AbstractDBStrategy strategy)
         {
             InitializeComponent();
+            ApplyTheme();
 
             m_DBStrategy = strategy;
             m_DBStrategy.FilterControls(this);
@@ -48,6 +49,33 @@ namespace Ariadna
             m_TypeField = ETypeField.None;
             m_TypeTimer.Tick += new EventHandler(OnTypeTimer);
             m_TypeTimer.Interval = TYPE_TIMOUT_MS;
+        }
+        private void ApplyTheme()
+        {
+            this.m_ToolStrip.BackColor = Theme.MainBackColor;
+            this.m_ToolStrip_AddBtn.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_NameLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_EntryName.BackColor = Theme.ControlsBackColor;
+            this.m_ToolStrip_EntryName.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_WishlistLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_RecentLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_NewLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_VRLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_nonVRLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_DirectorLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_DirectorName.BackColor = Theme.ControlsBackColor;
+            this.m_ToolStrip_DirectorName.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_ActorLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_ActorName.BackColor = Theme.ControlsBackColor;
+            this.m_ToolStrip_ActorName.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_GenreNameLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_GenreName.BackColor = Theme.ControlsBackColor;
+            this.m_ToolStrip_GenreName.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_EntriesCountLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStripEntriesCount.ForeColor = Theme.MainForeColor;
+            this.m_QuickListFlow.BackColor = Theme.MainBackColor;
+            this.BackColor = Theme.MainBackColor;
+
         }
         private void MainPanel_Load(object sender, EventArgs e)
         {
@@ -93,6 +121,8 @@ namespace Ariadna
                 IsWish = m_ToolStrip_WishlistBtn.Checked,
                 IsRecent = m_ToolStrip_RecentBtn.Checked,
                 IsNew = m_ToolStrip_NewBtn.Checked,
+                IsVR = m_ToolStrip_VRBtn.Checked,
+                IsNonVR = m_ToolStrip_nonVRBtn.Checked
             };
 
             UpdateImageList(m_DBStrategy.QueryEntries(values));
@@ -170,8 +200,7 @@ namespace Ariadna
                 return;
             }
 
-            Int32 id = -1;
-            Int32.TryParse((string)m_ImageListView.Items.FocusedItem.VirtualItemKey, out id);
+            Int32.TryParse((string)m_ImageListView.Items.FocusedItem.VirtualItemKey, out int id);
             if (id == -1)
             {
                 return;
@@ -189,7 +218,8 @@ namespace Ariadna
 
             m_DBStrategy.RemoveEntry(id);
 
-            UpdateImageList(m_DBStrategy.GetEntries());
+            QueryEntries();
+            //UpdateImageList(m_DBStrategy.GetEntries());
 
             m_ToolStrip_EntryName.Text = "";
 
@@ -209,7 +239,7 @@ namespace Ariadna
                 try
                 {
                     var dir = new DirectoryInfo(info.Path);
-                    dir.Attributes = dir.Attributes & ~FileAttributes.ReadOnly;
+                    dir.Attributes &= ~FileAttributes.ReadOnly;
                     dir.Delete(true);
                 }
                 catch (IOException ex)
@@ -224,11 +254,15 @@ namespace Ariadna
         }
         private void OnNewEntryInserted(object sender, AbstractDBStrategy.EntryInsertedEventArgs e)
         {
-            UpdateImageList(m_DBStrategy.GetEntries());
+            QueryEntries();
+            //UpdateImageList(m_DBStrategy.GetEntries());
 
             var selection = m_ImageListView.Items.Where(x => (string)x.VirtualItemKey == e.Id.ToString()).FirstOrDefault();
-            m_ImageListView.EnsureVisible(selection.Index);
-            selection.Selected = true;
+            if(selection != null)
+            {
+                m_ImageListView.EnsureVisible(selection.Index);
+                selection.Selected = true;
+            }
         }
         #region Image List View handlers
         private void ListView_ItemSelectionChanged(object sender, EventArgs e)
@@ -314,6 +348,36 @@ namespace Ariadna
             {
                 m_ToolStrip_WishlistBtn.Image = Properties.Resources.icon_checked;
                 m_ToolStrip_WishlistBtn.Checked = true;
+            }
+
+            QueryEntries();
+        }
+        private void ToolStrip_VRBtn_Clicked(object sender, EventArgs e)
+        {
+            if (m_ToolStrip_VRBtn.Checked)
+            {
+                m_ToolStrip_VRBtn.Image = Properties.Resources.icon_unchecked;
+                m_ToolStrip_VRBtn.Checked = false;
+            }
+            else
+            {
+                m_ToolStrip_VRBtn.Image = Properties.Resources.icon_checked;
+                m_ToolStrip_VRBtn.Checked = true;
+            }
+
+            QueryEntries();
+        }
+        private void ToolStrip_nonVRBtn_Clicked(object sender, EventArgs e)
+        {
+            if (m_ToolStrip_nonVRBtn.Checked)
+            {
+                m_ToolStrip_nonVRBtn.Image = Properties.Resources.icon_unchecked;
+                m_ToolStrip_nonVRBtn.Checked = false;
+            }
+            else
+            {
+                m_ToolStrip_nonVRBtn.Image = Properties.Resources.icon_checked;
+                m_ToolStrip_nonVRBtn.Checked = true;
             }
 
             QueryEntries();

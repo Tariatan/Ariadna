@@ -53,6 +53,7 @@ namespace Ariadna
         public static readonly string MOVIE_POSTERS_ROOT_PATH = @"G:/Ariadna/movies/";
         public static readonly string GAME_POSTERS_ROOT_PATH = @"G:/Ariadna/games/";
         public static readonly string DEFAULT_GAMES_PATH = @"A:\GAMES\";
+        public static readonly string DEFAULT_VR_GAMES_PATH = @"A:\GAMES\_VR_\";
         public static readonly string DEFAULT_MOVIES_PATH = @"M:\";
         public static readonly string DEFAULT_SERIES_PATH = @"S:\";
         public static readonly string MEDIA_PLAYER_PATH = "C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe";
@@ -108,6 +109,9 @@ namespace Ariadna
             {"Isometric", Properties.Resources.isometric},
             {"Horror", Properties.Resources.horror},
             {"City Building", Properties.Resources.city_building},
+            {"Music", Properties.Resources.musical},
+            {"Arcade", Properties.Resources.arcade},
+            {"Meditate", Properties.Resources.meditate},
         };
         public static Bitmap GetMovieGenreImage(string name)
         {

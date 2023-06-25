@@ -67,6 +67,16 @@ namespace Ariadna.DBStrategies
                 {
                     query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
                 }
+                // -- VR --
+                if (values.IsVR)
+                {
+                    query = query.Where(r => (r.vr == true));
+                }
+                // -- nonVR --
+                if (values.IsNonVR)
+                {
+                    query = query.Where(r => (r.vr == false));
+                }
 
                 return query.OrderBy(r => r.title).Select(x => new Utilities.EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
             }
@@ -122,7 +132,12 @@ namespace Ariadna.DBStrategies
             {
                 return true;
             }
-            
+
+            if (FindFirstNotInserted(Directory.GetDirectories(Utilities.DEFAULT_VR_GAMES_PATH)))
+            {
+                return true;
+            }
+
             return false;
         }
         public override void FindNextEntryManually()
@@ -221,6 +236,12 @@ namespace Ariadna.DBStrategies
             panel.m_ToolStrip_DirectorSprt.Visible = false;
             panel.m_ToolStrip_ActorSprt.Visible = false;
 
+            panel.m_ToolStrip_VRSprtr.Visible = true;
+            panel.m_ToolStrip_VRLbl.Visible = true;
+            panel.m_ToolStrip_VRBtn.Visible = true;
+            panel.m_ToolStrip_nonVRSprtr.Visible = true;
+            panel.m_ToolStrip_nonVRLbl.Visible = true;
+            panel.m_ToolStrip_nonVRBtn.Visible = true;
             panel.Icon = Properties.Resources.AriadnaGames;
         }
         private bool FindFirstNotInserted(String[] paths)

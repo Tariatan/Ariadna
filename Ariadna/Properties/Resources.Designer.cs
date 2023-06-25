@@ -91,6 +91,16 @@ namespace Ariadna.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap arcade {
+            get {
+                object obj = ResourceManager.GetObject("arcade", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         public static System.Drawing.Icon AriadnaGames {
@@ -286,6 +296,16 @@ namespace Ariadna.Properties {
         public static System.Drawing.Bitmap kid {
             get {
                 object obj = ResourceManager.GetObject("kid", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap meditate {
+            get {
+                object obj = ResourceManager.GetObject("meditate", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

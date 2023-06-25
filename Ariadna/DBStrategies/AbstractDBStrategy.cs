@@ -29,6 +29,8 @@ namespace Ariadna
             public bool IsWish { get; set; }
             public bool IsRecent { get; set; }
             public bool IsNew { get; set; }
+            public bool IsVR { get; set; }
+            public bool IsNonVR { get; set; }
         }
         public abstract ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter();
         public abstract List<Utilities.EntryDto> GetEntries();

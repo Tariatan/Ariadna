@@ -81,7 +81,9 @@ namespace Ariadna
             // Checked if it is a directory
             else if (Directory.Exists(path))
             {
+                Cursor.Current = Cursors.WaitCursor;
                 volume = GetDirSize(path);
+                Cursor.Current = Cursors.Default;
             }
 
             volume /= 1024 * 1024;
