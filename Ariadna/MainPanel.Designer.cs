@@ -54,6 +54,12 @@ namespace Ariadna
             this.m_ToolStrip_nonVRSprtr = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_nonVRLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_nonVRBtn = new System.Windows.Forms.ToolStripButton();
+            this.m_ToolStrip_SeriesSprtr = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStrip_SeriesLbl = new System.Windows.Forms.ToolStripLabel();
+            this.m_ToolStrip_SeriesBtn = new System.Windows.Forms.ToolStripButton();
+            this.m_ToolStrip_MoviesSprtr = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStrip_MoviesLbl = new System.Windows.Forms.ToolStripLabel();
+            this.m_ToolStrip_MoviesBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_DirectorLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_DirectorName = new System.Windows.Forms.ToolStripTextBox();
@@ -68,7 +74,7 @@ namespace Ariadna
             this.m_ToolStrip_ClearGenreBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_EntriesCountLbl = new System.Windows.Forms.ToolStripLabel();
-            this.m_ToolStripEntriesCount = new System.Windows.Forms.ToolStripLabel();
+            this.m_ToolStrip_EntriesCount = new System.Windows.Forms.ToolStripLabel();
             this.m_QuickListFlow = new System.Windows.Forms.FlowLayoutPanel();
             this.m_ToolStrip.SuspendLayout();
             this.SuspendLayout();
@@ -84,7 +90,7 @@ namespace Ariadna
             this.m_ImageListView.Name = "m_ImageListView";
             this.m_ImageListView.PersistentCacheDirectory = "";
             this.m_ImageListView.PersistentCacheSize = ((long)(100));
-            this.m_ImageListView.Size = new System.Drawing.Size(1272, 632);
+            this.m_ImageListView.Size = new System.Drawing.Size(1583, 632);
             this.m_ImageListView.TabIndex = 1;
             this.m_ImageListView.ThumbnailSize = new System.Drawing.Size(214, 321);
             this.m_ImageListView.UseWIC = true;
@@ -120,6 +126,12 @@ namespace Ariadna
             this.m_ToolStrip_nonVRSprtr,
             this.m_ToolStrip_nonVRLbl,
             this.m_ToolStrip_nonVRBtn,
+            this.m_ToolStrip_SeriesSprtr,
+            this.m_ToolStrip_SeriesLbl,
+            this.m_ToolStrip_SeriesBtn,
+            this.m_ToolStrip_MoviesSprtr,
+            this.m_ToolStrip_MoviesLbl,
+            this.m_ToolStrip_MoviesBtn,
             this.toolStripSeparator4,
             this.m_ToolStrip_DirectorLbl,
             this.m_ToolStrip_DirectorName,
@@ -134,11 +146,11 @@ namespace Ariadna
             this.m_ToolStrip_ClearGenreBtn,
             this.toolStripSeparator8,
             this.m_ToolStrip_EntriesCountLbl,
-            this.m_ToolStripEntriesCount});
+            this.m_ToolStrip_EntriesCount});
             this.m_ToolStrip.Location = new System.Drawing.Point(0, 0);
             this.m_ToolStrip.Name = "m_ToolStrip";
             this.m_ToolStrip.Padding = new System.Windows.Forms.Padding(0);
-            this.m_ToolStrip.Size = new System.Drawing.Size(1272, 25);
+            this.m_ToolStrip.Size = new System.Drawing.Size(1583, 25);
             this.m_ToolStrip.Stretch = true;
             this.m_ToolStrip.TabIndex = 2;
             // 
@@ -200,7 +212,7 @@ namespace Ariadna
             this.m_ToolStrip_WishlistBtn.Name = "m_ToolStrip_WishlistBtn";
             this.m_ToolStrip_WishlistBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_WishlistBtn.ToolTipText = "Хотелки";
-            this.m_ToolStrip_WishlistBtn.Click += new System.EventHandler(this.ToolStrip_WishlistBtn_Clicked);
+            this.m_ToolStrip_WishlistBtn.Click += new System.EventHandler(this.ToolStrip_CheckboxedFilter_Clicked);
             // 
             // toolStripSeparator5
             // 
@@ -220,7 +232,7 @@ namespace Ariadna
             this.m_ToolStrip_RecentBtn.Name = "m_ToolStrip_RecentBtn";
             this.m_ToolStrip_RecentBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_RecentBtn.Text = "Недавние";
-            this.m_ToolStrip_RecentBtn.Click += new System.EventHandler(this.ToolStrip_RecentBtn_Clicked);
+            this.m_ToolStrip_RecentBtn.Click += new System.EventHandler(this.ToolStrip_CheckboxedFilter_Clicked);
             // 
             // toolStripSeparator7
             // 
@@ -240,7 +252,7 @@ namespace Ariadna
             this.m_ToolStrip_NewBtn.Name = "m_ToolStrip_NewBtn";
             this.m_ToolStrip_NewBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_NewBtn.Text = "Новинки";
-            this.m_ToolStrip_NewBtn.Click += new System.EventHandler(this.ToolStrip_NewBtn_Clicked);
+            this.m_ToolStrip_NewBtn.Click += new System.EventHandler(this.ToolStrip_CheckboxedFilter_Clicked);
             // 
             // m_ToolStrip_VRSprtr
             // 
@@ -263,7 +275,7 @@ namespace Ariadna
             this.m_ToolStrip_VRBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_VRBtn.Text = "VR";
             this.m_ToolStrip_VRBtn.Visible = false;
-            this.m_ToolStrip_VRBtn.Click += new System.EventHandler(this.ToolStrip_VRBtn_Clicked);
+            this.m_ToolStrip_VRBtn.Click += new System.EventHandler(this.ToolStrip_CheckboxedFilter_Clicked);
             // 
             // m_ToolStrip_nonVRSprtr
             // 
@@ -286,7 +298,47 @@ namespace Ariadna
             this.m_ToolStrip_nonVRBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_nonVRBtn.Text = "nonVR";
             this.m_ToolStrip_nonVRBtn.Visible = false;
-            this.m_ToolStrip_nonVRBtn.Click += new System.EventHandler(this.ToolStrip_nonVRBtn_Clicked);
+            this.m_ToolStrip_nonVRBtn.Click += new System.EventHandler(this.ToolStrip_CheckboxedFilter_Clicked);
+            // 
+            // m_ToolStrip_SeriesSprtr
+            // 
+            this.m_ToolStrip_SeriesSprtr.Name = "m_ToolStrip_SeriesSprtr";
+            this.m_ToolStrip_SeriesSprtr.Size = new System.Drawing.Size(6, 25);
+            // 
+            // m_ToolStrip_SeriesLbl
+            // 
+            this.m_ToolStrip_SeriesLbl.Name = "m_ToolStrip_SeriesLbl";
+            this.m_ToolStrip_SeriesLbl.Size = new System.Drawing.Size(57, 22);
+            this.m_ToolStrip_SeriesLbl.Text = "Сериалы";
+            // 
+            // m_ToolStrip_SeriesBtn
+            // 
+            this.m_ToolStrip_SeriesBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.m_ToolStrip_SeriesBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_SeriesBtn.Image")));
+            this.m_ToolStrip_SeriesBtn.Name = "m_ToolStrip_SeriesBtn";
+            this.m_ToolStrip_SeriesBtn.Size = new System.Drawing.Size(23, 22);
+            this.m_ToolStrip_SeriesBtn.Text = "Series";
+            this.m_ToolStrip_SeriesBtn.Click += new System.EventHandler(this.ToolStrip_ToolStrip_SeriesBtn_Clicked);
+            // 
+            // m_ToolStrip_MoviesSprtr
+            // 
+            this.m_ToolStrip_MoviesSprtr.Name = "m_ToolStrip_MoviesSprtr";
+            this.m_ToolStrip_MoviesSprtr.Size = new System.Drawing.Size(6, 25);
+            // 
+            // m_ToolStrip_MoviesLbl
+            // 
+            this.m_ToolStrip_MoviesLbl.Name = "m_ToolStrip_MoviesLbl";
+            this.m_ToolStrip_MoviesLbl.Size = new System.Drawing.Size(54, 22);
+            this.m_ToolStrip_MoviesLbl.Text = "Фильмы";
+            // 
+            // m_ToolStrip_MoviesBtn
+            // 
+            this.m_ToolStrip_MoviesBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.m_ToolStrip_MoviesBtn.Image = ((System.Drawing.Image)(resources.GetObject("m_ToolStrip_MoviesBtn.Image")));
+            this.m_ToolStrip_MoviesBtn.Name = "m_ToolStrip_MoviesBtn";
+            this.m_ToolStrip_MoviesBtn.Size = new System.Drawing.Size(23, 22);
+            this.m_ToolStrip_MoviesBtn.Text = "Movies";
+            this.m_ToolStrip_MoviesBtn.Click += new System.EventHandler(this.ToolStrip_ToolStrip_MoviesBtn_Clicked);
             // 
             // toolStripSeparator4
             // 
@@ -388,17 +440,17 @@ namespace Ariadna
             this.m_ToolStrip_EntriesCountLbl.Size = new System.Drawing.Size(94, 22);
             this.m_ToolStrip_EntriesCountLbl.Text = "Всего записей:";
             // 
-            // m_ToolStripEntriesCount
+            // m_ToolStrip_EntriesCount
             // 
-            this.m_ToolStripEntriesCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_ToolStripEntriesCount.Name = "m_ToolStripEntriesCount";
-            this.m_ToolStripEntriesCount.Size = new System.Drawing.Size(14, 22);
-            this.m_ToolStripEntriesCount.Text = "0";
+            this.m_ToolStrip_EntriesCount.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.m_ToolStrip_EntriesCount.Name = "m_ToolStrip_EntriesCount";
+            this.m_ToolStrip_EntriesCount.Size = new System.Drawing.Size(14, 22);
+            this.m_ToolStrip_EntriesCount.Text = "0";
             // 
             // m_QuickListFlow
             // 
             this.m_QuickListFlow.Dock = System.Windows.Forms.DockStyle.Right;
-            this.m_QuickListFlow.Location = new System.Drawing.Point(1272, 0);
+            this.m_QuickListFlow.Location = new System.Drawing.Point(1583, 0);
             this.m_QuickListFlow.Name = "m_QuickListFlow";
             this.m_QuickListFlow.Size = new System.Drawing.Size(93, 657);
             this.m_QuickListFlow.TabIndex = 3;
@@ -407,7 +459,7 @@ namespace Ariadna
             // MainPanel
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
-            this.ClientSize = new System.Drawing.Size(1365, 657);
+            this.ClientSize = new System.Drawing.Size(1676, 657);
             this.Controls.Add(this.m_ImageListView);
             this.Controls.Add(this.m_ToolStrip);
             this.Controls.Add(this.m_QuickListFlow);
@@ -452,7 +504,7 @@ namespace Ariadna
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_GenreName;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_EntriesCountLbl;
-        private System.Windows.Forms.ToolStripLabel m_ToolStripEntriesCount;
+        private System.Windows.Forms.ToolStripLabel m_ToolStrip_EntriesCount;
         public System.Windows.Forms.ToolStripLabel m_ToolStrip_DirectorLbl;
         public System.Windows.Forms.ToolStripTextBox m_ToolStrip_DirectorName;
         public System.Windows.Forms.ToolStripButton m_ToolStrip_ClearDirectorBtn;
@@ -469,6 +521,12 @@ namespace Ariadna
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         public System.Windows.Forms.ToolStripSeparator m_ToolStrip_VRSprtr;
         public System.Windows.Forms.ToolStripSeparator m_ToolStrip_nonVRSprtr;
+        public System.Windows.Forms.ToolStripSeparator m_ToolStrip_SeriesSprtr;
+        public System.Windows.Forms.ToolStripLabel m_ToolStrip_SeriesLbl;
+        public System.Windows.Forms.ToolStripButton m_ToolStrip_SeriesBtn;
+        public System.Windows.Forms.ToolStripSeparator m_ToolStrip_MoviesSprtr;
+        public System.Windows.Forms.ToolStripLabel m_ToolStrip_MoviesLbl;
+        public System.Windows.Forms.ToolStripButton m_ToolStrip_MoviesBtn;
     }
 }
 

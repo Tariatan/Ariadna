@@ -89,6 +89,16 @@ namespace Ariadna.DBStrategies
                 {
                     query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
                 }
+                // -- SERIES --
+                if (values.IsSeries)
+                {
+                    query = query.Where(r => (r.file_path.StartsWith(Utilities.DEFAULT_SERIES_PATH.Substring(0, 1))));
+                }
+                // -- MOVIES --
+                if (values.IsMovies)
+                {
+                    query = query.Where(r => (r.file_path.StartsWith(Utilities.DEFAULT_MOVIES_PATH.Substring(0, 1))));
+                }
 
                 return query.OrderBy(r => r.title).Select(x => new Utilities.EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
             }

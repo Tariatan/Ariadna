@@ -235,6 +235,12 @@ namespace Ariadna.DBStrategies
             panel.m_ToolStrip_ClearDirectorBtn.Visible = false;
             panel.m_ToolStrip_DirectorSprt.Visible = false;
             panel.m_ToolStrip_ActorSprt.Visible = false;
+            panel.m_ToolStrip_SeriesBtn.Visible = false;
+            panel.m_ToolStrip_SeriesLbl.Visible = false;
+            panel.m_ToolStrip_SeriesSprtr.Visible = false;
+            panel.m_ToolStrip_MoviesBtn.Visible = false;
+            panel.m_ToolStrip_MoviesLbl.Visible = false;
+            panel.m_ToolStrip_MoviesSprtr.Visible = false;
 
             panel.m_ToolStrip_VRSprtr.Visible = true;
             panel.m_ToolStrip_VRLbl.Visible = true;

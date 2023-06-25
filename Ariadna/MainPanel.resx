@@ -262,6 +262,32 @@
         4XD4oj3hjbB59Qy8CAhy4cFXnQ566FqWFfsC1ZE4VEfUKP0AAAAASUVORK5CYII=
 </value>
   </data>
+  <data name="m_ToolStrip_SeriesBtn.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAL
+        EwAACxMBAJqcGAAAAbFJREFUSEvllk1qAkEQhUtNliGHyFIvkOyyjrmMP6CoC0e9gKARstCNt3FnhBwg
+        kJUKIuj8aeobWjAwxtFoFqbgOT1OvVf9ume6WxqNxnUul5Ner3c/Ho/ffN/3XA1PQ9uRg3x4NNFRvYds
+        Niv1ej0hmUxG+v3+82w2+9A8h6TVL8LUc9BT3XShUBDpdruP8/n8c21ik2SuuNmLTZ5GwDNS6+VyOVEn
+        tzKdTt95SicGg0Gn2Wwm2+12SsH1UKTgo0Mx1VyPRqNX0ZvAosLVhLt8Pi+VSkVKpZKUy+XIIB8efHTQ
+        074zR2thshhL/qAnmhhXp3IMarXaFXx00GN0dMhsnOCC8LBMr8IEosCyrDh8dNBTrGzbdsXMB0Pmtlqt
+        JLbDBKKgWq3G4KOzceI4josT3xQ5hZPEthN0tYh36iLfhutcRS7ECRN/GU7+QZFTfvEU2fXFn3/tCluF
+        WU0hHIqfVuFgPhTn20/+ZGfctcfzQ3C/D1sRvseb00p6sVhMeEAmrhTHRFARHfRU96lYLEpwLqKh56+b
+        4XD4oj3hjbB59Qy8CAhy4cFXnQ566FqWFfsC1ZE4VEfUKP0AAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="m_ToolStrip_MoviesBtn.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAL
+        EwAACxMBAJqcGAAAAbFJREFUSEvllk1qAkEQhUtNliGHyFIvkOyyjrmMP6CoC0e9gKARstCNt3FnhBwg
+        kJUKIuj8aeobWjAwxtFoFqbgOT1OvVf9ume6WxqNxnUul5Ner3c/Ho/ffN/3XA1PQ9uRg3x4NNFRvYds
+        Niv1ej0hmUxG+v3+82w2+9A8h6TVL8LUc9BT3XShUBDpdruP8/n8c21ik2SuuNmLTZ5GwDNS6+VyOVEn
+        tzKdTt95SicGg0Gn2Wwm2+12SsH1UKTgo0Mx1VyPRqNX0ZvAosLVhLt8Pi+VSkVKpZKUy+XIIB8efHTQ
+        074zR2thshhL/qAnmhhXp3IMarXaFXx00GN0dMhsnOCC8LBMr8IEosCyrDh8dNBTrGzbdsXMB0Pmtlqt
+        JLbDBKKgWq3G4KOzceI4josT3xQ5hZPEthN0tYh36iLfhutcRS7ECRN/GU7+QZFTfvEU2fXFn3/tCluF
+        WU0hHIqfVuFgPhTn20/+ZGfctcfzQ3C/D1sRvseb00p6sVhMeEAmrhTHRFARHfRU96lYLEpwLqKh56+b
+        4XD4oj3hjbB59Qy8CAhy4cFXnQ566FqWFfsC1ZE4VEfUKP0AAAAASUVORK5CYII=
+</value>
+  </data>
   <data name="m_ToolStrip_ClearDirectorBtn.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAJYAAACTCAYAAABszOBRAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO

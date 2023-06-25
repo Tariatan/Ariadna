@@ -31,6 +31,8 @@ namespace Ariadna
             public bool IsNew { get; set; }
             public bool IsVR { get; set; }
             public bool IsNonVR { get; set; }
+            public bool IsSeries { get; set; }
+            public bool IsMovies { get; set; }
         }
         public abstract ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter();
         public abstract List<Utilities.EntryDto> GetEntries();

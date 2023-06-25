@@ -72,7 +72,9 @@ namespace Ariadna
             this.m_ToolStrip_GenreName.BackColor = Theme.ControlsBackColor;
             this.m_ToolStrip_GenreName.ForeColor = Theme.MainForeColor;
             this.m_ToolStrip_EntriesCountLbl.ForeColor = Theme.MainForeColor;
-            this.m_ToolStripEntriesCount.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_EntriesCount.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_SeriesLbl.ForeColor = Theme.MainForeColor;
+            this.m_ToolStrip_MoviesLbl.ForeColor = Theme.MainForeColor;
             this.m_QuickListFlow.BackColor = Theme.MainBackColor;
             this.BackColor = Theme.MainBackColor;
 
@@ -88,7 +90,7 @@ namespace Ariadna
         }
         private void UpdateImageList(List<Utilities.EntryDto> entries)
         {
-            m_ToolStripEntriesCount.Text = entries.Count().ToString();
+            m_ToolStrip_EntriesCount.Text = entries.Count().ToString();
 
             m_ImageListView.Items.Clear();
 
@@ -122,7 +124,9 @@ namespace Ariadna
                 IsRecent = m_ToolStrip_RecentBtn.Checked,
                 IsNew = m_ToolStrip_NewBtn.Checked,
                 IsVR = m_ToolStrip_VRBtn.Checked,
-                IsNonVR = m_ToolStrip_nonVRBtn.Checked
+                IsNonVR = m_ToolStrip_nonVRBtn.Checked,
+                IsSeries = m_ToolStrip_SeriesBtn.Checked,
+                IsMovies = m_ToolStrip_MoviesBtn.Checked
             };
 
             UpdateImageList(m_DBStrategy.QueryEntries(values));
@@ -307,80 +311,35 @@ namespace Ariadna
 
             m_DBStrategy.FindNextEntryManually();
         }
-        private void ToolStrip_RecentBtn_Clicked(object sender, EventArgs e)
+        private void ToolStrip_CheckboxedFilter_Clicked(object sender, EventArgs e)
         {
-            if (m_ToolStrip_RecentBtn.Checked)
+            var checkboxedFilter = sender as ToolStripButton;
+            if (checkboxedFilter.Checked)
             {
-                m_ToolStrip_RecentBtn.Image = Properties.Resources.icon_unchecked;
-                m_ToolStrip_RecentBtn.Checked = false;
+                checkboxedFilter.Image = Properties.Resources.icon_unchecked;
+                checkboxedFilter.Checked = false;
             }
             else
             {
-                m_ToolStrip_RecentBtn.Image = Properties.Resources.icon_checked;
-                m_ToolStrip_RecentBtn.Checked = true;
+                checkboxedFilter.Image = Properties.Resources.icon_checked;
+                checkboxedFilter.Checked = true;
             }
 
             QueryEntries();
         }
-        private void ToolStrip_NewBtn_Clicked(object sender, EventArgs e)
+        private void ToolStrip_ToolStrip_SeriesBtn_Clicked(object sender, EventArgs e)
         {
-            if (m_ToolStrip_NewBtn.Checked)
-            {
-                m_ToolStrip_NewBtn.Image = Properties.Resources.icon_unchecked;
-                m_ToolStrip_NewBtn.Checked = false;
-            }
-            else
-            {
-                m_ToolStrip_NewBtn.Image = Properties.Resources.icon_checked;
-                m_ToolStrip_NewBtn.Checked = true;
-            }
+            m_ToolStrip_MoviesBtn.Checked = false;
+            m_ToolStrip_MoviesBtn.Image = Properties.Resources.icon_unchecked;
 
-            QueryEntries();
+            ToolStrip_CheckboxedFilter_Clicked(sender, e);
         }
-        private void ToolStrip_WishlistBtn_Clicked(object sender, EventArgs e)
+        private void ToolStrip_ToolStrip_MoviesBtn_Clicked(object sender, EventArgs e)
         {
-            if (m_ToolStrip_WishlistBtn.Checked)
-            {
-                m_ToolStrip_WishlistBtn.Image = Properties.Resources.icon_unchecked;
-                m_ToolStrip_WishlistBtn.Checked = false;
-            }
-            else
-            {
-                m_ToolStrip_WishlistBtn.Image = Properties.Resources.icon_checked;
-                m_ToolStrip_WishlistBtn.Checked = true;
-            }
+            m_ToolStrip_SeriesBtn.Checked = false;
+            m_ToolStrip_SeriesBtn.Image = Properties.Resources.icon_unchecked;
 
-            QueryEntries();
-        }
-        private void ToolStrip_VRBtn_Clicked(object sender, EventArgs e)
-        {
-            if (m_ToolStrip_VRBtn.Checked)
-            {
-                m_ToolStrip_VRBtn.Image = Properties.Resources.icon_unchecked;
-                m_ToolStrip_VRBtn.Checked = false;
-            }
-            else
-            {
-                m_ToolStrip_VRBtn.Image = Properties.Resources.icon_checked;
-                m_ToolStrip_VRBtn.Checked = true;
-            }
-
-            QueryEntries();
-        }
-        private void ToolStrip_nonVRBtn_Clicked(object sender, EventArgs e)
-        {
-            if (m_ToolStrip_nonVRBtn.Checked)
-            {
-                m_ToolStrip_nonVRBtn.Image = Properties.Resources.icon_unchecked;
-                m_ToolStrip_nonVRBtn.Checked = false;
-            }
-            else
-            {
-                m_ToolStrip_nonVRBtn.Image = Properties.Resources.icon_checked;
-                m_ToolStrip_nonVRBtn.Checked = true;
-            }
-
-            QueryEntries();
+            ToolStrip_CheckboxedFilter_Clicked(sender, e);
         }
         private void ToolStrip_Genre_Clicked(object sender, EventArgs e)
         {
