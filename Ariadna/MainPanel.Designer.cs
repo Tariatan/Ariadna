@@ -275,7 +275,7 @@ namespace Ariadna
             this.m_ToolStrip_VRBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_VRBtn.Text = "VR";
             this.m_ToolStrip_VRBtn.Visible = false;
-            this.m_ToolStrip_VRBtn.Click += new System.EventHandler(this.ToolStrip_CheckboxedFilter_Clicked);
+            this.m_ToolStrip_VRBtn.Click += new System.EventHandler(this.ToolStrip_ToolStrip_VRBtn_Clicked);
             // 
             // m_ToolStrip_nonVRSprtr
             // 
@@ -298,7 +298,7 @@ namespace Ariadna
             this.m_ToolStrip_nonVRBtn.Size = new System.Drawing.Size(23, 22);
             this.m_ToolStrip_nonVRBtn.Text = "nonVR";
             this.m_ToolStrip_nonVRBtn.Visible = false;
-            this.m_ToolStrip_nonVRBtn.Click += new System.EventHandler(this.ToolStrip_CheckboxedFilter_Clicked);
+            this.m_ToolStrip_nonVRBtn.Click += new System.EventHandler(this.ToolStrip_ToolStrip_NonVRBtn_Clicked);
             // 
             // m_ToolStrip_SeriesSprtr
             // 

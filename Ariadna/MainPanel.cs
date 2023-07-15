@@ -327,6 +327,20 @@ namespace Ariadna
 
             QueryEntries();
         }
+        private void ToolStrip_ToolStrip_VRBtn_Clicked(object sender, EventArgs e)
+        {
+            m_ToolStrip_nonVRBtn.Checked = false;
+            m_ToolStrip_nonVRBtn.Image = Properties.Resources.icon_unchecked;
+
+            ToolStrip_CheckboxedFilter_Clicked(sender, e);
+        }
+        private void ToolStrip_ToolStrip_NonVRBtn_Clicked(object sender, EventArgs e)
+        {
+            m_ToolStrip_VRBtn.Checked = false;
+            m_ToolStrip_VRBtn.Image = Properties.Resources.icon_unchecked;
+
+            ToolStrip_CheckboxedFilter_Clicked(sender, e);
+        }
         private void ToolStrip_ToolStrip_SeriesBtn_Clicked(object sender, EventArgs e)
         {
             m_ToolStrip_MoviesBtn.Checked = false;
