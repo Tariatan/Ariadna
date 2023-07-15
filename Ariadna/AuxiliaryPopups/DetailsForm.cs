@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Ariadna.Themes;
 
 namespace Ariadna
 {
@@ -33,8 +34,60 @@ namespace Ariadna
             FilePath = filePath;
             StoredDBEntryID = -1;
             InitializeComponent();
+            ApplyTheme();
 
             m_GenresList.Sorting = SortOrder.Ascending;
+        }
+        private void ApplyTheme()
+        {
+            this.m_TxtTitle.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtTitle.ForeColor = Theme.DetailsFormForeColor;
+            this.m_TxtPath.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtPath.ForeColor = Theme.DetailsFormForeColorDimmed;
+            this.m_TxtTitleOrig.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtTitleOrig.ForeColor = Theme.DetailsFormForeColor;
+            this.m_TxtYear.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtYear.ForeColor = Theme.DetailsFormForeColor;
+            this.m_BtnInsert.BackColor = Theme.DetailsFormConfirmBtnBackColor;
+            this.m_BtnInsert.ForeColor = Theme.DetailsFormForeColor;
+            this.m_TxtLength.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtLength.ForeColor = Theme.DetailsFormForeColorDimmed;
+            this.m_TxtDescription.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtDescription.ForeColor = Theme.DetailsFormForeColor;
+            this.m_WanToSee.ForeColor = Theme.DetailsFormHighlightForeColor;
+            this.m_LblGenre.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblTitle.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblTitleOrig.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblYear.ForeColor = Theme.DetailsFormForeColor;
+            this.m_DirectorsList.BackColor = Theme.DetailsFormBackColor;
+            this.m_DirectorsList.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblDirector.ForeColor = Theme.DetailsFormForeColor;
+            this.m_CastList.BackColor = Theme.DetailsFormBackColor;
+            this.m_CastList.ForeColor = Theme.DetailsFormForeColor;
+            this.m_GenresList.BackColor = Theme.DetailsFormBackColor;
+            this.m_GenresList.ForeColor = Theme.DetailsFormForeColor;
+            this.m_AddGenreBtn.ForeColor = Theme.DetailsFormForeColor;
+            this.m_GenrePaste.ForeColor = Theme.DetailsFormForeColor;
+            this.m_DescriptionPaste.ForeColor = Theme.DetailsFormForeColor;
+            this.m_DirectorPaste.ForeColor = Theme.DetailsFormForeColor;
+            this.m_CastPaste.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblPath.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblCast.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblDescr.ForeColor = Theme.DetailsFormForeColor;
+            this.m_VR.ForeColor = Theme.DetailsFormHighlightForeColor;
+            this.m_LblVersion.ForeColor = Theme.DetailsFormForeColor;
+            this.m_TxtVersion.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtVersion.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblVolume.BackColor = Theme.DetailsFormBackColor;
+            this.m_LblVolume.ForeColor = Theme.DetailsFormForeColor;
+            this.m_TxtVolume.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtVolume.ForeColor = Theme.DetailsFormForeColor;
+            this.m_TxtDimension.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtDimension.ForeColor = Theme.DetailsFormForeColor;
+            this.m_TxtBitrate.BackColor = Theme.DetailsFormBackColor;
+            this.m_TxtBitrate.ForeColor = Theme.DetailsFormForeColor;
+            this.BackColor = Theme.DetailsFormBackColor;
+
         }
         #region VIRTUAL FUNCTIONS
         protected virtual void DoLoad() { }

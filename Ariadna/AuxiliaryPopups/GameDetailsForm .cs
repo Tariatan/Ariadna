@@ -19,6 +19,8 @@ namespace Ariadna
             #region Hide inappropriate fields
             m_TxtLength.Visible = false;
             m_TxtDescription.Visible = false;
+            m_TxtDimension.Visible = false;
+            m_TxtBitrate.Visible = false;
             m_DirectorsList.Visible = false;
             m_CastList.Visible = false;
             m_DescriptionPaste.Visible = false;
@@ -26,7 +28,6 @@ namespace Ariadna
             m_CastPaste.Visible = false;
             m_LblDirector.Visible = false;
             m_LblCast.Visible = false;
-            m_LblLength.Visible = false;
             m_LblDescr.Visible = false;
             #endregion
             #region Show my fields

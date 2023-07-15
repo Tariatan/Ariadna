@@ -1,5 +1,4 @@
-﻿using Ariadna.Themes;
-
+﻿
 namespace Ariadna
 {
     partial class DetailsForm
@@ -59,7 +58,6 @@ namespace Ariadna
             this.m_CastPaste = new System.Windows.Forms.Label();
             this.m_LblPath = new System.Windows.Forms.Label();
             this.m_LblCast = new System.Windows.Forms.Label();
-            this.m_LblLength = new System.Windows.Forms.Label();
             this.m_LblDescr = new System.Windows.Forms.Label();
             this.m_Preview4 = new System.Windows.Forms.PictureBox();
             this.m_Preview3 = new System.Windows.Forms.PictureBox();
@@ -72,6 +70,8 @@ namespace Ariadna
             this.m_TxtVersion = new System.Windows.Forms.TextBox();
             this.m_LblVolume = new System.Windows.Forms.Label();
             this.m_TxtVolume = new System.Windows.Forms.TextBox();
+            this.m_TxtDimension = new System.Windows.Forms.TextBox();
+            this.m_TxtBitrate = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview2)).BeginInit();
@@ -82,10 +82,8 @@ namespace Ariadna
             // 
             // m_TxtTitle
             // 
-            this.m_TxtTitle.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtTitle.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_TxtTitle.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtTitle.Location = new System.Drawing.Point(416, 22);
             this.m_TxtTitle.Name = "m_TxtTitle";
             this.m_TxtTitle.Size = new System.Drawing.Size(603, 29);
@@ -94,10 +92,8 @@ namespace Ariadna
             // 
             // m_TxtPath
             // 
-            this.m_TxtPath.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtPath.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtPath.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_TxtPath.ForeColor = Theme.DetailsFormForeColorDimmed;
             this.m_TxtPath.Location = new System.Drawing.Point(7, 627);
             this.m_TxtPath.Name = "m_TxtPath";
             this.m_TxtPath.Size = new System.Drawing.Size(323, 22);
@@ -106,10 +102,8 @@ namespace Ariadna
             // 
             // m_TxtTitleOrig
             // 
-            this.m_TxtTitleOrig.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtTitleOrig.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtTitleOrig.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_TxtTitleOrig.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtTitleOrig.Location = new System.Drawing.Point(416, 65);
             this.m_TxtTitleOrig.Name = "m_TxtTitleOrig";
             this.m_TxtTitleOrig.Size = new System.Drawing.Size(603, 29);
@@ -118,10 +112,8 @@ namespace Ariadna
             // 
             // m_TxtYear
             // 
-            this.m_TxtYear.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtYear.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtYear.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_TxtYear.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtYear.Location = new System.Drawing.Point(416, 108);
             this.m_TxtYear.Name = "m_TxtYear";
             this.m_TxtYear.Size = new System.Drawing.Size(77, 26);
@@ -130,10 +122,8 @@ namespace Ariadna
             // 
             // m_BtnInsert
             // 
-            this.m_BtnInsert.BackColor = Theme.DetailsFormConfirmBtnBackColor;
             this.m_BtnInsert.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.m_BtnInsert.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_BtnInsert.ForeColor = Theme.DetailsFormForeColor;
             this.m_BtnInsert.Location = new System.Drawing.Point(925, 619);
             this.m_BtnInsert.Name = "m_BtnInsert";
             this.m_BtnInsert.Size = new System.Drawing.Size(94, 29);
@@ -144,23 +134,19 @@ namespace Ariadna
             // 
             // m_TxtLength
             // 
-            this.m_TxtLength.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtLength.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtLength.Enabled = false;
             this.m_TxtLength.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_TxtLength.ForeColor = Theme.DetailsFormForeColorDimmed;
             this.m_TxtLength.Location = new System.Drawing.Point(416, 627);
             this.m_TxtLength.Name = "m_TxtLength";
-            this.m_TxtLength.Size = new System.Drawing.Size(118, 22);
+            this.m_TxtLength.Size = new System.Drawing.Size(60, 22);
             this.m_TxtLength.TabIndex = 19;
             this.m_TxtLength.Text = "00:00:00";
             // 
             // m_TxtDescription
             // 
-            this.m_TxtDescription.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtDescription.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtDescription.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_TxtDescription.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtDescription.Location = new System.Drawing.Point(416, 197);
             this.m_TxtDescription.Multiline = true;
             this.m_TxtDescription.Name = "m_TxtDescription";
@@ -174,7 +160,6 @@ namespace Ariadna
             // 
             this.m_WanToSee.AutoSize = true;
             this.m_WanToSee.BackColor = System.Drawing.Color.Transparent;
-            this.m_WanToSee.ForeColor = Theme.DetailsFormHighlightForeColor;
             this.m_WanToSee.Location = new System.Drawing.Point(843, 631);
             this.m_WanToSee.Name = "m_WanToSee";
             this.m_WanToSee.Size = new System.Drawing.Size(76, 17);
@@ -192,7 +177,6 @@ namespace Ariadna
             // 
             this.m_LblGenre.AutoSize = true;
             this.m_LblGenre.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblGenre.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblGenre.Location = new System.Drawing.Point(504, 96);
             this.m_LblGenre.Name = "m_LblGenre";
             this.m_LblGenre.Size = new System.Drawing.Size(36, 13);
@@ -203,7 +187,6 @@ namespace Ariadna
             // 
             this.m_LblTitle.AutoSize = true;
             this.m_LblTitle.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblTitle.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblTitle.Location = new System.Drawing.Point(419, 10);
             this.m_LblTitle.Name = "m_LblTitle";
             this.m_LblTitle.Size = new System.Drawing.Size(57, 13);
@@ -214,7 +197,6 @@ namespace Ariadna
             // 
             this.m_LblTitleOrig.AutoSize = true;
             this.m_LblTitleOrig.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblTitleOrig.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblTitleOrig.Location = new System.Drawing.Point(419, 53);
             this.m_LblTitleOrig.Name = "m_LblTitleOrig";
             this.m_LblTitleOrig.Size = new System.Drawing.Size(131, 13);
@@ -225,7 +207,6 @@ namespace Ariadna
             // 
             this.m_LblYear.AutoSize = true;
             this.m_LblYear.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblYear.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblYear.Location = new System.Drawing.Point(419, 96);
             this.m_LblYear.Name = "m_LblYear";
             this.m_LblYear.Size = new System.Drawing.Size(71, 13);
@@ -234,10 +215,8 @@ namespace Ariadna
             // 
             // m_DirectorsList
             // 
-            this.m_DirectorsList.BackColor = Theme.DetailsFormBackColor;
             this.m_DirectorsList.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_DirectorsList.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_DirectorsList.ForeColor = Theme.DetailsFormForeColor;
             this.m_DirectorsList.HideSelection = false;
             this.m_DirectorsList.LabelEdit = true;
             this.m_DirectorsList.LargeImageList = this.m_DirectorsPhotos;
@@ -256,7 +235,6 @@ namespace Ariadna
             // 
             this.m_LblDirector.AutoSize = true;
             this.m_LblDirector.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblDirector.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblDirector.Location = new System.Drawing.Point(420, 353);
             this.m_LblDirector.Name = "m_LblDirector";
             this.m_LblDirector.Size = new System.Drawing.Size(52, 13);
@@ -265,10 +243,8 @@ namespace Ariadna
             // 
             // m_CastList
             // 
-            this.m_CastList.BackColor = Theme.DetailsFormBackColor;
             this.m_CastList.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_CastList.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_CastList.ForeColor = Theme.DetailsFormForeColor;
             this.m_CastList.HideSelection = false;
             this.m_CastList.LabelEdit = true;
             this.m_CastList.LargeImageList = this.m_CastPhotos;
@@ -291,9 +267,7 @@ namespace Ariadna
             // 
             // m_GenresList
             // 
-            this.m_GenresList.BackColor = Theme.DetailsFormBackColor;
             this.m_GenresList.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.m_GenresList.ForeColor = Theme.DetailsFormForeColor;
             this.m_GenresList.HideSelection = false;
             this.m_GenresList.LargeImageList = this.m_GenresImages;
             this.m_GenresList.Location = new System.Drawing.Point(499, 108);
@@ -314,7 +288,6 @@ namespace Ariadna
             // m_AddGenreBtn
             // 
             this.m_AddGenreBtn.AutoSize = true;
-            this.m_AddGenreBtn.ForeColor = Theme.DetailsFormForeColor;
             this.m_AddGenreBtn.Location = new System.Drawing.Point(998, 174);
             this.m_AddGenreBtn.Name = "m_AddGenreBtn";
             this.m_AddGenreBtn.Size = new System.Drawing.Size(16, 13);
@@ -326,7 +299,6 @@ namespace Ariadna
             // 
             this.m_GenrePaste.AutoSize = true;
             this.m_GenrePaste.CausesValidation = false;
-            this.m_GenrePaste.ForeColor = Theme.DetailsFormForeColor;
             this.m_GenrePaste.Location = new System.Drawing.Point(540, 96);
             this.m_GenrePaste.Name = "m_GenrePaste";
             this.m_GenrePaste.Size = new System.Drawing.Size(13, 13);
@@ -339,7 +311,6 @@ namespace Ariadna
             // 
             this.m_DescriptionPaste.AutoSize = true;
             this.m_DescriptionPaste.CausesValidation = false;
-            this.m_DescriptionPaste.ForeColor = Theme.DetailsFormForeColor;
             this.m_DescriptionPaste.Location = new System.Drawing.Point(476, 185);
             this.m_DescriptionPaste.Name = "m_DescriptionPaste";
             this.m_DescriptionPaste.Size = new System.Drawing.Size(13, 13);
@@ -352,7 +323,6 @@ namespace Ariadna
             // 
             this.m_DirectorPaste.AutoSize = true;
             this.m_DirectorPaste.CausesValidation = false;
-            this.m_DirectorPaste.ForeColor = Theme.DetailsFormForeColor;
             this.m_DirectorPaste.Location = new System.Drawing.Point(472, 353);
             this.m_DirectorPaste.Name = "m_DirectorPaste";
             this.m_DirectorPaste.Size = new System.Drawing.Size(13, 13);
@@ -365,7 +335,6 @@ namespace Ariadna
             // 
             this.m_CastPaste.AutoSize = true;
             this.m_CastPaste.CausesValidation = false;
-            this.m_CastPaste.ForeColor = Theme.DetailsFormForeColor;
             this.m_CastPaste.Location = new System.Drawing.Point(601, 353);
             this.m_CastPaste.Name = "m_CastPaste";
             this.m_CastPaste.Size = new System.Drawing.Size(13, 13);
@@ -378,7 +347,6 @@ namespace Ariadna
             // 
             this.m_LblPath.AutoSize = true;
             this.m_LblPath.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblPath.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblPath.Location = new System.Drawing.Point(10, 613);
             this.m_LblPath.Name = "m_LblPath";
             this.m_LblPath.Size = new System.Drawing.Size(31, 13);
@@ -389,29 +357,16 @@ namespace Ariadna
             // 
             this.m_LblCast.AutoSize = true;
             this.m_LblCast.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblCast.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblCast.Location = new System.Drawing.Point(556, 353);
             this.m_LblCast.Name = "m_LblCast";
             this.m_LblCast.Size = new System.Drawing.Size(45, 13);
             this.m_LblCast.TabIndex = 10;
             this.m_LblCast.Text = "Актеры";
             // 
-            // m_LblLength
-            // 
-            this.m_LblLength.AutoSize = true;
-            this.m_LblLength.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblLength.ForeColor = Theme.DetailsFormForeColor;
-            this.m_LblLength.Location = new System.Drawing.Point(420, 613);
-            this.m_LblLength.Name = "m_LblLength";
-            this.m_LblLength.Size = new System.Drawing.Size(111, 13);
-            this.m_LblLength.TabIndex = 13;
-            this.m_LblLength.Text = "Продолжительность";
-            // 
             // m_LblDescr
             // 
             this.m_LblDescr.AutoSize = true;
             this.m_LblDescr.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblDescr.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblDescr.Location = new System.Drawing.Point(419, 185);
             this.m_LblDescr.Name = "m_LblDescr";
             this.m_LblDescr.Size = new System.Drawing.Size(57, 13);
@@ -519,7 +474,6 @@ namespace Ariadna
             // 
             this.m_VR.AutoSize = true;
             this.m_VR.BackColor = System.Drawing.Color.Transparent;
-            this.m_VR.ForeColor = Theme.DetailsFormHighlightForeColor;
             this.m_VR.Location = new System.Drawing.Point(793, 631);
             this.m_VR.Name = "m_VR";
             this.m_VR.Size = new System.Drawing.Size(41, 17);
@@ -532,7 +486,6 @@ namespace Ariadna
             // 
             this.m_LblVersion.AutoSize = true;
             this.m_LblVersion.BackColor = System.Drawing.Color.Transparent;
-            this.m_LblVersion.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblVersion.Location = new System.Drawing.Point(419, 136);
             this.m_LblVersion.Name = "m_LblVersion";
             this.m_LblVersion.Size = new System.Drawing.Size(44, 13);
@@ -542,10 +495,8 @@ namespace Ariadna
             // 
             // m_TxtVersion
             // 
-            this.m_TxtVersion.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtVersion.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_TxtVersion.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtVersion.Location = new System.Drawing.Point(417, 148);
             this.m_TxtVersion.Name = "m_TxtVersion";
             this.m_TxtVersion.Size = new System.Drawing.Size(77, 22);
@@ -555,8 +506,6 @@ namespace Ariadna
             // 
             // m_LblVolume
             // 
-            this.m_LblVolume.BackColor = Theme.DetailsFormBackColor;
-            this.m_LblVolume.ForeColor = Theme.DetailsFormForeColor;
             this.m_LblVolume.AutoSize = true;
             this.m_LblVolume.Location = new System.Drawing.Point(336, 613);
             this.m_LblVolume.Name = "m_LblVolume";
@@ -566,8 +515,6 @@ namespace Ariadna
             // 
             // m_TxtVolume
             // 
-            this.m_TxtVolume.BackColor = Theme.DetailsFormBackColor;
-            this.m_TxtVolume.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtVolume.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtVolume.Enabled = false;
             this.m_TxtVolume.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
@@ -576,12 +523,35 @@ namespace Ariadna
             this.m_TxtVolume.Size = new System.Drawing.Size(71, 22);
             this.m_TxtVolume.TabIndex = 48;
             // 
+            // m_TxtDimension
+            // 
+            this.m_TxtDimension.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.m_TxtDimension.Enabled = false;
+            this.m_TxtDimension.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.m_TxtDimension.Location = new System.Drawing.Point(482, 627);
+            this.m_TxtDimension.Name = "m_TxtDimension";
+            this.m_TxtDimension.Size = new System.Drawing.Size(60, 22);
+            this.m_TxtDimension.TabIndex = 49;
+            this.m_TxtDimension.Text = "---x---";
+            // 
+            // m_TxtBitrate
+            // 
+            this.m_TxtBitrate.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.m_TxtBitrate.Enabled = false;
+            this.m_TxtBitrate.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.m_TxtBitrate.Location = new System.Drawing.Point(548, 627);
+            this.m_TxtBitrate.Name = "m_TxtBitrate";
+            this.m_TxtBitrate.Size = new System.Drawing.Size(60, 22);
+            this.m_TxtBitrate.TabIndex = 50;
+            this.m_TxtBitrate.Text = " Mbps";
+            // 
             // DetailsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = Theme.DetailsFormBackColor;
             this.ClientSize = new System.Drawing.Size(1027, 656);
+            this.Controls.Add(this.m_TxtBitrate);
+            this.Controls.Add(this.m_TxtDimension);
             this.Controls.Add(this.m_TxtVolume);
             this.Controls.Add(this.m_LblVolume);
             this.Controls.Add(this.m_LblVersion);
@@ -595,7 +565,6 @@ namespace Ariadna
             this.Controls.Add(this.m_LblGenre);
             this.Controls.Add(this.m_GenresList);
             this.Controls.Add(this.m_LblDescr);
-            this.Controls.Add(this.m_LblLength);
             this.Controls.Add(this.m_LblPath);
             this.Controls.Add(this.m_LblCast);
             this.Controls.Add(this.m_CastList);
@@ -674,12 +643,13 @@ namespace Ariadna
         protected System.Windows.Forms.PictureBox m_Preview3;
         protected System.Windows.Forms.PictureBox m_Preview4;
         protected System.Windows.Forms.Label m_LblCast;
-        protected System.Windows.Forms.Label m_LblLength;
         protected System.Windows.Forms.Label m_LblDescr;
         protected System.Windows.Forms.CheckBox m_VR;
         protected System.Windows.Forms.Label m_LblVersion;
         protected System.Windows.Forms.TextBox m_TxtVersion;
         protected System.Windows.Forms.Label m_LblVolume;
         protected System.Windows.Forms.TextBox m_TxtVolume;
+        protected System.Windows.Forms.TextBox m_TxtDimension;
+        protected System.Windows.Forms.TextBox m_TxtBitrate;
     }
 }
