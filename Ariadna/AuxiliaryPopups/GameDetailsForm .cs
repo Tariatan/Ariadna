@@ -29,6 +29,14 @@ namespace Ariadna
             m_LblDirector.Visible = false;
             m_LblCast.Visible = false;
             m_LblDescr.Visible = false;
+            m_PicFlag1.Visible = false;
+            m_PicFlag2.Visible = false;
+            m_PicFlag3.Visible = false;
+            m_PicFlag4.Visible = false;
+            m_LblDuration.Visible = false;
+            m_LblDimensions.Visible = false;
+            m_LblBitrate.Visible = false;
+            m_LblAudioStreams.Visible = false;
             #endregion
             #region Show my fields
             m_PreviewFull.Visible = true;

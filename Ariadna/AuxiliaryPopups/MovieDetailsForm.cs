@@ -62,6 +62,8 @@ namespace Ariadna
                     FillTVShowFieldsFromIMDB();
                 }
             }
+
+            FillMediaInfo(FilePath);
         }
         protected override bool DoStore()
         {
@@ -536,6 +538,57 @@ namespace Ariadna
                 foreach (var genres in genresSet)
                 {
                     AddGenre(genres.Genre.name);
+                }
+            }
+        }
+        private void FillMediaInfo(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                var firstFile = Directory.EnumerateFiles(path).FirstOrDefault();
+                if(String.IsNullOrEmpty(firstFile))
+                {
+                    var firstSubDir = Directory.GetDirectories(path).FirstOrDefault();
+                    firstFile = Directory.EnumerateFiles(firstSubDir).FirstOrDefault();
+                }
+
+                path = firstFile;
+            }
+
+            if(String.IsNullOrEmpty(path))
+            {
+                return;
+            }
+
+            var info = new MediaInfo.MediaInfoWrapper(path);
+            m_TxtDimension.Text = info.Width.ToString() + "x" + info.Height.ToString();
+            m_TxtBitrate.Text = (info.VideoRate / 1000000).ToString() + " Mbps";
+
+            var audios = info.AudioStreams;
+            List<PictureBox> flags = new List<PictureBox> { m_PicFlag1, m_PicFlag2, m_PicFlag3, m_PicFlag4 };
+            foreach (var flag in flags)
+            {
+                flag.Image = null;
+            }
+
+            int index = 0;
+            foreach (var stream in audios)
+            {
+                if (stream.Language.Equals("Russian"))
+                {
+                    flags[index++].Image = Properties.Resources.ru;
+                }
+                else if (stream.Language.Equals("English"))
+                {
+                    flags[index++].Image = Properties.Resources.en;
+                }
+                else if (stream.Language.Equals("French"))
+                {
+                    flags[index++].Image = Properties.Resources.fr;
+                }
+                else if (stream.Language.Equals("Ukrainian"))
+                {
+                    flags[index++].Image = Properties.Resources.ua;
                 }
             }
         }

@@ -52,6 +52,7 @@ namespace Ariadna
             this.m_BtnInsert.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtLength.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtLength.ForeColor = Theme.DetailsFormForeColorDimmed;
+            this.m_LblDuration.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtDescription.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtDescription.ForeColor = Theme.DetailsFormForeColor;
             this.m_WanToSee.ForeColor = Theme.DetailsFormHighlightForeColor;
@@ -84,8 +85,12 @@ namespace Ariadna
             this.m_TxtVolume.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtDimension.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtDimension.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblDimensions.ForeColor = Theme.DetailsFormForeColor;
             this.m_TxtBitrate.BackColor = Theme.DetailsFormBackColor;
             this.m_TxtBitrate.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblBitrate.ForeColor = Theme.DetailsFormForeColor;
+            this.m_LblAudioStreams.ForeColor = Theme.DetailsFormForeColor;
+
             this.BackColor = Theme.DetailsFormBackColor;
 
         }

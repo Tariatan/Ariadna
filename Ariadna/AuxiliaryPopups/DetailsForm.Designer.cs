@@ -72,12 +72,25 @@ namespace Ariadna
             this.m_TxtVolume = new System.Windows.Forms.TextBox();
             this.m_TxtDimension = new System.Windows.Forms.TextBox();
             this.m_TxtBitrate = new System.Windows.Forms.TextBox();
+            this.m_LangImages = new System.Windows.Forms.ImageList(this.components);
+            this.m_PicFlag1 = new System.Windows.Forms.PictureBox();
+            this.m_PicFlag2 = new System.Windows.Forms.PictureBox();
+            this.m_PicFlag3 = new System.Windows.Forms.PictureBox();
+            this.m_PicFlag4 = new System.Windows.Forms.PictureBox();
+            this.m_LblDuration = new System.Windows.Forms.Label();
+            this.m_LblDimensions = new System.Windows.Forms.Label();
+            this.m_LblBitrate = new System.Windows.Forms.Label();
+            this.m_LblAudioStreams = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_PreviewFull)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_PicPoster)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.m_PicFlag1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.m_PicFlag2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.m_PicFlag3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.m_PicFlag4)).BeginInit();
             this.SuspendLayout();
             // 
             // m_TxtTitle
@@ -142,6 +155,7 @@ namespace Ariadna
             this.m_TxtLength.Size = new System.Drawing.Size(60, 22);
             this.m_TxtLength.TabIndex = 19;
             this.m_TxtLength.Text = "00:00:00";
+            this.m_TxtLength.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // m_TxtDescription
             // 
@@ -522,34 +536,123 @@ namespace Ariadna
             this.m_TxtVolume.Name = "m_TxtVolume";
             this.m_TxtVolume.Size = new System.Drawing.Size(71, 22);
             this.m_TxtVolume.TabIndex = 48;
+            this.m_TxtVolume.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // m_TxtDimension
             // 
             this.m_TxtDimension.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtDimension.Enabled = false;
             this.m_TxtDimension.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_TxtDimension.Location = new System.Drawing.Point(482, 627);
+            this.m_TxtDimension.Location = new System.Drawing.Point(484, 627);
             this.m_TxtDimension.Name = "m_TxtDimension";
-            this.m_TxtDimension.Size = new System.Drawing.Size(60, 22);
+            this.m_TxtDimension.Size = new System.Drawing.Size(73, 22);
             this.m_TxtDimension.TabIndex = 49;
             this.m_TxtDimension.Text = "---x---";
+            this.m_TxtDimension.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // m_TxtBitrate
             // 
             this.m_TxtBitrate.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.m_TxtBitrate.Enabled = false;
             this.m_TxtBitrate.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_TxtBitrate.Location = new System.Drawing.Point(548, 627);
+            this.m_TxtBitrate.Location = new System.Drawing.Point(563, 627);
             this.m_TxtBitrate.Name = "m_TxtBitrate";
             this.m_TxtBitrate.Size = new System.Drawing.Size(60, 22);
             this.m_TxtBitrate.TabIndex = 50;
             this.m_TxtBitrate.Text = " Mbps";
+            this.m_TxtBitrate.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // m_LangImages
+            // 
+            this.m_LangImages.ColorDepth = System.Windows.Forms.ColorDepth.Depth16Bit;
+            this.m_LangImages.ImageSize = new System.Drawing.Size(20, 11);
+            this.m_LangImages.TransparentColor = System.Drawing.Color.Transparent;
+            // 
+            // m_PicFlag1
+            // 
+            this.m_PicFlag1.InitialImage = null;
+            this.m_PicFlag1.Location = new System.Drawing.Point(642, 633);
+            this.m_PicFlag1.Name = "m_PicFlag1";
+            this.m_PicFlag1.Size = new System.Drawing.Size(20, 11);
+            this.m_PicFlag1.TabIndex = 51;
+            this.m_PicFlag1.TabStop = false;
+            // 
+            // m_PicFlag2
+            // 
+            this.m_PicFlag2.InitialImage = null;
+            this.m_PicFlag2.Location = new System.Drawing.Point(668, 633);
+            this.m_PicFlag2.Name = "m_PicFlag2";
+            this.m_PicFlag2.Size = new System.Drawing.Size(20, 11);
+            this.m_PicFlag2.TabIndex = 52;
+            this.m_PicFlag2.TabStop = false;
+            // 
+            // m_PicFlag3
+            // 
+            this.m_PicFlag3.InitialImage = null;
+            this.m_PicFlag3.Location = new System.Drawing.Point(694, 633);
+            this.m_PicFlag3.Name = "m_PicFlag3";
+            this.m_PicFlag3.Size = new System.Drawing.Size(20, 11);
+            this.m_PicFlag3.TabIndex = 53;
+            this.m_PicFlag3.TabStop = false;
+            // 
+            // m_PicFlag4
+            // 
+            this.m_PicFlag4.InitialImage = null;
+            this.m_PicFlag4.Location = new System.Drawing.Point(720, 633);
+            this.m_PicFlag4.Name = "m_PicFlag4";
+            this.m_PicFlag4.Size = new System.Drawing.Size(20, 11);
+            this.m_PicFlag4.TabIndex = 54;
+            this.m_PicFlag4.TabStop = false;
+            // 
+            // m_LblDuration
+            // 
+            this.m_LblDuration.AutoSize = true;
+            this.m_LblDuration.Location = new System.Drawing.Point(417, 613);
+            this.m_LblDuration.Name = "m_LblDuration";
+            this.m_LblDuration.Size = new System.Drawing.Size(40, 13);
+            this.m_LblDuration.TabIndex = 55;
+            this.m_LblDuration.Text = "Время";
+            // 
+            // m_LblDimensions
+            // 
+            this.m_LblDimensions.AutoSize = true;
+            this.m_LblDimensions.Location = new System.Drawing.Point(487, 613);
+            this.m_LblDimensions.Name = "m_LblDimensions";
+            this.m_LblDimensions.Size = new System.Drawing.Size(70, 13);
+            this.m_LblDimensions.TabIndex = 56;
+            this.m_LblDimensions.Text = "Разрешение";
+            // 
+            // m_LblBitrate
+            // 
+            this.m_LblBitrate.AutoSize = true;
+            this.m_LblBitrate.Location = new System.Drawing.Point(566, 613);
+            this.m_LblBitrate.Name = "m_LblBitrate";
+            this.m_LblBitrate.Size = new System.Drawing.Size(48, 13);
+            this.m_LblBitrate.TabIndex = 57;
+            this.m_LblBitrate.Text = "Битрейт";
+            // 
+            // m_LblAudioStreams
+            // 
+            this.m_LblAudioStreams.AutoSize = true;
+            this.m_LblAudioStreams.Location = new System.Drawing.Point(639, 613);
+            this.m_LblAudioStreams.Name = "m_LblAudioStreams";
+            this.m_LblAudioStreams.Size = new System.Drawing.Size(84, 13);
+            this.m_LblAudioStreams.TabIndex = 58;
+            this.m_LblAudioStreams.Text = "Аудио дорожки";
             // 
             // DetailsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1027, 656);
+            this.Controls.Add(this.m_LblAudioStreams);
+            this.Controls.Add(this.m_LblBitrate);
+            this.Controls.Add(this.m_LblDimensions);
+            this.Controls.Add(this.m_LblDuration);
+            this.Controls.Add(this.m_PicFlag4);
+            this.Controls.Add(this.m_PicFlag3);
+            this.Controls.Add(this.m_PicFlag2);
+            this.Controls.Add(this.m_PicFlag1);
             this.Controls.Add(this.m_TxtBitrate);
             this.Controls.Add(this.m_TxtDimension);
             this.Controls.Add(this.m_TxtVolume);
@@ -605,6 +708,10 @@ namespace Ariadna
             ((System.ComponentModel.ISupportInitialize)(this.m_Preview1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_PreviewFull)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.m_PicPoster)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.m_PicFlag1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.m_PicFlag2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.m_PicFlag3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.m_PicFlag4)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -651,5 +758,14 @@ namespace Ariadna
         protected System.Windows.Forms.TextBox m_TxtVolume;
         protected System.Windows.Forms.TextBox m_TxtDimension;
         protected System.Windows.Forms.TextBox m_TxtBitrate;
+        protected System.Windows.Forms.ImageList m_LangImages;
+        protected System.Windows.Forms.PictureBox m_PicFlag1;
+        protected System.Windows.Forms.PictureBox m_PicFlag2;
+        protected System.Windows.Forms.PictureBox m_PicFlag3;
+        protected System.Windows.Forms.PictureBox m_PicFlag4;
+        protected System.Windows.Forms.Label m_LblDuration;
+        protected System.Windows.Forms.Label m_LblDimensions;
+        protected System.Windows.Forms.Label m_LblBitrate;
+        protected System.Windows.Forms.Label m_LblAudioStreams;
     }
 }
