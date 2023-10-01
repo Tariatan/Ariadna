@@ -97,7 +97,8 @@ namespace Ariadna.DBStrategies
                 // -- MOVIES --
                 if (values.IsMovies)
                 {
-                    query = query.Where(r => (r.file_path.StartsWith(Utilities.DEFAULT_MOVIES_PATH.Substring(0, 1))));
+                    query = query.Where(r => (r.file_path.StartsWith(Utilities.DEFAULT_MOVIES_PATH.Substring(0, 1)) ||
+                        r.file_path.StartsWith(Utilities.DEFAULT_MOVIES_PATH_TMP.Substring(0, 1))));
                 }
 
                 return query.OrderBy(r => r.title).Select(x => new Utilities.EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
@@ -148,7 +149,11 @@ namespace Ariadna.DBStrategies
             {
                 return true;
             }
-            
+            if (FindFirstNotInserted(Directory.GetFiles(Utilities.DEFAULT_MOVIES_PATH_TMP)))
+            {
+                return true;
+            }
+
             if (FindFirstNotInserted(Directory.GetDirectories(Utilities.DEFAULT_SERIES_PATH)))
             {
                 return true;

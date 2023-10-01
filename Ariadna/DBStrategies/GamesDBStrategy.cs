@@ -133,7 +133,7 @@ namespace Ariadna.DBStrategies
                 return true;
             }
 
-            if (FindFirstNotInserted(Directory.GetDirectories(Utilities.DEFAULT_VR_GAMES_PATH)))
+            if (FindFirstNotInserted(Directory.GetDirectories(Utilities.DEFAULT_GAMES_PATH_VR)))
             {
                 return true;
             }
@@ -145,8 +145,6 @@ namespace Ariadna.DBStrategies
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.InitialDirectory = Utilities.DEFAULT_GAMES_PATH;
-//                 openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.m4v;*.ts|All files (*.*)|*.*";
-//                 openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
 
                 // Allow folders

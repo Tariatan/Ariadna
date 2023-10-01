@@ -53,8 +53,9 @@ namespace Ariadna
         public static readonly string MOVIE_POSTERS_ROOT_PATH = @"G:/Ariadna/movies/";
         public static readonly string GAME_POSTERS_ROOT_PATH = @"G:/Ariadna/games/";
         public static readonly string DEFAULT_GAMES_PATH = @"A:\GAMES\";
-        public static readonly string DEFAULT_VR_GAMES_PATH = @"A:\GAMES\_VR_\";
+        public static readonly string DEFAULT_GAMES_PATH_VR = @"A:\GAMES\_VR_\";
         public static readonly string DEFAULT_MOVIES_PATH = @"M:\";
+        public static readonly string DEFAULT_MOVIES_PATH_TMP = @"A:\MOVIES\";
         public static readonly string DEFAULT_SERIES_PATH = @"S:\";
         public static readonly string MEDIA_PLAYER_PATH = "C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe";
         public static readonly string PREVIEW_SUFFIX = "_preview";

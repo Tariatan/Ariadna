@@ -300,7 +300,6 @@
     <Content Include="Ariadna.ico" />
     <None Include="Resources\lang\ru.png" />
     <None Include="Resources\lang\ua.png" />
-    <None Include="Resources\lang\rus.png" />
     <None Include="Resources\lang\fr.png" />
     <None Include="Resources\lang\en.png" />
     <None Include="Resources\genres\meditate.png" />

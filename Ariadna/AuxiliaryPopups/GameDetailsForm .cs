@@ -47,7 +47,7 @@ namespace Ariadna
             m_VR.Visible = true;
             m_LblVersion.Visible = true;
             m_TxtVersion.Visible = true;
-            m_VR.Checked = FilePath.Contains(Utilities.DEFAULT_VR_GAMES_PATH);
+            m_VR.Checked = FilePath.Contains(Utilities.DEFAULT_GAMES_PATH_VR);
 
             Icon = Properties.Resources.AriadnaGames;
             #endregion
