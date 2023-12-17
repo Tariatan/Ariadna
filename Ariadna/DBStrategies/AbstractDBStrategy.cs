@@ -47,9 +47,6 @@ namespace Ariadna
         public abstract SortedDictionary<string, Bitmap> GetActors(string name, int limit);
         public abstract SortedDictionary<string, Bitmap> GetGenres(string name);
         public abstract void FilterControls(MainPanel panel);
-        protected virtual void OnEntryInserted(EntryInsertedEventArgs e)
-        {
-            EntryInserted.Invoke(this, e);
-        }
+        protected virtual void OnEntryInserted(EntryInsertedEventArgs e) => EntryInserted.Invoke(this, e);
     }
 }

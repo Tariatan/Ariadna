@@ -14,15 +14,10 @@ namespace Ariadna.DBStrategies
     {
         private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new PosterFromFileAdaptor();
 
-        public MoviesDBStrategy()
-        {
-            m_PosterImageAdaptor.RootPath = Utilities.MOVIE_POSTERS_ROOT_PATH;
+        public MoviesDBStrategy() => m_PosterImageAdaptor.RootPath = Utilities.MOVIE_POSTERS_ROOT_PATH;
 
-        }
-        public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter()
-        {
-            return m_PosterImageAdaptor;
-        }
+        public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
+        
         public override List<Utilities.EntryDto> GetEntries()
         {
             //UpdateMovieData();
@@ -145,6 +140,8 @@ namespace Ariadna.DBStrategies
         }
         public override bool FindNextEntryAutomatically()
         {
+
+
             if (FindFirstNotInserted(Directory.GetFiles(Utilities.DEFAULT_MOVIES_PATH)))
             {
                 return true;
@@ -236,7 +233,7 @@ namespace Ariadna.DBStrategies
         }
         public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
         {
-            SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
+            var values = new SortedDictionary<string, Bitmap>();
             using (var ctx = new AriadnaEntities())
             {
                 var directors = ctx.MovieDirectors.AsNoTracking().Where(r => r.Director.name.ToUpper().Contains(name)).Take(limit);
@@ -251,7 +248,7 @@ namespace Ariadna.DBStrategies
         }
         public override SortedDictionary<string, Bitmap> GetActors(string name, int limit)
         {
-            SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
+            var values = new SortedDictionary<string, Bitmap>();
             using (var ctx = new AriadnaEntities())
             {
                 var actors = ctx.MovieCasts.AsNoTracking().Where(r => (r.Actor.name.ToUpper().Contains(name))).Take(limit);
@@ -265,7 +262,7 @@ namespace Ariadna.DBStrategies
         }
         public override SortedDictionary<string, Bitmap> GetGenres(string name)
         {
-            SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
+            var values = new SortedDictionary<string, Bitmap>();
             using (var ctx = new AriadnaEntities())
             {
                 var genres = ctx.Genres.AsNoTracking().ToList();
@@ -277,9 +274,7 @@ namespace Ariadna.DBStrategies
             }
             return values;
         }
-        public override void FilterControls(MainPanel panel)
-        {
-        }
+        public override void FilterControls(MainPanel panel) {}
         private bool FindFirstNotInserted(String[] paths)
         {
             string foundPath = null;
@@ -308,12 +303,21 @@ namespace Ariadna.DBStrategies
             FetchMovieFromIMDB(foundPath);
             return true;
         }
+        private bool isFetching = false;
         private async void FetchMovieFromIMDB(string path)
         {
+            if(isFetching)
+            {
+                return;
+            }
+
+            isFetching = true;
             TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
-            MovieDetailsForm detailsForm = new MovieDetailsForm(path);
-            detailsForm.TMDBMovieIndex = -1;
-            detailsForm.TMDBTVShowIndex = -1;
+            MovieDetailsForm detailsForm = new MovieDetailsForm(path)
+            {
+                TMDBMovieIndex = -1,
+                TMDBTVShowIndex = -1
+            };
 
             if (Directory.Exists(path))
             {
@@ -347,6 +351,8 @@ namespace Ariadna.DBStrategies
 
             detailsForm.FormClosed += new FormClosedEventHandler(OnDetailsFormClosed);
             detailsForm.ShowDialog();
+
+            isFetching = false;
         }
         private int GetBestMovieChoice(List<TMDbLib.Objects.Search.SearchMovie> movies, string path)
         {

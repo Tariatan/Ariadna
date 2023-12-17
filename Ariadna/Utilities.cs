@@ -149,26 +149,26 @@ namespace Ariadna
             return name;
         }
         public static string CapitalizeWords(string words)
+        {
+            var wordList = words.Trim().Split(' ');
+            var result = "";
+            for (int i = 0; i < wordList.Length; ++i)
             {
-                var wordList = words.Trim().Split(' ');
-                var result = "";
-                for (int i = 0; i < wordList.Length; ++i)
+                if (wordList[i].Length == 0)
                 {
-                    if (wordList[i].Length == 0)
-                    {
-                        continue;
-                    }
-
-                    wordList[i] = wordList[i][0].ToString().ToUpper() + wordList[i].Substring(1);
-                    if (result.Length > 0)
-                    {
-                        result += " ";
-                    }
-                    result += wordList[i];
+                    continue;
                 }
 
-                return result;
+                wordList[i] = wordList[i][0].ToString().ToUpper() + wordList[i].Substring(1);
+                if (result.Length > 0)
+                {
+                    result += " ";
+                }
+                result += wordList[i];
             }
+
+            return result;
+        }
         public static byte[] ImageToBytes(Image img)
         {
             try

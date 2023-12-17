@@ -13,14 +13,10 @@ namespace Ariadna.DBStrategies
     {
         private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new PosterFromFileAdaptor();
 
-        public GamesDBStrategy()
-        {
-            m_PosterImageAdaptor.RootPath = Utilities.GAME_POSTERS_ROOT_PATH;
-        }
-        public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter()
-        {
-            return m_PosterImageAdaptor;
-        }
+        public GamesDBStrategy() => m_PosterImageAdaptor.RootPath = Utilities.GAME_POSTERS_ROOT_PATH;
+
+        public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
+        
         public override List<Utilities.EntryDto> GetEntries()
         {
             using (var ctx = new AriadnaEntities())
@@ -200,17 +196,11 @@ namespace Ariadna.DBStrategies
                 MessageBox.Show(path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
-        public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
-        {
-            return null;
-        }
-        public override SortedDictionary<string, Bitmap> GetActors(string name, int limit)
-        {
-            return null;
-        }
+        public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
+        public override SortedDictionary<string, Bitmap> GetActors(string name, int limit) => null;
         public override SortedDictionary<string, Bitmap> GetGenres(string name)
         {
-            SortedDictionary<string, Bitmap> values = new SortedDictionary<string, Bitmap>();
+            var values = new SortedDictionary<string, Bitmap>();
             using (var ctx = new AriadnaEntities())
             {
                 var genres = ctx.GenreOfGames.AsNoTracking().ToList();

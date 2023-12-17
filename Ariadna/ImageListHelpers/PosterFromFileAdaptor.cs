@@ -8,22 +8,11 @@ namespace Ariadna
     {
         public string RootPath { get; set; }
 
-        public override void Dispose()
-        {
-        }
-        public override Utility.Tuple<ColumnType, string, object>[] GetDetails(object key)
-        {
-            return null;
-        }
-        public override string GetSourceImage(object key)
-        {
-            return RootPath + (string)key;
-        }
-        public bool ThumbnailCallback()
-        {
-            return false;
-        }
-        public override Image GetThumbnail(object key, Size size, UseEmbeddedThumbnails useEmbeddedThumbnails, bool useExifOrientation)
+        public override void Dispose() {}
+        public override Utility.Tuple<ColumnType, string, object>[] GetDetails(object key) => null;
+        public override string GetSourceImage(object key) => RootPath + (string) key;
+        public bool ThumbnailCallback() => false;
+        public override Image GetThumbnail(object key, Size size, UseEmbeddedThumbnails thmb, bool useExif)
         {
             string filename = RootPath + (string)key;
             if (File.Exists(filename))
@@ -36,9 +25,6 @@ namespace Ariadna
                 return null;
             }
         }
-        public override string GetUniqueIdentifier(object key, Size size, UseEmbeddedThumbnails useEmbeddedThumbnails, bool useExifOrientation)
-        {
-            return (string)key;
-        }
+        public override string GetUniqueIdentifier(object key, Size sz, UseEmbeddedThumbnails thmb, bool useExif) => (string)key;
     }
 }

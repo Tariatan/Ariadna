@@ -138,6 +138,11 @@ namespace Ariadna
 
             foreach (var firstChar in firstChars)
             {
+                if (new[] { "}", "«" }.Any(c => firstChar.Contains(c)))
+                {
+                    continue;
+                }
+
                 Button btn = new Button
                 {
                     Text = firstChar,
@@ -180,12 +185,10 @@ namespace Ariadna
             {
                 e.Handled = true;
 
-                if(FindNextEntryAutomatically())
+                if(FindNextEntryAutomatically() is false)
                 {
-                    return;
+                    m_DBStrategy.FindNextEntryManually();
                 }
-
-                m_DBStrategy.FindNextEntryManually();
             }
         }
         private bool FindNextEntryAutomatically()
@@ -563,34 +566,13 @@ namespace Ariadna
         }
         #endregion
         #region Hide Floating Panel handlers
-        private void OnFormClicked(object sender, EventArgs e)
-        {
-            HideFloatingPanel();
-        }
-        private void OnPanelMoved(object sender, EventArgs e)
-        {
-            HideFloatingPanel();
-        }
-        private void OnPanelResized(object sender, EventArgs e)
-        {
-            HideFloatingPanel();
-        }
-        private void OnListViewClick(object sender, EventArgs e)
-        {
-            HideFloatingPanel();
-        }
-        private void OnListViewKeyDown(object sender, KeyEventArgs e)
-        {
-            HideFloatingPanel();
-        }
-        private void OnMouseCaptureChanged(object sender, EventArgs e)
-        {
-            HideFloatingPanel();
-        }
-        private void OnEntryNameTextEntered(object sender, EventArgs e)
-        {
-            HideFloatingPanel();
-        }
+        private void OnFormClicked(object sender, EventArgs e) => HideFloatingPanel();
+        private void OnPanelMoved(object sender, EventArgs e) => HideFloatingPanel();
+        private void OnPanelResized(object sender, EventArgs e) => HideFloatingPanel();
+        private void OnListViewClick(object sender, EventArgs e) => HideFloatingPanel();
+        private void OnListViewKeyDown(object sender, KeyEventArgs e) => HideFloatingPanel();
+        private void OnMouseCaptureChanged(object sender, EventArgs e) => HideFloatingPanel();
+        private void OnEntryNameTextEntered(object sender, EventArgs e) => HideFloatingPanel();
         #endregion
     }
 }
