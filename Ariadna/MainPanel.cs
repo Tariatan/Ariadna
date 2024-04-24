@@ -237,6 +237,7 @@ namespace Ariadna
             if (File.Exists(info.Path))
             {
                 // Delete file
+                File.SetAttributes(info.Path, FileAttributes.Normal);
                 File.Delete(info.Path);
             }
             // Checked if it is a directory
@@ -373,7 +374,7 @@ namespace Ariadna
         }
         private void ToolStrip_ClearActorBtn_Clicked(object sender, EventArgs e)
         {
-            //DeleteUnusedActors();
+            DeleteUnusedActors();
 
             HideFloatingPanel();
             if (m_ToolStrip_ActorName.Text.Length > 0)
@@ -392,7 +393,7 @@ namespace Ariadna
         }
         private void ToolStrip_ClearGenreBtn_Clicked(object sender, EventArgs e)
         {
-            //DeleteUnusedGenres();
+            DeleteUnusedGenres();
 
             HideFloatingPanel();
             
@@ -403,6 +404,53 @@ namespace Ariadna
                 QueryEntries();
             }
         }
+
+        private void DeleteUnusedActors()
+        {
+            using (var ctx = new AriadnaEntities())
+            {
+                var actors = ctx.Actors.ToList();
+
+                bool bNeedToSaveChanges = false;
+                foreach (var actor in actors)
+                {
+                    var usedActor = ctx.MovieCasts.Where(r => (r.actorId == actor.Id)).FirstOrDefault();
+                    if (usedActor == null)
+                    {
+                        ctx.Actors.Remove(actor);
+                        bNeedToSaveChanges = true;
+                    }
+                }
+                if (bNeedToSaveChanges)
+                {
+                    ctx.SaveChanges();
+                }
+            }
+        }
+
+        private void DeleteUnusedGenres()
+        {
+            using (var ctx = new AriadnaEntities())
+            {
+                var genres = ctx.Genres.ToList();
+
+                bool bNeedToSaveChanges = false;
+                foreach (var genre in genres)
+                {
+                    var usedGenres = ctx.MovieGenres.Where(r => (r.genreId == genre.Id)).FirstOrDefault();
+                    if (usedGenres == null)
+                    {
+                        ctx.Genres.Remove(genre);
+                        bNeedToSaveChanges = true;
+                    }
+                }
+                if (bNeedToSaveChanges)
+                {
+                    ctx.SaveChanges();
+                }
+            }
+        }
+
         #endregion
         #region Edit Fields operations
         private void OnEntryNameConfirmed(object sender, KeyEventArgs e)

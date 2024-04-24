@@ -15,7 +15,8 @@ namespace Ariadna
         {
             Themes.Theme theme;
             AbstractDBStrategy strategy;
-            if (Environment.GetCommandLineArgs()[1] == "games")
+            if (Environment.GetCommandLineArgs().Length > 1 &&
+                Environment.GetCommandLineArgs()[1] == "games")
             {
                 theme = new Themes.ThemeGames();
                 strategy = new Ariadna.DBStrategies.GamesDBStrategy();
@@ -32,7 +33,6 @@ namespace Ariadna
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
 
             var panel = new MainPanel(strategy);
             Application.Run(panel);

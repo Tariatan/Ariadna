@@ -17,8 +17,14 @@ namespace Ariadna
             string filename = RootPath + (string)key;
             if (File.Exists(filename))
             {
-                Bitmap bmp = new Bitmap(filename);
-                return bmp.GetThumbnailImage(size.Width, size.Height, null, System.IntPtr.Zero);
+                Image image = null;
+                // Dispose bitmap to unlock the file
+                using (var bmpTmp = new Bitmap(filename))
+                {
+                    image = bmpTmp.GetThumbnailImage(size.Width, size.Height, null, System.IntPtr.Zero);
+                }
+
+                return image;
             }
             else
             {

@@ -574,6 +574,12 @@ namespace Ariadna
             int index = 0;
             foreach (var stream in audios)
             {
+                // Limit number of audio tracks
+                if(index >= flags.Count)
+                {
+                    break;
+                }
+
                 if (stream.Language.Equals("Russian"))
                 {
                     flags[index++].Image = Properties.Resources.ru;

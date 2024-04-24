@@ -32,33 +32,34 @@ namespace Ariadna
             public string Path { get; set; }
         }
 
-        public static readonly int GENRE_IMAGE_W = 60;
-        public static readonly int GENRE_IMAGE_H = 60;
+        public const int RECENT = 3;
+        public const int GENRE_IMAGE_W = 60;
+        public const int GENRE_IMAGE_H = 60;
 
-        public static readonly int POSTER_W = 400;
-        public static readonly int POSTER_H = 600;
+        public const int POSTER_W = 400;
+        public const int POSTER_H = 600;
 
-        public static readonly int PHOTO_W = 54;
-        public static readonly int PHOTO_H = 81;
+        public const int PHOTO_W = 54;
+        public const int PHOTO_H = 81;
 
-        public static readonly int PREVIEW_W = 603;
-        public static readonly int PREVIEW_H = 339;
+        public const int PREVIEW_W = 603;
+        public const int PREVIEW_H = 339;
 
-        public static readonly int PREVIEW_SMALL_W = 137;
-        public static readonly int PREVIEW_SMALL_H = 77;
+        public const int PREVIEW_SMALL_W = 137;
+        public const int PREVIEW_SMALL_H = 77;
 
-        public static readonly int MAX_GENRES_COUNT = 5;
+        public const int MAX_GENRES_COUNT = 5;
 
-        public static readonly string TMDB_API_KEY = "ec3e7f0826eb6ef92dc4b1f69f1e1dd3";
-        public static readonly string MOVIE_POSTERS_ROOT_PATH = @"G:/Ariadna/movies/";
-        public static readonly string GAME_POSTERS_ROOT_PATH = @"G:/Ariadna/games/";
-        public static readonly string DEFAULT_GAMES_PATH = @"A:\GAMES\";
-        public static readonly string DEFAULT_GAMES_PATH_VR = @"A:\GAMES\_VR_\";
-        public static readonly string DEFAULT_MOVIES_PATH = @"M:\";
-        public static readonly string DEFAULT_MOVIES_PATH_TMP = @"A:\MOVIES\";
-        public static readonly string DEFAULT_SERIES_PATH = @"S:\";
-        public static readonly string MEDIA_PLAYER_PATH = "C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe";
-        public static readonly string PREVIEW_SUFFIX = "_preview";
+        public const string TMDB_API_KEY = "ec3e7f0826eb6ef92dc4b1f69f1e1dd3";
+        public const string MOVIE_POSTERS_ROOT_PATH = @"G:/Ariadna/movies/";
+        public const string GAME_POSTERS_ROOT_PATH = @"G:/Ariadna/games/";
+        public const string DEFAULT_GAMES_PATH = @"A:\GAMES\";
+        public const string DEFAULT_GAMES_PATH_VR = @"A:\GAMES\_VR_\";
+        public const string DEFAULT_MOVIES_PATH = @"M:\";
+        public const string DEFAULT_MOVIES_PATH_TMP = @"A:\MOVIES\";
+        public const string DEFAULT_SERIES_PATH = @"S:\";
+        public const string MEDIA_PLAYER_PATH = "C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe";
+        public const string PREVIEW_SUFFIX = "_preview";
 
         public static Dictionary<string, Bitmap> MOVIE_GENRES = new Dictionary<string, Bitmap>
         {

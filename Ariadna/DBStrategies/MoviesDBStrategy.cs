@@ -76,7 +76,7 @@ namespace Ariadna.DBStrategies
                 // -- RECENTLY Added --
                 if (values.IsRecent)
                 {
-                    var recentDateStart = DateTime.Now.AddMonths(-6);
+                    var recentDateStart = DateTime.Now.AddMonths(-Utilities.RECENT);
                     query = query.Where(r => ((r.creation_time > recentDateStart)));
                 }
                 // -- NEW --
@@ -129,19 +129,25 @@ namespace Ariadna.DBStrategies
                     ctx.Movies.Remove(movie);
 
                     ctx.SaveChanges();
+                }
+            }
 
-                    string posterPath = Utilities.MOVIE_POSTERS_ROOT_PATH + id;
-                    if (File.Exists(posterPath))
-                    {
-                        File.Delete(posterPath);
-                    }
+            string posterPath = Utilities.MOVIE_POSTERS_ROOT_PATH + id;
+            if (File.Exists(posterPath))
+            {
+                try
+                {
+                    File.Delete(posterPath);
+                }
+                catch (IOException ex)
+                {
+                    MessageBox.Show(ex.Source, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
             }
         }
         public override bool FindNextEntryAutomatically()
         {
-
-
             if (FindFirstNotInserted(Directory.GetFiles(Utilities.DEFAULT_MOVIES_PATH)))
             {
                 return true;
