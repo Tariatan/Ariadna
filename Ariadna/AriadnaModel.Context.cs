@@ -36,5 +36,8 @@ namespace Ariadna
         public virtual DbSet<Game> Games { get; set; }
         public virtual DbSet<GameGenre> GameGenres { get; set; }
         public virtual DbSet<GenreOfGame> GenreOfGames { get; set; }
+        public virtual DbSet<Documentary> Documentaries { get; set; }
+        public virtual DbSet<DocumentaryGenre> DocumentaryGenres { get; set; }
+        public virtual DbSet<GenreOfDocumentary> GenreOfDocumentaries { get; set; }
     }
 }

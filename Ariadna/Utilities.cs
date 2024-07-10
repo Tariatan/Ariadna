@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
+using Microsoft.WindowsAPICodePack.Shell;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using System.IO;
 
 namespace Ariadna
 {
@@ -32,35 +35,6 @@ namespace Ariadna
             public string Path { get; set; }
         }
 
-        public const int RECENT = 3;
-        public const int GENRE_IMAGE_W = 60;
-        public const int GENRE_IMAGE_H = 60;
-
-        public const int POSTER_W = 400;
-        public const int POSTER_H = 600;
-
-        public const int PHOTO_W = 54;
-        public const int PHOTO_H = 81;
-
-        public const int PREVIEW_W = 603;
-        public const int PREVIEW_H = 339;
-
-        public const int PREVIEW_SMALL_W = 137;
-        public const int PREVIEW_SMALL_H = 77;
-
-        public const int MAX_GENRES_COUNT = 5;
-
-        public const string TMDB_API_KEY = "ec3e7f0826eb6ef92dc4b1f69f1e1dd3";
-        public const string MOVIE_POSTERS_ROOT_PATH = @"G:/Ariadna/movies/";
-        public const string GAME_POSTERS_ROOT_PATH = @"G:/Ariadna/games/";
-        public const string DEFAULT_GAMES_PATH = @"A:\GAMES\";
-        public const string DEFAULT_GAMES_PATH_VR = @"A:\GAMES\_VR_\";
-        public const string DEFAULT_MOVIES_PATH = @"M:\";
-        public const string DEFAULT_MOVIES_PATH_TMP = @"A:\MOVIES\";
-        public const string DEFAULT_SERIES_PATH = @"S:\";
-        public const string MEDIA_PLAYER_PATH = "C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe";
-        public const string PREVIEW_SUFFIX = "_preview";
-
         public static Dictionary<string, Bitmap> MOVIE_GENRES = new Dictionary<string, Bitmap>
         {
             {"Боевик", Properties.Resources.action},
@@ -88,6 +62,17 @@ namespace Ariadna
             {"Военный", Properties.Resources.war},
             {"Вестерн", Properties.Resources.western},
             {"Новогодний", Properties.Resources.xmas},
+        };
+        public static Dictionary<string, Bitmap> DOCUMENTARY_GENRES = new Dictionary<string, Bitmap>
+        {
+            {"Travel", Properties.Resources.travel},
+            {"Art. History", Properties.Resources.art},
+            {"Universe", Properties.Resources.universe},
+            {"Stars. Planets", Properties.Resources.planets},
+            {"Astronautics", Properties.Resources.rocket},
+            {"Personality", Properties.Resources.biography},
+            {"Science", Properties.Resources.science},
+            {"Misc", Properties.Resources.misc},
         };
         public static Dictionary<string, Bitmap> GAME_GENRES = new Dictionary<string, Bitmap>
         {
@@ -121,7 +106,6 @@ namespace Ariadna
                 return MOVIE_GENRES[name];
 
             return Properties.Resources.No_Image;
-            //return new Bitmap(Properties.Resources.No_Image);
         }
         public static string GetMovieGenreBySynonym(string name)
         {
@@ -143,9 +127,19 @@ namespace Ariadna
                 return GAME_GENRES[name];
 
             return Properties.Resources.No_Image;
-            //return new Bitmap(Properties.Resources.No_Image);
         }
         public static string GetGameGenreBySynonym(string name)
+        {
+            return name;
+        }
+        public static Bitmap GetDocumentaryGenreImage(string name)
+        {
+            if (DOCUMENTARY_GENRES.ContainsKey(name))
+                return DOCUMENTARY_GENRES[name];
+
+            return Properties.Resources.No_Image;
+        }
+        public static string GetDocumentaryGenreBySynonym(string name)
         {
             return name;
         }
@@ -190,7 +184,7 @@ namespace Ariadna
                 return null;
             }
 
-            using (var memoryStream = new System.IO.MemoryStream(bytes))
+            using (var memoryStream = new MemoryStream(bytes))
             {
                 return new Bitmap(memoryStream);
             }
@@ -233,7 +227,7 @@ namespace Ariadna
 
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.InitialDirectory = "T:\\Downloads\\";
+                openFileDialog.InitialDirectory = Properties.Settings.Default.BitmapInitialSearchDir;
                 openFileDialog.Filter = filter;
                 openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
@@ -269,6 +263,39 @@ namespace Ariadna
 
                 return true;
             }
+        }
+        public static TimeSpan GetVideoDuration(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                return TimeSpan.Zero;
+            }
+
+            using (var shell = ShellObject.FromParsingName(filePath))
+            {
+                IShellProperty prop = shell.Properties.System.Media.Duration;
+                if (prop.ValueAsObject == null)
+                {
+                    return TimeSpan.Zero;
+                }
+
+                return TimeSpan.FromTicks((long)(ulong)prop.ValueAsObject);
+            }
+        }
+        public static string DecorateDescription(string description)
+        {
+            var paragraphs = description.Split('\n');
+            var decoratedText = "";
+            foreach (var paragraph in paragraphs)
+            {
+                if (decoratedText.Length > 0)
+                {
+                    decoratedText += "\r\n";
+                }
+                decoratedText += "\t" + paragraph.Trim();
+            }
+
+            return decoratedText;
         }
     }
 }

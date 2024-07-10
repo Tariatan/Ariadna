@@ -21,19 +21,19 @@ namespace Ariadna
         #endregion
 
         #region Private Fields
-        private readonly TMDbLib.Client.TMDbClient m_TMDbClient = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
+        private readonly TMDbLib.Client.TMDbClient m_TMDbClient = new TMDbLib.Client.TMDbClient(Properties.Settings.Default.TmdbApiKey);
         #endregion
 
         public MovieDetailsForm(string filePath) : base(filePath) { }
         #region OVERRIDEN FUNCTIONS
         protected override void DoLoad()
         {
-            m_CastPhotos.ImageSize = new Size(Utilities.PHOTO_W, Utilities.PHOTO_H);
-            m_DirectorsPhotos.ImageSize = new Size(Utilities.PHOTO_W, Utilities.PHOTO_H);
+            m_CastPhotos.ImageSize = new Size(Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight);
+            m_DirectorsPhotos.ImageSize = new Size(Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight);
 
             // Remove extension
             m_TxtTitle.Text = m_TxtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mp4", "").Replace(".mpg", "").Replace(".ts", "").Replace(".mpeg", "");
-            var length = GetVideoDuration(FilePath);
+            var length = Utilities.GetVideoDuration(FilePath);
             m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
 
             FetchClientConfig();
@@ -158,9 +158,9 @@ namespace Ariadna
                 byte[] bts = await m_TMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
 
                 // Scale image
-                var bmp = new Bitmap(Utilities.POSTER_W, Utilities.POSTER_H);
+                var bmp = new Bitmap(Properties.Settings.Default.PosterWidth, Properties.Settings.Default.PosterHeight);
                 Graphics graph = Graphics.FromImage(bmp);
-                graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Utilities.POSTER_W, Utilities.POSTER_H));
+                graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Properties.Settings.Default.PosterWidth, Properties.Settings.Default.PosterHeight));
 
                 // Set Poster image
                 m_PicPoster.Image = new Bitmap(bmp);
@@ -173,24 +173,6 @@ namespace Ariadna
             foreach (var genre in genres)
             {
                 AddGenre(genre.Name);
-            }
-        }
-        private static TimeSpan GetVideoDuration(string filePath)
-        {
-            if (!File.Exists(filePath))
-            {
-                return TimeSpan.Zero;
-            }
-
-            using (var shell = ShellObject.FromParsingName(filePath))
-            {
-                IShellProperty prop = shell.Properties.System.Media.Duration;
-                if (prop.ValueAsObject == null)
-                {
-                    return TimeSpan.Zero;
-                }
-
-                return TimeSpan.FromTicks((long)(ulong)prop.ValueAsObject);
             }
         }
         private void PrepareListView(ListView listView)
@@ -321,25 +303,24 @@ namespace Ariadna
                     entry = ctx.Movies.Where(r => r.Id == StoredDBEntryID).FirstOrDefault();
                 }
 
-                bool bAddMovie = false;
+                bool bAddEntry = false;
                 if (entry == null)
                 {
-                    bAddMovie = true;
+                    bAddEntry = true;
                     entry = new Movie();
                 }
 
-                Int32.TryParse(m_TxtYear.Text, out int movieYear);
+                Int32.TryParse(m_TxtYear.Text, out int year);
 
                 entry.title = title;
                 entry.title_original = m_TxtTitleOrig.Text.Trim();
-                entry.year = movieYear;
-                entry.length = TimeSpan.Parse(m_TxtLength.Text);
+                entry.year = year;
                 entry.file_path = m_TxtPath.Text.Trim();
                 entry.description = m_TxtDescription.Text;
                 entry.creation_time = File.GetLastWriteTimeUtc(FilePath);
                 entry.want_to_see = m_WanToSee.Checked;
 
-                if (bAddMovie)
+                if (bAddEntry)
                 {
                     ctx.Movies.Add(entry);
                 }
@@ -370,7 +351,7 @@ namespace Ariadna
             {
                 try
                 {
-                    m_PicPoster.Image.Save(Utilities.MOVIE_POSTERS_ROOT_PATH + StoredDBEntryID.ToString(), System.Drawing.Imaging.ImageFormat.Png);
+                    m_PicPoster.Image.Save(Properties.Settings.Default.MoviePostersRootPath + StoredDBEntryID.ToString(), System.Drawing.Imaging.ImageFormat.Png);
                 }
                 catch (Exception)
                 {
@@ -508,10 +489,10 @@ namespace Ariadna
                 m_TxtTitle.Text = entry.title;
                 m_TxtTitleOrig.Text = entry.title_original;
                 m_TxtPath.Text = entry.file_path;
-                m_TxtDescription.Text = DecorateDescription(entry.description);
+                m_TxtDescription.Text = Utilities.DecorateDescription(entry.description);
                 m_WanToSee.Checked = Convert.ToBoolean(entry.want_to_see);
 
-                string filename = Utilities.MOVIE_POSTERS_ROOT_PATH + entry.Id.ToString();
+                string filename = Properties.Settings.Default.MoviePostersRootPath + entry.Id.ToString();
                 if (File.Exists(filename))
                 {
                     using (var bmpTemp = new Bitmap(filename))
@@ -624,9 +605,9 @@ namespace Ariadna
                     byte[] bts = await m_TMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
 
                     // Scale image
-                    var bmp = new Bitmap(Utilities.PHOTO_W, Utilities.PHOTO_H);
+                    var bmp = new Bitmap(Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight);
                     Graphics graph = Graphics.FromImage(bmp);
-                    graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Utilities.PHOTO_W, Utilities.PHOTO_H));
+                    graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight));
 
                     // Set Photo image
                     imageList.Images[imageList.Images.IndexOfKey(item.Text)] = bmp;

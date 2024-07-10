@@ -14,8 +14,8 @@ namespace Ariadna.DBStrategies
     {
         private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new PosterFromFileAdaptor();
 
-        public MoviesDBStrategy() => m_PosterImageAdaptor.RootPath = Utilities.MOVIE_POSTERS_ROOT_PATH;
-
+        public MoviesDBStrategy() => m_PosterImageAdaptor.RootPath = Properties.Settings.Default.MoviePostersRootPath;
+        
         public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
         
         public override List<Utilities.EntryDto> GetEntries()
@@ -76,7 +76,7 @@ namespace Ariadna.DBStrategies
                 // -- RECENTLY Added --
                 if (values.IsRecent)
                 {
-                    var recentDateStart = DateTime.Now.AddMonths(-Utilities.RECENT);
+                    var recentDateStart = DateTime.Now.AddMonths(-Properties.Settings.Default.RecentInMonth);
                     query = query.Where(r => ((r.creation_time > recentDateStart)));
                 }
                 // -- NEW --
@@ -87,15 +87,15 @@ namespace Ariadna.DBStrategies
                 // -- SERIES --
                 if (values.IsSeries)
                 {
-                    query = query.Where(r => (r.file_path.StartsWith(Utilities.DEFAULT_SERIES_PATH.Substring(0, 1))));
+                    query = query.Where(r => (r.file_path.StartsWith(Properties.Settings.Default.DefaultSeriesPath.Substring(0, 1))));
                 }
                 // -- MOVIES --
                 if (values.IsMovies)
                 {
-                    query = query.Where(r => (r.file_path.StartsWith(Utilities.DEFAULT_MOVIES_PATH.Substring(0, 1)) ||
-                        r.file_path.StartsWith(Utilities.DEFAULT_MOVIES_PATH_TMP.Substring(0, 1))));
+                    query = query.Where(r => (r.file_path.StartsWith(Properties.Settings.Default.DefaultMoviesPath.Substring(0, 1)) ||
+                        r.file_path.StartsWith(Properties.Settings.Default.DefaultMoviesPathTMP.Substring(0, 1))));
                 }
-
+                
                 return query.OrderBy(r => r.title).Select(x => new Utilities.EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
             }
         }
@@ -119,20 +119,20 @@ namespace Ariadna.DBStrategies
         {
             using (var ctx = new AriadnaEntities())
             {
-                Movie movie = ctx.Movies.Where(r => r.Id == id).FirstOrDefault();
-                if (movie != null)
+                var entry = ctx.Movies.Where(r => r.Id == id).FirstOrDefault();
+                if (entry != null)
                 {
                     ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == id)));
                     ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == id)));
                     ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == id)));
 
-                    ctx.Movies.Remove(movie);
+                    ctx.Movies.Remove(entry);
 
                     ctx.SaveChanges();
                 }
             }
 
-            string posterPath = Utilities.MOVIE_POSTERS_ROOT_PATH + id;
+            string posterPath = Properties.Settings.Default.MoviePostersRootPath + id;
             if (File.Exists(posterPath))
             {
                 try
@@ -148,16 +148,16 @@ namespace Ariadna.DBStrategies
         }
         public override bool FindNextEntryAutomatically()
         {
-            if (FindFirstNotInserted(Directory.GetFiles(Utilities.DEFAULT_MOVIES_PATH)))
+            if (FindFirstNotInserted(Directory.GetFiles(Properties.Settings.Default.DefaultMoviesPath)))
             {
                 return true;
             }
-            if (FindFirstNotInserted(Directory.GetFiles(Utilities.DEFAULT_MOVIES_PATH_TMP)))
+            if (FindFirstNotInserted(Directory.GetFiles(Properties.Settings.Default.DefaultMoviesPathTMP)))
             {
                 return true;
             }
 
-            if (FindFirstNotInserted(Directory.GetDirectories(Utilities.DEFAULT_SERIES_PATH)))
+            if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultSeriesPath)))
             {
                 return true;
             }
@@ -168,7 +168,7 @@ namespace Ariadna.DBStrategies
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.InitialDirectory = Utilities.DEFAULT_MOVIES_PATH;
+                openFileDialog.InitialDirectory = Properties.Settings.Default.DefaultMoviesPath;
                 openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.m4v;*.ts|All files (*.*)|*.*";
                 openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
@@ -199,7 +199,7 @@ namespace Ariadna.DBStrategies
                 return;
             }
 
-            MovieDetailsForm detailsForm = new MovieDetailsForm(path);
+            var detailsForm = new MovieDetailsForm(path);
             detailsForm.FormClosed += new FormClosedEventHandler(OnDetailsFormClosed);
             detailsForm.ShowDialog();
         }
@@ -214,22 +214,22 @@ namespace Ariadna.DBStrategies
             // Check if it is a file first
             if (File.Exists(path))
             {
-                if (!File.Exists(Utilities.MEDIA_PLAYER_PATH))
+                if (!File.Exists(Properties.Settings.Default.MediaPlayerPath))
                 {
                     return;
                 }
 
                 // Enclose the path in quotes as required by MPC
-                Process.Start(Utilities.MEDIA_PLAYER_PATH, "\"" + path + "\"");
+                Process.Start(Properties.Settings.Default.MediaPlayerPath, "\"" + path + "\"");
             }
             // Checked if it is a directory
             else if (Directory.Exists(path))
             {
                 Process.Start(new ProcessStartInfo()
                 {
-                    FileName = path,
-                    UseShellExecute = true,
-                    Verb = "open"
+                    FileName = "A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander/Totalcmd64.exe",
+                    WorkingDirectory = Path.GetDirectoryName("A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander"),
+                    Arguments = $"/O /T /L=\"{path}\"",
                 });
             }
             else
@@ -318,7 +318,7 @@ namespace Ariadna.DBStrategies
             }
 
             isFetching = true;
-            TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Utilities.TMDB_API_KEY);
+            TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Properties.Settings.Default.TmdbApiKey);
             MovieDetailsForm detailsForm = new MovieDetailsForm(path)
             {
                 TMDBMovieIndex = -1,
@@ -457,14 +457,14 @@ namespace Ariadna.DBStrategies
                 }
             }
         }
-        private void UpdateMovieData()
+        private void UpdateEntryData()
         {
             using (var ctx = new AriadnaEntities())
             {
-                var movies = ctx.Movies.ToList();
-                foreach(var movie in movies)
+                var entries = ctx.Movies.ToList();
+                foreach(var entry in entries)
                 {
-                    movie.creation_time = File.GetLastWriteTimeUtc(movie.file_path);
+                    entry.creation_time = File.GetLastWriteTimeUtc(entry.file_path);
 
                     try
                     {
@@ -472,7 +472,7 @@ namespace Ariadna.DBStrategies
                     }
                     catch (DbEntityValidationException)
                     {
-                        MessageBox.Show(movie.title, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(entry.title, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }

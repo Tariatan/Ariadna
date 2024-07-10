@@ -6,14 +6,16 @@ using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Drawing;
+using System.Data.Entity.Validation;
+using System.ComponentModel.Design;
 
 namespace Ariadna.DBStrategies
 {
-    public class GamesDBStrategy : AbstractDBStrategy
+    public class DocumentariesDBStrategy : AbstractDBStrategy
     {
         private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new PosterFromFileAdaptor();
 
-        public GamesDBStrategy() => m_PosterImageAdaptor.RootPath = Properties.Settings.Default.GamePostersRootPath;
+        public DocumentariesDBStrategy() => m_PosterImageAdaptor.RootPath = Properties.Settings.Default.DocumentaryPostersRootPath;
 
         public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
         
@@ -21,14 +23,14 @@ namespace Ariadna.DBStrategies
         {
             using (var ctx = new AriadnaEntities())
             {
-                return ctx.Games.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
+                return ctx.Documentaries.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
             }
         }
         public override List<Utilities.EntryDto> QueryEntries(QueryParams values)
         {
             using (var ctx = new AriadnaEntities())
             {
-                IQueryable<Game> query = ctx.Games.AsNoTracking();
+                IQueryable<Documentary> query = ctx.Documentaries.AsNoTracking();
 
                 // -- Search Name --
                 if (!string.IsNullOrEmpty(values.Name))
@@ -41,37 +43,27 @@ namespace Ariadna.DBStrategies
                 // -- GENRE --
                 if (!string.IsNullOrEmpty(values.Genre))
                 {
-                    var entry = ctx.GenreOfGames.AsNoTracking().Where(r => r.name == values.Genre).FirstOrDefault();
+                    var entry = ctx.GenreOfDocumentaries.AsNoTracking().Where(r => r.name == values.Genre).FirstOrDefault();
                     if (entry != null)
                     {
-                        query = query.Where(r => r.GameGenres.Any(l => (l.genreId == entry.Id)));
+                        query = query.Where(r => r.DocumentaryGenres.Any(l => (l.genreId == entry.Id)));
                     }
                 }
                 // -- WISH LIST --
                 if (values.IsWish)
                 {
-                    query = query.Where(r => (r.want_to_play == true));
+                    query = query.Where(r => (r.want_to_see == true));
                 }
                 // -- RECENTLY Added --
                 if (values.IsRecent)
                 {
-                    var recentDateStart = DateTime.Now.AddMonths(-6);
+                    var recentDateStart = DateTime.Now.AddMonths(-Properties.Settings.Default.RecentInMonth);
                     query = query.Where(r => ((r.creation_time > recentDateStart)));
                 }
                 // -- NEW --
                 if (values.IsNew)
                 {
                     query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
-                }
-                // -- VR --
-                if (values.IsVR)
-                {
-                    query = query.Where(r => (r.vr == true));
-                }
-                // -- nonVR --
-                if (values.IsNonVR)
-                {
-                    query = query.Where(r => (r.vr == false));
                 }
 
                 return query.OrderBy(r => r.title).Select(x => new Utilities.EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
@@ -82,7 +74,7 @@ namespace Ariadna.DBStrategies
             Utilities.EntryInfo details = new Utilities.EntryInfo();
             using (var ctx = new AriadnaEntities())
             {
-                var entry = ctx.Games.Where(r => r.Id == id).FirstOrDefault();
+                var entry = ctx.Documentaries.Where(r => r.Id == id).FirstOrDefault();
                 if (entry != null)
                 {
                     details.Path = entry.file_path;
@@ -97,41 +89,45 @@ namespace Ariadna.DBStrategies
         {
             using (var ctx = new AriadnaEntities())
             {
-                var entry = ctx.Games.Where(r => r.Id == id).FirstOrDefault();
+                var entry = ctx.Documentaries.Where(r => r.Id == id).FirstOrDefault();
                 if (entry != null)
                 {
-                    ctx.GameGenres.RemoveRange(ctx.GameGenres.Where(r => (r.gameId == id)));
+                    ctx.DocumentaryGenres.RemoveRange(ctx.DocumentaryGenres.Where(r => (r.documentaryId == id)));
 
-                    ctx.Games.Remove(entry);
+                    ctx.Documentaries.Remove(entry);
 
                     ctx.SaveChanges();
+                }
+            }
 
-                    string posterPath = Properties.Settings.Default.GamePostersRootPath + id;
-                    if (File.Exists(posterPath))
-                    {
-                        File.Delete(posterPath);
-                    }
-                    for (var i = 1u; i <= 4; ++i)
-                    {
-                        string name = posterPath + Properties.Settings.Default.PreviewSuffix + i;
-                        if (File.Exists(name))
-                        {
-                            File.Delete(name);
-                        }
-                    }
+            string posterPath = Properties.Settings.Default.DocumentaryPostersRootPath + id;
+            if (File.Exists(posterPath))
+            {
+                try
+                {
+                    File.Delete(posterPath);
+                }
+                catch (IOException ex)
+                {
+                    MessageBox.Show(ex.Source, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
             }
         }
         public override bool FindNextEntryAutomatically()
         {
-            if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultGamesPath)))
+            foreach(var baseDir in Directory.GetDirectories(Properties.Settings.Default.DefaultDoocumentariesPath))
             {
-                return true;
-            }
+                if (FindFirstNotInserted(Directory.GetDirectories(baseDir)))
+                {
+                    return true;
+                }
 
-            if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultGamesPathVR)))
-            {
-                return true;
+                if (FindFirstNotInserted(Directory.GetFiles(baseDir)))
+                {
+                    return true;
+                }
+
             }
 
             return false;
@@ -140,14 +136,16 @@ namespace Ariadna.DBStrategies
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.InitialDirectory = Properties.Settings.Default.DefaultGamesPath;
+                openFileDialog.InitialDirectory = Properties.Settings.Default.DefaultDoocumentariesPath;
+                openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.m4v;*.ts|All files (*.*)|*.*";
+                openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
 
                 // Allow folders
                 openFileDialog.ValidateNames = false;
                 openFileDialog.CheckFileExists = false;
                 openFileDialog.CheckPathExists = true;
-                const string folderFlag = "Choose folder";
+                const string folderFlag = "File or folder";
                 openFileDialog.FileName = folderFlag;
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
@@ -157,7 +155,6 @@ namespace Ariadna.DBStrategies
                     {
                         path = Path.GetDirectoryName(openFileDialog.FileName);
                     }
-                    ShowDataDialog(path);
                 }
             }
         }
@@ -171,6 +168,12 @@ namespace Ariadna.DBStrategies
 
             ShowDataDialog(path);
         }
+        private void ShowDataDialog(string path)
+        {
+            var detailsForm = new DocumentaryDetailsForm(path);
+            detailsForm.FormClosed += new FormClosedEventHandler(OnDetailsFormClosed);
+            detailsForm.ShowDialog();
+        }
         public override void ExecuteEntry(int id)
         {
             var path = FindStoredEntryPathById(id);
@@ -179,14 +182,26 @@ namespace Ariadna.DBStrategies
                 return;
             }
 
-            // Open directory
-            if (Directory.Exists(path))
+
+            // Check if it is a file first
+            if (File.Exists(path))
+            {
+                if (!File.Exists(Properties.Settings.Default.MediaPlayerPath))
+                {
+                    return;
+                }
+
+                // Enclose the path in quotes as required by MPC
+                Process.Start(Properties.Settings.Default.MediaPlayerPath, "\"" + path + "\"");
+            }
+            // Checked if it is a directory
+            else if (Directory.Exists(path))
             {
                 Process.Start(new ProcessStartInfo()
                 {
-                    FileName = path,
-                    UseShellExecute = true,
-                    Verb = "open"
+                    FileName = Properties.Settings.Default.TotalCommanderPath,
+                    WorkingDirectory = Path.GetDirectoryName(Properties.Settings.Default.TotalCommanderPath),
+                    Arguments = $"/O /T /L=\"{path}\"",
                 });
             }
             else
@@ -201,11 +216,11 @@ namespace Ariadna.DBStrategies
             var values = new SortedDictionary<string, Bitmap>();
             using (var ctx = new AriadnaEntities())
             {
-                var genres = ctx.GenreOfGames.AsNoTracking().ToList();
+                var genres = ctx.GenreOfDocumentaries.AsNoTracking().ToList();
 
                 foreach (var genre in genres)
                 {
-                    values[genre.name] = Utilities.GetGameGenreImage(genre.name);
+                    values[genre.name] = Utilities.GetDocumentaryGenreImage(genre.name);
                 }
             }
             return values;
@@ -228,13 +243,7 @@ namespace Ariadna.DBStrategies
             panel.m_ToolStrip_MoviesLbl.Visible = false;
             panel.m_ToolStrip_MoviesSprtr.Visible = false;
 
-            panel.m_ToolStrip_VRSprtr.Visible = true;
-            panel.m_ToolStrip_VRLbl.Visible = true;
-            panel.m_ToolStrip_VRBtn.Visible = true;
-            panel.m_ToolStrip_nonVRSprtr.Visible = true;
-            panel.m_ToolStrip_nonVRLbl.Visible = true;
-            panel.m_ToolStrip_nonVRBtn.Visible = true;
-            panel.Icon = Properties.Resources.AriadnaGames;
+            panel.Icon = Properties.Resources.AriadnaDocumentaries;
         }
         private bool FindFirstNotInserted(String[] paths)
         {
@@ -248,7 +257,7 @@ namespace Ariadna.DBStrategies
                         continue;
                     }
 
-                    if (ctx.Games.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() == null)
+                    if (ctx.Documentaries.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() == null)
                     {
                         foundPath = path;
                         break;
@@ -262,17 +271,12 @@ namespace Ariadna.DBStrategies
             }
 
             ShowDataDialog(foundPath);
+
             return true;
-        }
-        private void ShowDataDialog(string path)
-        {
-            var detailsForm = new GameDetailsForm(path);
-            detailsForm.FormClosed += new FormClosedEventHandler(OnDetailsFormClosed);
-            detailsForm.ShowDialog();
         }
         private void OnDetailsFormClosed(object sender, FormClosedEventArgs e)
         {
-            var detailsForm = sender as GameDetailsForm;
+            var detailsForm = sender as DocumentaryDetailsForm;
             if (detailsForm.FormCloseReason != Utilities.EFormCloseReason.SUCCESS)
             {
                 return;
@@ -287,7 +291,7 @@ namespace Ariadna.DBStrategies
             {
                 using (var ctx = new AriadnaEntities())
                 {
-                    var path = ctx.Games.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault().file_path;
+                    var path = ctx.Documentaries.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault().file_path;
                     if (!string.IsNullOrEmpty(path))
                     {
                         return path;
@@ -296,6 +300,48 @@ namespace Ariadna.DBStrategies
             }
 
             return "";
+        }
+        private void DeleteUnusedGenres()
+        {
+            using (var ctx = new AriadnaEntities())
+            {
+                var genres = ctx.GenreOfDocumentaries.ToList();
+
+                bool bNeedToSaveChanges = false;
+                foreach (var genre in genres)
+                {
+                    var usedGenres = ctx.DocumentaryGenres.Where(r => (r.genreId == genre.Id)).FirstOrDefault();
+                    if (usedGenres == null)
+                    {
+                        ctx.GenreOfDocumentaries.Remove(genre);
+                        bNeedToSaveChanges = true;
+                    }
+                }
+                if (bNeedToSaveChanges)
+                {
+                    ctx.SaveChanges();
+                }
+            }
+        }
+        private void UpdateEntryData()
+        {
+            using (var ctx = new AriadnaEntities())
+            {
+                var entries = ctx.Documentaries.ToList();
+                foreach(var entry in entries)
+                {
+                    entry.creation_time = File.GetLastWriteTimeUtc(entry.file_path);
+
+                    try
+                    {
+                        ctx.SaveChanges();
+                    }
+                    catch (DbEntityValidationException)
+                    {
+                        MessageBox.Show(entry.title, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
     }
 }

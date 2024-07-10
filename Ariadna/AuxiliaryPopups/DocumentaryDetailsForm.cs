@@ -1,5 +1,4 @@
-﻿using Manina.Windows.Forms;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity.Validation;
@@ -10,51 +9,31 @@ using System.Windows.Forms;
 
 namespace Ariadna
 {
-    public partial class GameDetailsForm : DetailsForm
+    public partial class DocumentaryDetailsForm : DetailsForm
     {
-        public GameDetailsForm(string filePath) : base(filePath) { }
+
+        public DocumentaryDetailsForm(string filePath) : base(filePath) { }
         #region OVERRIDEN FUNCTIONS
         protected override void DoLoad()
         {
             #region Hide inappropriate fields
-            m_TxtLength.Visible = false;
-            m_TxtDescription.Visible = false;
-            m_TxtDimension.Visible = false;
-            m_TxtBitrate.Visible = false;
             m_DirectorsList.Visible = false;
             m_CastList.Visible = false;
-            m_DescriptionPaste.Visible = false;
             m_DirectorPaste.Visible = false;
             m_CastPaste.Visible = false;
             m_LblDirector.Visible = false;
             m_LblCast.Visible = false;
-            m_LblDescr.Visible = false;
-            m_PicFlag1.Visible = false;
-            m_PicFlag2.Visible = false;
-            m_PicFlag3.Visible = false;
-            m_PicFlag4.Visible = false;
-            m_LblDuration.Visible = false;
-            m_LblDimensions.Visible = false;
-            m_LblBitrate.Visible = false;
-            m_LblAudioStreams.Visible = false;
             #endregion
-            #region Show my fields
-            m_PreviewFull.Visible = true;
-            m_Preview1.Visible = true;
-            m_Preview2.Visible = true;
-            m_Preview3.Visible = true;
-            m_Preview4.Visible = true;
-            m_VR.Visible = true;
-            m_LblVersion.Visible = true;
-            m_TxtVersion.Visible = true;
-            m_VR.Checked = FilePath.Contains(Properties.Settings.Default.DefaultGamesPathVR);
+            m_TxtDescription.Height = m_TxtDescription.Height * 5/2;
 
-            Icon = Properties.Resources.AriadnaGames;
-            #endregion
+            // Remove extension
+            m_TxtTitle.Text = m_TxtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mp4", "").Replace(".mpg", "").Replace(".ts", "").Replace(".mpeg", "");
+            var length = Utilities.GetVideoDuration(FilePath);
+            m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
 
             using (var ctx = new AriadnaEntities())
             {
-                var entry = ctx.Games.AsNoTracking().Where(r => r.file_path == FilePath).FirstOrDefault();
+                var entry = ctx.Documentaries.AsNoTracking().Where(r => r.file_path == FilePath).FirstOrDefault();
                 if (entry != null)
                 {
                     StoredDBEntryID = entry.Id;
@@ -65,6 +44,8 @@ namespace Ariadna
             {
                 FillFieldsFromFile();
             }
+
+            FillMediaInfo(FilePath);
         }
         protected override bool DoStore()
         {
@@ -84,18 +65,18 @@ namespace Ariadna
         }
         protected override List<string> GetGenres()
         {
-            return Utilities.GAME_GENRES.Keys.ToList();
+            return Utilities.DOCUMENTARY_GENRES.Keys.ToList();
         }
         protected override string GetGenreBySynonym(string name)
         {
-            return Utilities.GetGameGenreBySynonym(name);
+            return Utilities.GetDocumentaryGenreBySynonym(name);
         }
         protected override Bitmap GetGenreImage(string name)
         {
-            return Utilities.GetGameGenreImage(name);
+            return Utilities.GetDocumentaryGenreImage(name);
         }
-
         #endregion
+
         private bool StoreGenres()
         {
             bool bSuccess = true;
@@ -104,10 +85,10 @@ namespace Ariadna
                 bool bNeedToSaveChanges = false;
                 foreach (ListViewItem item in m_GenresList.Items)
                 {
-                    var genre = ctx.GenreOfGames.Where(r => r.name == item.Text).FirstOrDefault();
+                    var genre = ctx.GenreOfDocumentaries.Where(r => r.name == item.Text).FirstOrDefault();
                     if (genre == null)
                     {
-                        ctx.GenreOfGames.Add(new GenreOfGame { name = item.Text });
+                        ctx.GenreOfDocumentaries.Add(new GenreOfDocumentary { name = item.Text });
                         bNeedToSaveChanges = true;
                     }
                 }
@@ -139,42 +120,41 @@ namespace Ariadna
             string path = "";
             using (var ctx = new AriadnaEntities())
             {
-                Game entry = null;
+                Documentary entry = null;
                 if (StoredDBEntryID != -1)
                 {
-                    entry = ctx.Games.Where(r => r.Id == StoredDBEntryID).FirstOrDefault();
+                    entry = ctx.Documentaries.Where(r => r.Id == StoredDBEntryID).FirstOrDefault();
                 }
 
-                bool bAdd = false;
+                bool bAddEntry = false;
                 if (entry == null)
                 {
-                    bAdd = true;
-                    entry = new Game();
+                    bAddEntry = true;
+                    entry = new Documentary();
                 }
 
                 Int32.TryParse(m_TxtYear.Text, out int year);
 
-                entry.title = title.Trim();
+                entry.title = title;
                 entry.title_original = m_TxtTitleOrig.Text.Trim();
                 entry.year = year;
                 entry.file_path = m_TxtPath.Text.Trim();
+                entry.description = m_TxtDescription.Text;
                 entry.creation_time = File.GetLastWriteTimeUtc(FilePath);
-                entry.want_to_play = m_WanToSee.Checked;
-                entry.vr = m_VR.Checked;
-                entry.version = m_TxtVersion.Text.Trim();
+                entry.want_to_see = m_WanToSee.Checked;
 
-                if (bAdd)
+                if (bAddEntry)
                 {
-                    ctx.Games.Add(entry);
+                    ctx.Documentaries.Add(entry);
                 }
 
                 try
                 {
                     ctx.SaveChanges();
                 }
-                catch (DbEntityValidationException ex)
+                catch (DbEntityValidationException)
                 {
-                    MessageBox.Show(title + ":\n" + ex.Message, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(title, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     bSuccess = false;
                 }
 
@@ -185,7 +165,7 @@ namespace Ariadna
             {
                 using (var ctx = new AriadnaEntities())
                 {
-                    StoredDBEntryID = ctx.Games.AsNoTracking().Where(r => r.file_path == path).Select(x => new { x.Id }).FirstOrDefault().Id;
+                    StoredDBEntryID = ctx.Documentaries.AsNoTracking().Where(r => r.file_path == path).Select(x => new { x.Id }).FirstOrDefault().Id;
                     bSuccess = (StoredDBEntryID != -1);
                 }
             }
@@ -194,13 +174,7 @@ namespace Ariadna
             {
                 try
                 {
-                    string name = Properties.Settings.Default.GamePostersRootPath + StoredDBEntryID.ToString();
-                    m_PicPoster.Image.Save(name, System.Drawing.Imaging.ImageFormat.Png);
-                    
-                    m_Preview1.Image.Save(name + Properties.Settings.Default.PreviewSuffix + 1, System.Drawing.Imaging.ImageFormat.Png);
-                    m_Preview2.Image.Save(name + Properties.Settings.Default.PreviewSuffix + 2, System.Drawing.Imaging.ImageFormat.Png);
-                    m_Preview3.Image.Save(name + Properties.Settings.Default.PreviewSuffix + 3, System.Drawing.Imaging.ImageFormat.Png);
-                    m_Preview4.Image.Save(name + Properties.Settings.Default.PreviewSuffix + 4, System.Drawing.Imaging.ImageFormat.Png);
+                    m_PicPoster.Image.Save(Properties.Settings.Default.DocumentaryPostersRootPath + StoredDBEntryID.ToString(), System.Drawing.Imaging.ImageFormat.Png);
                 }
                 catch (Exception)
                 {
@@ -222,21 +196,21 @@ namespace Ariadna
             {
                 bool bNeedToSaveChanges = false;
 
-                ctx.GameGenres.RemoveRange(ctx.GameGenres.Where(r => (r.gameId == entryId)));
+                ctx.DocumentaryGenres.RemoveRange(ctx.DocumentaryGenres.Where(r => (r.documentaryId == entryId)));
                 ctx.SaveChanges();
 
                 foreach (ListViewItem item in m_GenresList.Items)
                 {
-                    GenreOfGame genre = ctx.GenreOfGames.Where(r => r.name == item.Text).FirstOrDefault();
+                    GenreOfDocumentary genre = ctx.GenreOfDocumentaries.Where(r => r.name == item.Text).FirstOrDefault();
                     if (genre == null)
                     {
                         continue;
                     }
 
-                    var entryGenre = ctx.GameGenres.Where(r => (r.gameId == entryId && r.genreId == genre.Id)).FirstOrDefault();
+                    var entryGenre = ctx.DocumentaryGenres.Where(r => (r.documentaryId == entryId && r.genreId == genre.Id)).FirstOrDefault();
                     if (entryGenre == null)
                     {
-                        ctx.GameGenres.Add(new GameGenre { gameId = entryId, genreId = genre.Id });
+                        ctx.DocumentaryGenres.Add(new DocumentaryGenre { documentaryId = entryId, genreId = genre.Id });
                         bNeedToSaveChanges = true;
                     }
                 }
@@ -252,7 +226,7 @@ namespace Ariadna
         {
             using (var ctx = new AriadnaEntities())
             {
-                var entry = ctx.Games.AsNoTracking().Where(r => r.file_path == FilePath).FirstOrDefault();
+                var entry = ctx.Documentaries.AsNoTracking().Where(r => r.file_path == FilePath).FirstOrDefault();
                 if (entry == null)
                 {
                     return;
@@ -262,17 +236,10 @@ namespace Ariadna
                 m_TxtTitle.Text = entry.title;
                 m_TxtTitleOrig.Text = entry.title_original;
                 m_TxtPath.Text = entry.file_path;
-                m_WanToSee.Checked = Convert.ToBoolean(entry.want_to_play);
-                m_VR.Checked = Convert.ToBoolean(entry.vr);
-                m_TxtVersion.Text = entry.version;
+                m_TxtDescription.Text = Utilities.DecorateDescription(entry.description);
+                m_WanToSee.Checked = Convert.ToBoolean(entry.want_to_see);
 
-                var genresSet = ctx.GameGenres.AsNoTracking().ToArray().Where(r => (r.gameId == entry.Id));
-                foreach (var genres in genresSet)
-                {
-                    AddGenre(genres.GenreOfGame.name);
-                }
-
-                string filename = Properties.Settings.Default.GamePostersRootPath + entry.Id.ToString();
+                string filename = Properties.Settings.Default.DocumentaryPostersRootPath + entry.Id.ToString();
                 if (File.Exists(filename))
                 {
                     using (var bmpTemp = new Bitmap(filename))
@@ -281,25 +248,67 @@ namespace Ariadna
                     }
                 }
 
-                for (var i = 1u; i <= 4; ++i)
+                var genresSet = ctx.DocumentaryGenres.AsNoTracking().ToArray().Where(r => (r.documentaryId == entry.Id));
+                foreach (var genres in genresSet)
                 {
-                    string name = filename + Properties.Settings.Default.PreviewSuffix + i;
-                    if (!File.Exists(name))
-                    {
-                        continue;
-                    }
+                    AddGenre(genres.GenreOfDocumentary.name);
+                }
+            }
+        }
+        private void FillMediaInfo(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                var firstFile = Directory.EnumerateFiles(path).FirstOrDefault();
+                if(String.IsNullOrEmpty(firstFile))
+                {
+                    var firstSubDir = Directory.GetDirectories(path).FirstOrDefault();
+                    firstFile = Directory.EnumerateFiles(firstSubDir).FirstOrDefault();
+                }
 
-                    using (var bmpTemp = new Bitmap(name))
-                    {
-                        switch (i)
-                        {
-                            case 1: m_Preview1.Image = new Bitmap(bmpTemp);
-                                    m_PreviewFull.Image = new Bitmap(m_Preview1.Image); break;
-                            case 2: m_Preview2.Image = new Bitmap(bmpTemp); break;
-                            case 3: m_Preview3.Image = new Bitmap(bmpTemp); break;
-                            case 4: m_Preview4.Image = new Bitmap(bmpTemp); break;
-                        }
-                    }
+                path = firstFile;
+            }
+
+            if(String.IsNullOrEmpty(path))
+            {
+                return;
+            }
+
+            var info = new MediaInfo.MediaInfoWrapper(path);
+            m_TxtDimension.Text = info.Width.ToString() + "x" + info.Height.ToString();
+            m_TxtBitrate.Text = (info.VideoRate / 1000000).ToString() + " Mbps";
+
+            var audios = info.AudioStreams;
+            List<PictureBox> flags = new List<PictureBox> { m_PicFlag1, m_PicFlag2, m_PicFlag3, m_PicFlag4 };
+            foreach (var flag in flags)
+            {
+                flag.Image = null;
+            }
+
+            int index = 0;
+            foreach (var stream in audios)
+            {
+                // Limit number of audio tracks
+                if(index >= flags.Count)
+                {
+                    break;
+                }
+
+                if (stream.Language.Equals("Russian"))
+                {
+                    flags[index++].Image = Properties.Resources.ru;
+                }
+                else if (stream.Language.Equals("English"))
+                {
+                    flags[index++].Image = Properties.Resources.en;
+                }
+                else if (stream.Language.Equals("French"))
+                {
+                    flags[index++].Image = Properties.Resources.fr;
+                }
+                else if (stream.Language.Equals("Ukrainian"))
+                {
+                    flags[index++].Image = Properties.Resources.ua;
                 }
             }
         }

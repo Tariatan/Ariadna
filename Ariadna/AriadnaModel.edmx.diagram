@@ -19,11 +19,16 @@
         <AssociationConnector Association="AriadnaModel.movie_cast_movie_FK" ManuallyRouted="false" />
         <AssociationConnector Association="AriadnaModel.movie_director_movie_FK" ManuallyRouted="false" />
         <AssociationConnector Association="AriadnaModel.movie_genre_movie_FK" ManuallyRouted="false" />
-        <EntityTypeShape EntityType="AriadnaModel.Game" Width="1.5" PointX="6.875" PointY="6" />
-        <EntityTypeShape EntityType="AriadnaModel.GameGenre" Width="1.5" PointX="9.375" PointY="6" />
-        <EntityTypeShape EntityType="AriadnaModel.GenreOfGame" Width="1.5" PointX="11.625" PointY="6" />
+        <EntityTypeShape EntityType="AriadnaModel.Game" Width="1.5" PointX="0.875" PointY="5.875" />
+        <EntityTypeShape EntityType="AriadnaModel.GameGenre" Width="1.5" PointX="3.375" PointY="5.875" />
+        <EntityTypeShape EntityType="AriadnaModel.GenreOfGame" Width="1.5" PointX="5.625" PointY="5.875" />
         <AssociationConnector Association="AriadnaModel.game_genre_game_FK" />
         <AssociationConnector Association="AriadnaModel.game_genre_genre_FK" />
+        <EntityTypeShape EntityType="AriadnaModel.Documentary" Width="1.5" PointX="0.875" PointY="9.75" />
+        <EntityTypeShape EntityType="AriadnaModel.DocumentaryGenre" Width="1.875" PointX="3.375" PointY="9.75" />
+        <EntityTypeShape EntityType="AriadnaModel.GenreOfDocumentary" Width="1.875" PointX="5.875" PointY="9.75" />
+        <AssociationConnector Association="AriadnaModel.documentary_genre_documentary_FK" />
+        <AssociationConnector Association="AriadnaModel.documentary_genre_genre_FK" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -21,6 +21,28 @@
           <Property Name="name" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="photo" Type="image" />
         </EntityType>
+        <EntityType Name="Documentary">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="title" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="title_original" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="year" Type="int" Nullable="false" />
+          <Property Name="file_path" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="poster" Type="image" />
+          <Property Name="description" Type="nvarchar(max)" />
+          <Property Name="creation_time" Type="date" />
+          <Property Name="want_to_see" Type="bit" />
+        </EntityType>
+        <EntityType Name="DocumentaryGenre">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="documentaryId" Type="int" Nullable="false" />
+          <Property Name="genreId" Type="int" Nullable="false" />
+        </EntityType>
         <EntityType Name="Game">
           <Key>
             <PropertyRef Name="Id" />
@@ -50,6 +72,13 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="name" Type="nvarchar" MaxLength="50" Nullable="false" />
         </EntityType>
+        <EntityType Name="GenreOfDocumentary">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
         <EntityType Name="GenreOfGame">
           <Key>
             <PropertyRef Name="Id" />
@@ -72,8 +101,6 @@
           <Property Name="title" Type="nvarchar" MaxLength="150" Nullable="false" />
           <Property Name="title_original" Type="nvarchar" MaxLength="150" Nullable="false" />
           <Property Name="year" Type="int" Nullable="false" />
-          <Property Name="length" Type="time" Precision="7" Nullable="false" />
-          <Property Name="rating" Type="float" />
           <Property Name="poster" Type="image" />
           <Property Name="file_path" Type="nvarchar" MaxLength="256" Nullable="false" />
           <Property Name="description" Type="nvarchar(max)" />
@@ -104,6 +131,30 @@
           <Property Name="movieId" Type="int" Nullable="false" />
           <Property Name="genreId" Type="int" Nullable="false" />
         </EntityType>
+        <Association Name="documentary_genre_documentary_FK">
+          <End Role="Documentary" Type="Self.Documentary" Multiplicity="1" />
+          <End Role="DocumentaryGenre" Type="Self.DocumentaryGenre" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documentary">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="DocumentaryGenre">
+              <PropertyRef Name="documentaryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="documentary_genre_genre_FK">
+          <End Role="GenreOfDocumentary" Type="Self.GenreOfDocumentary" Multiplicity="1" />
+          <End Role="DocumentaryGenre" Type="Self.DocumentaryGenre" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GenreOfDocumentary">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="DocumentaryGenre">
+              <PropertyRef Name="genreId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="game_genre_game_FK">
           <End Role="Game" Type="Self.Game" Multiplicity="1" />
           <End Role="GameGenre" Type="Self.GameGenre" Multiplicity="*" />
@@ -203,15 +254,26 @@
         <EntityContainer Name="AriadnaModelStoreContainer">
           <EntitySet Name="Actor" EntityType="Self.Actor" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Director" EntityType="Self.Director" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Documentary" EntityType="Self.Documentary" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="DocumentaryGenre" EntityType="Self.DocumentaryGenre" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Game" EntityType="Self.Game" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="GameGenre" EntityType="Self.GameGenre" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Genre" EntityType="Self.Genre" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="GenreOfDocumentary" EntityType="Self.GenreOfDocumentary" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="GenreOfGame" EntityType="Self.GenreOfGame" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Ignore" EntityType="Self.Ignore" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Movie" EntityType="Self.Movie" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MovieCast" EntityType="Self.MovieCast" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MovieDirector" EntityType="Self.MovieDirector" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="MovieGenre" EntityType="Self.MovieGenre" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="documentary_genre_documentary_FK" Association="Self.documentary_genre_documentary_FK">
+            <End Role="Documentary" EntitySet="Documentary" />
+            <End Role="DocumentaryGenre" EntitySet="DocumentaryGenre" />
+          </AssociationSet>
+          <AssociationSet Name="documentary_genre_genre_FK" Association="Self.documentary_genre_genre_FK">
+            <End Role="GenreOfDocumentary" EntitySet="GenreOfDocumentary" />
+            <End Role="DocumentaryGenre" EntitySet="DocumentaryGenre" />
+          </AssociationSet>
           <AssociationSet Name="game_genre_game_FK" Association="Self.game_genre_game_FK">
             <End Role="Game" EntitySet="Game" />
             <End Role="GameGenre" EntitySet="GameGenre" />
@@ -290,8 +352,6 @@
           <Property Name="title" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="title_original" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="year" Type="Int32" Nullable="false" />
-          <Property Name="length" Type="Time" Nullable="false" Precision="7" />
-          <Property Name="rating" Type="Double" />
           <Property Name="poster" Type="Binary" MaxLength="Max" FixedLength="false" />
           <Property Name="file_path" Type="String" MaxLength="256" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
@@ -447,6 +507,17 @@
             <End Role="GenreOfGame" EntitySet="GenreOfGames" />
             <End Role="GameGenre" EntitySet="GameGenres" />
           </AssociationSet>
+          <EntitySet Name="Documentaries" EntityType="AriadnaModel.Documentary" />
+          <EntitySet Name="DocumentaryGenres" EntityType="AriadnaModel.DocumentaryGenre" />
+          <EntitySet Name="GenreOfDocumentaries" EntityType="AriadnaModel.GenreOfDocumentary" />
+          <AssociationSet Name="documentary_genre_documentary_FK" Association="AriadnaModel.documentary_genre_documentary_FK">
+            <End Role="Documentary" EntitySet="Documentaries" />
+            <End Role="DocumentaryGenre" EntitySet="DocumentaryGenres" />
+          </AssociationSet>
+          <AssociationSet Name="documentary_genre_genre_FK" Association="AriadnaModel.documentary_genre_genre_FK">
+            <End Role="GenreOfDocumentary" EntitySet="GenreOfDocumentaries" />
+            <End Role="DocumentaryGenre" EntitySet="DocumentaryGenres" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="Game">
           <Key>
@@ -505,6 +576,63 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="Documentary">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="title" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="title_original" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="year" Type="Int32" Nullable="false" />
+          <Property Name="file_path" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="DocumentaryGenres" Relationship="AriadnaModel.documentary_genre_documentary_FK" FromRole="Documentary" ToRole="DocumentaryGenre" />
+          <Property Name="poster" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="creation_time" Type="DateTime" Precision="0" />
+          <Property Name="want_to_see" Type="Boolean" />
+        </EntityType>
+        <EntityType Name="DocumentaryGenre">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="documentaryId" Type="Int32" Nullable="false" />
+          <Property Name="genreId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Documentary" Relationship="AriadnaModel.documentary_genre_documentary_FK" FromRole="DocumentaryGenre" ToRole="Documentary" />
+          <NavigationProperty Name="GenreOfDocumentary" Relationship="AriadnaModel.documentary_genre_genre_FK" FromRole="DocumentaryGenre" ToRole="GenreOfDocumentary" />
+        </EntityType>
+        <EntityType Name="GenreOfDocumentary">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="DocumentaryGenres" Relationship="AriadnaModel.documentary_genre_genre_FK" FromRole="GenreOfDocumentary" ToRole="DocumentaryGenre" />
+        </EntityType>
+        <Association Name="documentary_genre_documentary_FK">
+          <End Type="AriadnaModel.Documentary" Role="Documentary" Multiplicity="1" />
+          <End Type="AriadnaModel.DocumentaryGenre" Role="DocumentaryGenre" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Documentary">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="DocumentaryGenre">
+              <PropertyRef Name="documentaryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="documentary_genre_genre_FK">
+          <End Type="AriadnaModel.GenreOfDocumentary" Role="GenreOfDocumentary" Multiplicity="1" />
+          <End Type="AriadnaModel.DocumentaryGenre" Role="DocumentaryGenre" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="GenreOfDocumentary">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="DocumentaryGenre">
+              <PropertyRef Name="genreId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -552,8 +680,6 @@
                 <ScalarProperty Name="title" ColumnName="title" />
                 <ScalarProperty Name="title_original" ColumnName="title_original" />
                 <ScalarProperty Name="year" ColumnName="year" />
-                <ScalarProperty Name="length" ColumnName="length" />
-                <ScalarProperty Name="rating" ColumnName="rating" />
                 <ScalarProperty Name="poster" ColumnName="poster" />
                 <ScalarProperty Name="file_path" ColumnName="file_path" />
                 <ScalarProperty Name="description" ColumnName="description" />
@@ -616,6 +742,38 @@
           <EntitySetMapping Name="GenreOfGames">
             <EntityTypeMapping TypeName="AriadnaModel.GenreOfGame">
               <MappingFragment StoreEntitySet="GenreOfGame">
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Documentaries">
+            <EntityTypeMapping TypeName="AriadnaModel.Documentary">
+              <MappingFragment StoreEntitySet="Documentary">
+                <ScalarProperty Name="want_to_see" ColumnName="want_to_see" />
+                <ScalarProperty Name="creation_time" ColumnName="creation_time" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="poster" ColumnName="poster" />
+                <ScalarProperty Name="file_path" ColumnName="file_path" />
+                <ScalarProperty Name="year" ColumnName="year" />
+                <ScalarProperty Name="title_original" ColumnName="title_original" />
+                <ScalarProperty Name="title" ColumnName="title" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="DocumentaryGenres">
+            <EntityTypeMapping TypeName="AriadnaModel.DocumentaryGenre">
+              <MappingFragment StoreEntitySet="DocumentaryGenre">
+                <ScalarProperty Name="genreId" ColumnName="genreId" />
+                <ScalarProperty Name="documentaryId" ColumnName="documentaryId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="GenreOfDocumentaries">
+            <EntityTypeMapping TypeName="AriadnaModel.GenreOfDocumentary">
+              <MappingFragment StoreEntitySet="GenreOfDocumentary">
                 <ScalarProperty Name="name" ColumnName="name" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

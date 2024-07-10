@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace Ariadna
@@ -15,16 +13,22 @@ namespace Ariadna
         {
             Themes.Theme theme;
             AbstractDBStrategy strategy;
-            if (Environment.GetCommandLineArgs().Length > 1 &&
-                Environment.GetCommandLineArgs()[1] == "games")
+            string param = Environment.GetCommandLineArgs().Length > 1 ? Environment.GetCommandLineArgs()[1] : string.Empty;
+
+            if (param == "games")
             {
                 theme = new Themes.ThemeGames();
-                strategy = new Ariadna.DBStrategies.GamesDBStrategy();
+                strategy = new DBStrategies.GamesDBStrategy();
             }
-            else// if (args[1] == "movies")
+            else if (param == "documentaries")
+            {
+                theme = new Themes.ThemeDocumentaries();
+                strategy = new DBStrategies.DocumentariesDBStrategy();
+            }
+            else// if (param == "movies")
             {
                 theme = new Themes.ThemeMovies();
-                strategy = new Ariadna.DBStrategies.MoviesDBStrategy();
+                strategy = new DBStrategies.MoviesDBStrategy();
             }
             theme.Init();
 

@@ -12,31 +12,25 @@ namespace Ariadna
     using System;
     using System.Collections.Generic;
     
-    public partial class Movie
+    public partial class Documentary
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Movie()
+        public Documentary()
         {
-            this.MovieCasts = new HashSet<MovieCast>();
-            this.MovieDirectors = new HashSet<MovieDirector>();
-            this.MovieGenres = new HashSet<MovieGenre>();
+            this.DocumentaryGenres = new HashSet<DocumentaryGenre>();
         }
     
         public int Id { get; set; }
         public string title { get; set; }
         public string title_original { get; set; }
         public int year { get; set; }
-        public byte[] poster { get; set; }
         public string file_path { get; set; }
+        public byte[] poster { get; set; }
         public string description { get; set; }
         public Nullable<System.DateTime> creation_time { get; set; }
         public Nullable<bool> want_to_see { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<MovieCast> MovieCasts { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<MovieDirector> MovieDirectors { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<MovieGenre> MovieGenres { get; set; }
+        public virtual ICollection<DocumentaryGenre> DocumentaryGenres { get; set; }
     }
 }

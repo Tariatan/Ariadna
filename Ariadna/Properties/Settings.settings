@@ -1,5 +1,84 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Ariadna.Properties" GeneratedClassName="Settings">
   <Profiles />
-  <Settings />
+  <Settings>
+    <Setting Name="TotalCommanderPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander/Totalcmd64.exe</Value>
+    </Setting>
+    <Setting Name="TmdbApiKey" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ec3e7f0826eb6ef92dc4b1f69f1e1dd3</Value>
+    </Setting>
+    <Setting Name="MoviePostersRootPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:/Ariadna/movies/</Value>
+    </Setting>
+    <Setting Name="DocumentaryPostersRootPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:/Ariadna/documentary/</Value>
+    </Setting>
+    <Setting Name="GamePostersRootPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G:/Ariadna/games/</Value>
+    </Setting>
+    <Setting Name="DefaultGamesPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">A:/GAMES/</Value>
+    </Setting>
+    <Setting Name="DefaultGamesPathVR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">A:/GAMES/_VR_/</Value>
+    </Setting>
+    <Setting Name="DefaultMoviesPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">M:/</Value>
+    </Setting>
+    <Setting Name="DefaultMoviesPathTMP" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">A:/MOVIES/</Value>
+    </Setting>
+    <Setting Name="DefaultSeriesPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">S:/</Value>
+    </Setting>
+    <Setting Name="DefaultDoocumentariesPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">A:\DOCUMENTARY\</Value>
+    </Setting>
+    <Setting Name="MediaPlayerPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe</Value>
+    </Setting>
+    <Setting Name="PreviewSuffix" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">_preview</Value>
+    </Setting>
+    <Setting Name="RecentInMonth" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="GenreImageWidth" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">60</Value>
+    </Setting>
+    <Setting Name="GenreImageHeight" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">60</Value>
+    </Setting>
+    <Setting Name="PosterWidth" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">400</Value>
+    </Setting>
+    <Setting Name="PosterHeight" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">600</Value>
+    </Setting>
+    <Setting Name="PortraitWidth" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">54</Value>
+    </Setting>
+    <Setting Name="PortraitHeight" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">81</Value>
+    </Setting>
+    <Setting Name="PreviewWidth" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">603</Value>
+    </Setting>
+    <Setting Name="PreviewHeight" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">339</Value>
+    </Setting>
+    <Setting Name="PreviewSmallWidth" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">137</Value>
+    </Setting>
+    <Setting Name="PreviewSmallHeight" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">77</Value>
+    </Setting>
+    <Setting Name="MaxGenresCount" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">6</Value>
+    </Setting>
+    <Setting Name="BitmapInitialSearchDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">T:/Downloads/</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>

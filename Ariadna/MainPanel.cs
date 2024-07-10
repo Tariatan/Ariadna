@@ -361,7 +361,7 @@ namespace Ariadna
         private void ToolStrip_Genre_Clicked(object sender, EventArgs e)
         {
             var values = m_DBStrategy.GetGenres(m_ToolStrip_GenreName.Text.ToUpper());
-            ShowFloatingPanel(values, FloatingPanel.EPanelContentType.GENRES, false, false, Utilities.GENRE_IMAGE_W, Utilities.GENRE_IMAGE_H);
+            ShowFloatingPanel(values, FloatingPanel.EPanelContentType.GENRES, false, false, Properties.Settings.Default.GenreImageWidth, Properties.Settings.Default.GenreImageHeight);
         }
         private void ToolStrip_ClearDirectorBtn_Clicked(object sender, EventArgs e)
         {
@@ -374,7 +374,7 @@ namespace Ariadna
         }
         private void ToolStrip_ClearActorBtn_Clicked(object sender, EventArgs e)
         {
-            DeleteUnusedActors();
+            //DeleteUnusedActors();
 
             HideFloatingPanel();
             if (m_ToolStrip_ActorName.Text.Length > 0)
@@ -517,7 +517,7 @@ namespace Ariadna
             Cursor.Current = Cursors.WaitCursor;
             {
                 var values = m_DBStrategy.GetDirectors(m_ToolStrip_DirectorName.Text.ToUpper(), MAX_SEARCH_FILTER_COUNT);
-                ShowFloatingPanel(values, FloatingPanel.EPanelContentType.DIRECTORS, false, false, Utilities.PHOTO_W, Utilities.PHOTO_H);
+                ShowFloatingPanel(values, FloatingPanel.EPanelContentType.DIRECTORS, false, false, Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight);
             }
             Cursor.Current = Cursors.Default;
 
@@ -539,7 +539,7 @@ namespace Ariadna
             Cursor.Current = Cursors.WaitCursor;
             {
                 var values = m_DBStrategy.GetActors(m_ToolStrip_ActorName.Text.ToUpper(), MAX_SEARCH_FILTER_COUNT);
-                ShowFloatingPanel(values, FloatingPanel.EPanelContentType.CAST, false, false, Utilities.PHOTO_W, Utilities.PHOTO_H);
+                ShowFloatingPanel(values, FloatingPanel.EPanelContentType.CAST, false, false, Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight);
             }
             Cursor.Current = Cursors.Default;
 

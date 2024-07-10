@@ -211,7 +211,7 @@ namespace Ariadna
         private void OnPicPoster_DoubleClick(object sender, EventArgs e)
         {
             if (Utilities.GetBitmapFromDisk(out Bitmap bmp,
-                string.Format("Image ({0}x{1}) (*.*)|*.*", Utilities.POSTER_W, Utilities.POSTER_H), Utilities.POSTER_W, Utilities.POSTER_H))
+                string.Format("Image ({0}x{1}) (*.*)|*.*", Properties.Settings.Default.PosterWidth, Properties.Settings.Default.PosterHeight), Properties.Settings.Default.PosterWidth, Properties.Settings.Default.PosterHeight))
             {
                 m_PicPoster.Image = (bmp != null) ? new Bitmap(bmp) : new Bitmap(Properties.Resources.No_Preview_Image);
             }
@@ -331,7 +331,7 @@ namespace Ariadna
         private void OnDirectorsDoubleClicked(object sender, MouseEventArgs e)
         {
             if (Utilities.GetBitmapFromDisk(out Bitmap bmp,
-                string.Format("Фото ({0}x{1}) (*.*)|*.*", Utilities.PHOTO_W, Utilities.PHOTO_H), Utilities.PHOTO_W, Utilities.PHOTO_H))
+                string.Format("Фото ({0}x{1}) (*.*)|*.*", Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight), Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight))
             {
                 if (bmp == null)
                 {
@@ -345,7 +345,7 @@ namespace Ariadna
         private void OnCastDoubleClicked(object sender, MouseEventArgs e)
         {
             if (Utilities.GetBitmapFromDisk(out Bitmap bmp,
-                string.Format("Фото ({0}x{1}) (*.*)|*.*", Utilities.PHOTO_W, Utilities.PHOTO_H), Utilities.PHOTO_W, Utilities.PHOTO_H))
+                string.Format("Фото ({0}x{1}) (*.*)|*.*", Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight), Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight))
             {
                 if (bmp == null)
                 {
@@ -378,7 +378,7 @@ namespace Ariadna
                 var name = item.Trim();
                 AddGenre(name);
 
-                if (m_GenresList.Items.Count == Utilities.MAX_GENRES_COUNT)
+                if (m_GenresList.Items.Count == Properties.Settings.Default.MaxGenresCount)
                 {
                     break;
                 }
@@ -419,10 +419,10 @@ namespace Ariadna
 
             m_FloatingPanel.Location = new Point(Location.X + m_GenresList.Location.X + 12,
                                                  Location.Y + m_GenresList.Location.Y + SystemInformation.CaptionHeight + m_GenresList.Size.Height + 12);
-            m_FloatingPanel.Size = new Size(m_GenresList.Size.Width, Utilities.GENRE_IMAGE_H * 7 - 10);
+            m_FloatingPanel.Size = new Size(m_GenresList.Size.Width, Properties.Settings.Default.GenreImageHeight * 7 - 10);
             m_FloatingPanel.BackColor = BackColor;
 
-            m_FloatingPanel.UpdateListView(values, FloatingPanel.EPanelContentType.GENRES, false, false, Utilities.GENRE_IMAGE_W, Utilities.GENRE_IMAGE_H);
+            m_FloatingPanel.UpdateListView(values, FloatingPanel.EPanelContentType.GENRES, false, false, Properties.Settings.Default.GenreImageWidth, Properties.Settings.Default.GenreImageHeight);
             if (!m_FloatingPanel.Visible)
             {
                 m_FloatingPanel.Show(this);
@@ -513,7 +513,7 @@ namespace Ariadna
             var pic = sender as PictureBox;
 
             if (Utilities.GetBitmapFromDisk(out Bitmap bmp,
-                string.Format("Image ({0}x{1}) (*.*)|*.*", Utilities.PREVIEW_W, Utilities.PREVIEW_H), Utilities.PREVIEW_W, Utilities.PREVIEW_H))
+                string.Format("Image ({0}x{1}) (*.*)|*.*", Properties.Settings.Default.PreviewWidth, Properties.Settings.Default.PreviewHeight), Properties.Settings.Default.PreviewWidth, Properties.Settings.Default.PreviewHeight))
             {
                 var preview = (bmp != null) ? new Bitmap(bmp) : new Bitmap(Properties.Resources.No_Preview_Image);
                 if (pic.Name.Equals(m_Preview1.Name))
