@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Ariadna.Themes;
+using Microsoft.Extensions.Logging;
 
 namespace Ariadna
 {
@@ -16,6 +17,7 @@ namespace Ariadna
         private bool m_SuppressNameChangedEvent = false;
 
         private AbstractDBStrategy m_DBStrategy = null;
+        private readonly ILogger logger;
 
         private readonly ImageListViewAriadnaRenderer m_ListViewRenderer = new ImageListViewAriadnaRenderer();
 
@@ -31,12 +33,13 @@ namespace Ariadna
         private const string EMPTY_DOTS = ". . .";
         #endregion
 
-        public MainPanel(AbstractDBStrategy strategy)
+        public MainPanel(AbstractDBStrategy strategy, ILogger logger)
         {
             InitializeComponent();
             ApplyTheme();
 
             m_DBStrategy = strategy;
+            this.logger = logger;
             m_DBStrategy.FilterControls(this);
             m_DBStrategy.EntryInserted += new AbstractDBStrategy.EntryInsertedEventHandler(OnNewEntryInserted);
 

@@ -6,14 +6,20 @@ using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Drawing;
+using Microsoft.Extensions.Logging;
 
 namespace Ariadna.DBStrategies
 {
     public class GamesDBStrategy : AbstractDBStrategy
     {
+        private readonly ILogger logger;
         private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new PosterFromFileAdaptor();
 
-        public GamesDBStrategy() => m_PosterImageAdaptor.RootPath = Properties.Settings.Default.GamePostersRootPath;
+        public GamesDBStrategy(ILogger logger)
+        {
+            this.logger = logger;
+            m_PosterImageAdaptor.RootPath = Properties.Settings.Default.GamePostersRootPath;
+        }
 
         public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
         
@@ -266,7 +272,7 @@ namespace Ariadna.DBStrategies
         }
         private void ShowDataDialog(string path)
         {
-            var detailsForm = new GameDetailsForm(path);
+            var detailsForm = new GameDetailsForm(path, logger);
             detailsForm.FormClosed += new FormClosedEventHandler(OnDetailsFormClosed);
             detailsForm.ShowDialog();
         }

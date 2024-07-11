@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Windows.Forms;
 
 namespace Ariadna
@@ -11,6 +12,10 @@ namespace Ariadna
         [STAThread]
         private static void Main()
         {
+            using var factory = LoggerFactory.Create(builder => builder.AddConsole());
+            var logger = factory.CreateLogger("Ariadna");
+
+
             Themes.Theme theme;
             AbstractDBStrategy strategy;
             var param = Environment.GetCommandLineArgs().Length > 1 ? Environment.GetCommandLineArgs()[1] : string.Empty;
@@ -19,16 +24,16 @@ namespace Ariadna
             {
                 case "games":
                     theme = new Themes.ThemeGames();
-                    strategy = new DBStrategies.GamesDBStrategy();
+                    strategy = new DBStrategies.GamesDBStrategy(logger);
                     break;
                 case "documentaries":
                     theme = new Themes.ThemeDocumentaries();
-                    strategy = new DBStrategies.DocumentariesDBStrategy();
+                    strategy = new DBStrategies.DocumentariesDBStrategy(logger);
                     break;
                 // if (param == "movies")
                 default:
                     theme = new Themes.ThemeMovies();
-                    strategy = new DBStrategies.MoviesDBStrategy();
+                    strategy = new DBStrategies.MoviesDBStrategy(logger);
                     break;
             }
             
@@ -40,7 +45,7 @@ namespace Ariadna
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var panel = new MainPanel(strategy);
+            var panel = new MainPanel(strategy, logger);
             Application.Run(panel);
 
             //	if the form is still shown...

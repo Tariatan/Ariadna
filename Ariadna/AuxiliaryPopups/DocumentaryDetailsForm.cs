@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity.Validation;
@@ -11,8 +12,12 @@ namespace Ariadna
 {
     public partial class DocumentaryDetailsForm : DetailsForm
     {
+        private readonly ILogger logger;
 
-        public DocumentaryDetailsForm(string filePath) : base(filePath) { }
+        public DocumentaryDetailsForm(string filePath, ILogger logger) : base(filePath, logger)
+        {
+            this.logger = logger;
+        }
         #region OVERRIDEN FUNCTIONS
         protected override void DoLoad()
         {

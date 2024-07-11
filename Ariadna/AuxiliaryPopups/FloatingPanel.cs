@@ -28,7 +28,7 @@ namespace Ariadna
         public void UpdateListView(SortedDictionary<string, Bitmap> values, EPanelContentType contentType, bool checkBox = false, bool multiSelect = false, int imageW = 64, int imageH = 96)
         {
             EntryNames.Clear();
-            FormCloseReason = Utilities.EFormCloseReason.None;
+            FormCloseReason = Utilities.EFormCloseReason.NONE;
             PanelContentType = contentType;
 
             mPanelImageView.Images.Clear();

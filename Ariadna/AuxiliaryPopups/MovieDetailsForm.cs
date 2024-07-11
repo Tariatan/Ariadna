@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Ariadna.Properties;
 using MediaInfo;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using TMDbLib.Client;
 using TMDbLib.Objects.General;
 using TMDbLib.Objects.Search;
@@ -20,6 +22,8 @@ namespace Ariadna.AuxiliaryPopups
 {
     public class MovieDetailsForm : DetailsForm
     {
+        private readonly ILogger logger;
+
         #region Public Fields
         public int TmdbMovieIndex { get; set; }
         public int TmdbTvShowIndex { get; set; }
@@ -29,7 +33,10 @@ namespace Ariadna.AuxiliaryPopups
         private readonly TMDbClient m_TMDbClient = new TMDbClient(Settings.Default.TmdbApiKey);
         #endregion
 
-        public MovieDetailsForm(string filePath) : base(filePath) { }
+        public MovieDetailsForm(string filePath, ILogger logger) : base(filePath, logger)
+        {
+            this.logger = logger;
+        }
         #region OVERRIDEN FUNCTIONS
         protected override void DoLoad()
         {
@@ -546,7 +553,7 @@ namespace Ariadna.AuxiliaryPopups
                 return;
             }
 
-            var info = new MediaInfoWrapper(path);
+            var info = new MediaInfoWrapper(path, logger);
             m_TxtDimension.Text = info.Width + "x" + info.Height;
             m_TxtBitrate.Text = (info.VideoRate / 1000000) + " Mbps";
 

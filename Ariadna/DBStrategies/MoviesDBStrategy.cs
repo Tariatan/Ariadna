@@ -8,15 +8,21 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Data.Entity.Validation;
 using Ariadna.AuxiliaryPopups;
+using Microsoft.Extensions.Logging;
 
 namespace Ariadna.DBStrategies
 {
     public class MoviesDBStrategy : AbstractDBStrategy
     {
+        private readonly ILogger logger;
         private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new PosterFromFileAdaptor();
 
-        public MoviesDBStrategy() => m_PosterImageAdaptor.RootPath = Properties.Settings.Default.MoviePostersRootPath;
-        
+        public MoviesDBStrategy(ILogger logger)
+        {
+            this.logger = logger;
+            m_PosterImageAdaptor.RootPath = Properties.Settings.Default.MoviePostersRootPath;
+        }
+
         public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
         
         public override List<Utilities.EntryDto> GetEntries()
@@ -200,7 +206,7 @@ namespace Ariadna.DBStrategies
                 return;
             }
 
-            var detailsForm = new MovieDetailsForm(path);
+            var detailsForm = new MovieDetailsForm(path, logger);
             detailsForm.FormClosed += new FormClosedEventHandler(OnDetailsFormClosed);
             detailsForm.ShowDialog();
         }
@@ -230,7 +236,7 @@ namespace Ariadna.DBStrategies
                 {
                     FileName = "A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander/Totalcmd64.exe",
                     WorkingDirectory = Path.GetDirectoryName("A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander"),
-                    Arguments = $"/O /T /L=\"{path}\"",
+                    Arguments = $"/O /L=\"{path}\"",
                 });
             }
             else
@@ -319,7 +325,7 @@ namespace Ariadna.DBStrategies
 
             isFetching = true;
             TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Properties.Settings.Default.TmdbApiKey);
-            MovieDetailsForm detailsForm = new MovieDetailsForm(path)
+            MovieDetailsForm detailsForm = new MovieDetailsForm(path, logger)
             {
                 TmdbMovieIndex = -1,
                 TmdbTvShowIndex = -1

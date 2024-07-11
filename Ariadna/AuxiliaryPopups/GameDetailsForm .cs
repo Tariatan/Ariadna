@@ -1,4 +1,5 @@
 ﻿using Manina.Windows.Forms;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,7 +13,11 @@ namespace Ariadna
 {
     public partial class GameDetailsForm : DetailsForm
     {
-        public GameDetailsForm(string filePath) : base(filePath) { }
+        private readonly ILogger logger;
+        public GameDetailsForm(string filePath, ILogger logger) : base(filePath, logger)
+        {
+            this.logger = logger;
+        }
         #region OVERRIDEN FUNCTIONS
         protected override void DoLoad()
         {

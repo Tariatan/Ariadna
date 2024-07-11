@@ -5,11 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Ariadna.Themes;
+using Microsoft.Extensions.Logging;
 
 namespace Ariadna
 {
     public partial class DetailsForm : Form
     {
+        private readonly ILogger logger;
+
         #region Public Fields
         public Utilities.EFormCloseReason FormCloseReason { get; set; }
         public string FilePath { get; set; }
@@ -28,8 +31,9 @@ namespace Ariadna
         private const int MAX_GENRE_COUNT_ALLOWED = 5;
         #endregion
 
-        public DetailsForm(string filePath)
+        public DetailsForm(string filePath, ILogger logger)
         {
+            this.logger = logger;
             FilePath = filePath;
             StoredDBEntryID = -1;
             InitializeComponent();

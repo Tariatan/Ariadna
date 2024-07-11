@@ -7,14 +7,20 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Drawing;
 using System.Data.Entity.Validation;
+using Microsoft.Extensions.Logging;
 
 namespace Ariadna.DBStrategies
 {
     public class DocumentariesDBStrategy : AbstractDBStrategy
     {
+        private readonly ILogger logger;
         private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new PosterFromFileAdaptor();
 
-        public DocumentariesDBStrategy() => m_PosterImageAdaptor.RootPath = Properties.Settings.Default.DocumentaryPostersRootPath;
+        public DocumentariesDBStrategy(ILogger logger)
+        {
+            this.logger = logger;
+            m_PosterImageAdaptor.RootPath = Properties.Settings.Default.DocumentaryPostersRootPath;
+        }
 
         public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
         
@@ -172,7 +178,7 @@ namespace Ariadna.DBStrategies
         }
         private void ShowDataDialog(string path)
         {
-            var detailsForm = new DocumentaryDetailsForm(path);
+            var detailsForm = new DocumentaryDetailsForm(path, logger);
             detailsForm.FormClosed += new FormClosedEventHandler(OnDetailsFormClosed);
             detailsForm.ShowDialog();
         }
@@ -203,7 +209,7 @@ namespace Ariadna.DBStrategies
                 {
                     FileName = Properties.Settings.Default.TotalCommanderPath,
                     WorkingDirectory = Path.GetDirectoryName(Properties.Settings.Default.TotalCommanderPath),
-                    Arguments = $"/O /T /L=\"{path}\"",
+                    Arguments = $"/O /L=\"{path}\"",
                 });
             }
             else

@@ -11,6 +11,31 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>movies</StartArguments>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="AuxiliaryPopups\ChoicePopup.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\DetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\DocumentaryDetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\FloatingPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\GameDetailsForm .cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\MovieDetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainPanel.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="SplashScreen\SplashForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
 </Project>

@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
+using System.Linq;
+using static System.Int32;
 
 namespace Ariadna
 {
@@ -12,7 +14,7 @@ namespace Ariadna
     {
         public enum EFormCloseReason
         {
-            None = 0,
+            NONE = 0,
             SUCCESS,
         }
         // Entry Data Transfer Object
@@ -35,7 +37,7 @@ namespace Ariadna
             public string Path { get; set; }
         }
 
-        public static Dictionary<string, Bitmap> MOVIE_GENRES = new Dictionary<string, Bitmap>
+        public static Dictionary<string, Bitmap> MOVIE_GENRES = new()
         {
             {"Боевик", Properties.Resources.action},
             {"Приключение", Properties.Resources.adventure},
@@ -63,7 +65,7 @@ namespace Ariadna
             {"Вестерн", Properties.Resources.western},
             {"Новогодний", Properties.Resources.xmas},
         };
-        public static Dictionary<string, Bitmap> DOCUMENTARY_GENRES = new Dictionary<string, Bitmap>
+        public static Dictionary<string, Bitmap> DOCUMENTARY_GENRES = new()
         {
             {"Travel", Properties.Resources.travel},
             {"Art. History", Properties.Resources.art},
@@ -74,7 +76,7 @@ namespace Ariadna
             {"Science", Properties.Resources.science},
             {"Misc", Properties.Resources.misc},
         };
-        public static Dictionary<string, Bitmap> GAME_GENRES = new Dictionary<string, Bitmap>
+        public static Dictionary<string, Bitmap> GAME_GENRES = new()
         {
             {"Adventure", Properties.Resources.adventure},
             {"Fighting", Properties.Resources.fighting},
@@ -102,31 +104,21 @@ namespace Ariadna
         };
         public static Bitmap GetMovieGenreImage(string name)
         {
-            if(MOVIE_GENRES.ContainsKey(name))
-                return MOVIE_GENRES[name];
-
-            return Properties.Resources.No_Image;
+            return MOVIE_GENRES.TryGetValue(name, out var value) ? value : Properties.Resources.No_Image;
         }
         public static string GetMovieGenreBySynonym(string name)
         {
-            switch (name)
+            return name switch
             {
-                case "Мультфильм":
-                case "Анимация":
-                    return "Анимационный";
-                case "Мелодрама":
-                    return "Драма";
-                case "Приключения":
-                    return "Приключение";
-            }
-            return name;
+                "Мультфильм" or "Анимация" => "Анимационный",
+                "Мелодрама" => "Драма",
+                "Приключения" => "Приключение",
+                _ => name
+            };
         }
         public static Bitmap GetGameGenreImage(string name)
         {
-            if (GAME_GENRES.ContainsKey(name))
-                return GAME_GENRES[name];
-
-            return Properties.Resources.No_Image;
+            return GAME_GENRES.TryGetValue(name, out var value) ? value : Properties.Resources.No_Image;
         }
         public static string GetGameGenreBySynonym(string name)
         {
@@ -134,10 +126,7 @@ namespace Ariadna
         }
         public static Bitmap GetDocumentaryGenreImage(string name)
         {
-            if (DOCUMENTARY_GENRES.ContainsKey(name))
-                return DOCUMENTARY_GENRES[name];
-
-            return Properties.Resources.No_Image;
+            return DOCUMENTARY_GENRES.TryGetValue(name, out var value) ? value : Properties.Resources.No_Image;
         }
         public static string GetDocumentaryGenreBySynonym(string name)
         {
@@ -147,14 +136,14 @@ namespace Ariadna
         {
             var wordList = words.Trim().Split(' ');
             var result = "";
-            for (int i = 0; i < wordList.Length; ++i)
+            for (var i = 0; i < wordList.Length; ++i)
             {
                 if (wordList[i].Length == 0)
                 {
                     continue;
                 }
 
-                wordList[i] = wordList[i][0].ToString().ToUpper() + wordList[i].Substring(1);
+                wordList[i] = wordList[i][0].ToString().ToUpper() + wordList[i][1..];
                 if (result.Length > 0)
                 {
                     result += " ";
@@ -168,10 +157,10 @@ namespace Ariadna
         {
             try
             {
-                ImageConverter converter = new ImageConverter();
+                var converter = new ImageConverter();
                 return (byte[])converter.ConvertTo(img, typeof(byte[]));
             }
-            catch (Exception)
+            catch
             {
             }
 
@@ -184,12 +173,10 @@ namespace Ariadna
                 return null;
             }
 
-            using (var memoryStream = new MemoryStream(bytes))
-            {
-                return new Bitmap(memoryStream);
-            }
+            using var memoryStream = new MemoryStream(bytes);
+            return new Bitmap(memoryStream);
         }
-        private static byte[] empty = new byte[] { 137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 54, 0, 0, 0, 81, 8, 6, 0, 0, 0, 153, 180, 85, 63, 0, 0, 0, 1, 115, 82, 71, 66, 0, 174, 206, 28, 233, 0, 0, 0, 4, 103, 65, 77, 65, 0, 0, 177, 143, 11, 252, 97, 5, 0, 0, 0, 9, 112, 72, 89, 115, 0, 0, 14, 195, 0, 0, 14, 195, 1, 199, 111, 168, 100, 0, 0 };
+        private static readonly byte[] Empty = [137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 54, 0, 0, 0, 81, 8, 6, 0, 0, 0, 153, 180, 85, 63, 0, 0, 0, 1, 115, 82, 71, 66, 0, 174, 206, 28, 233, 0, 0, 0, 4, 103, 65, 77, 65, 0, 0, 177, 143, 11, 252, 97, 5, 0, 0, 0, 9, 112, 72, 89, 115, 0, 0, 14, 195, 0, 0, 14, 195, 1, 199, 111, 168, 100, 0, 0];
         public static bool IsValidPreview(byte[] bytes)
         {
             if (bytes == null)
@@ -198,71 +185,59 @@ namespace Ariadna
             }
 
             // Workaround: compare first ~85 bytes of NO_PREVIEW_IMAGE_SMALL to determine if no preview was set
-            const int NO_PREVIEW_IMAGE_SMALL_length = 1119;
-            const int NO_PREVIEW_IMAGE_SMALL_length2 = 1150;
-            if ((bytes.Length != NO_PREVIEW_IMAGE_SMALL_length) &&
-                (bytes.Length != NO_PREVIEW_IMAGE_SMALL_length2))
+            const int noPreviewImageSmallLength = 1119;
+            const int noPreviewImageSmallLength2 = 1150;
+            if ((bytes.Length != noPreviewImageSmallLength) &&
+                (bytes.Length != noPreviewImageSmallLength2))
             {
                 return true;
             }
 
-            for (int i = 0; i < empty.Length; ++i)
-            {
-                if (bytes[i] != empty[i])
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return Empty.Where((t, i) => bytes[i] != t).Any();
         }
         public static int ConvertId(string sId)
         {
-            Int32.TryParse(sId, out int id);
+            TryParse(sId, out var id);
             return id;
         }
         public static bool GetBitmapFromDisk(out Bitmap outBmp, string filter, int width, int height)
         {
             outBmp = null;
 
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            using OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = Properties.Settings.Default.BitmapInitialSearchDir;
+            openFileDialog.Filter = filter;
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() != DialogResult.OK)
             {
-                openFileDialog.InitialDirectory = Properties.Settings.Default.BitmapInitialSearchDir;
-                openFileDialog.Filter = filter;
-                openFileDialog.FilterIndex = 1;
-                openFileDialog.RestoreDirectory = true;
-
-                if (openFileDialog.ShowDialog() != DialogResult.OK)
-                {
-                    return false;
-                }
-
-                var fileName = openFileDialog.FileName;
-                var extStartPos = fileName.LastIndexOf('.') + 1;
-                string ext = "";
-                if (extStartPos > 0)
-                {
-                    ext = fileName.Substring(extStartPos).ToUpper();
-                }
-
-                // Check supported extensions
-                HashSet<string> exts = new HashSet<string> { "BMP", "GIF", "EXIF", "JPG", "JPEG", "PNG", "TIFF" };
-                if ((ext.Length > 0) && !exts.Contains(ext))
-                {
-                    return false;
-                }
-
-                outBmp = new Bitmap(width, height);
-                Graphics graph = Graphics.FromImage(outBmp);
-
-                using (var bmpTemp = new Bitmap(fileName))
-                {
-                    Image image = new Bitmap(bmpTemp);
-                    graph.DrawImage(image, new Rectangle(0, 0, width, height));
-                }
-
-                return true;
+                return false;
             }
+
+            var fileName = openFileDialog.FileName;
+            var extStartPos = fileName.LastIndexOf('.') + 1;
+            var ext = "";
+            if (extStartPos > 0)
+            {
+                ext = fileName[extStartPos..].ToUpper();
+            }
+
+            // Check supported extensions
+            var extensions = new HashSet<string> { "BMP", "GIF", "EXIF", "JPG", "JPEG", "PNG", "TIFF" };
+            if ((ext.Length > 0) && !extensions.Contains(ext))
+            {
+                return false;
+            }
+
+            outBmp = new Bitmap(width, height);
+            var graph = Graphics.FromImage(outBmp);
+
+            using var bmpTemp = new Bitmap(fileName);
+            Image image = new Bitmap(bmpTemp);
+            graph.DrawImage(image, new Rectangle(0, 0, width, height));
+
+            return true;
         }
         public static TimeSpan GetVideoDuration(string filePath)
         {
@@ -271,16 +246,9 @@ namespace Ariadna
                 return TimeSpan.Zero;
             }
 
-            using (var shell = ShellObject.FromParsingName(filePath))
-            {
-                IShellProperty prop = shell.Properties.System.Media.Duration;
-                if (prop.ValueAsObject == null)
-                {
-                    return TimeSpan.Zero;
-                }
-
-                return TimeSpan.FromTicks((long)(ulong)prop.ValueAsObject);
-            }
+            using var shell = ShellObject.FromParsingName(filePath);
+            IShellProperty prop = shell.Properties.System.Media.Duration;
+            return prop.ValueAsObject == null ? TimeSpan.Zero : TimeSpan.FromTicks((long)(ulong)prop.ValueAsObject);
         }
         public static string DecorateDescription(string description)
         {
