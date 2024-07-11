@@ -9,27 +9,29 @@ namespace Ariadna
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
             Themes.Theme theme;
             AbstractDBStrategy strategy;
-            string param = Environment.GetCommandLineArgs().Length > 1 ? Environment.GetCommandLineArgs()[1] : string.Empty;
+            var param = Environment.GetCommandLineArgs().Length > 1 ? Environment.GetCommandLineArgs()[1] : string.Empty;
 
-            if (param == "games")
+            switch (param)
             {
-                theme = new Themes.ThemeGames();
-                strategy = new DBStrategies.GamesDBStrategy();
+                case "games":
+                    theme = new Themes.ThemeGames();
+                    strategy = new DBStrategies.GamesDBStrategy();
+                    break;
+                case "documentaries":
+                    theme = new Themes.ThemeDocumentaries();
+                    strategy = new DBStrategies.DocumentariesDBStrategy();
+                    break;
+                // if (param == "movies")
+                default:
+                    theme = new Themes.ThemeMovies();
+                    strategy = new DBStrategies.MoviesDBStrategy();
+                    break;
             }
-            else if (param == "documentaries")
-            {
-                theme = new Themes.ThemeDocumentaries();
-                strategy = new DBStrategies.DocumentariesDBStrategy();
-            }
-            else// if (param == "movies")
-            {
-                theme = new Themes.ThemeMovies();
-                strategy = new DBStrategies.MoviesDBStrategy();
-            }
+            
             theme.Init();
 
             //	show the splash form

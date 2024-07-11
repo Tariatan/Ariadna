@@ -7,7 +7,6 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Drawing;
 using System.Data.Entity.Validation;
-using System.ComponentModel.Design;
 
 namespace Ariadna.DBStrategies
 {
@@ -134,10 +133,10 @@ namespace Ariadna.DBStrategies
         }
         public override void FindNextEntryManually()
         {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            using (var openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.InitialDirectory = Properties.Settings.Default.DefaultDoocumentariesPath;
-                openFileDialog.Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.m4v;*.ts|All files (*.*)|*.*";
+                openFileDialog.Filter = Properties.Settings.Default.VideoFilesFilter;
                 openFileDialog.FilterIndex = 1;
                 openFileDialog.RestoreDirectory = true;
 
@@ -148,14 +147,17 @@ namespace Ariadna.DBStrategies
                 const string folderFlag = "File or folder";
                 openFileDialog.FileName = folderFlag;
 
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                if (openFileDialog.ShowDialog() != DialogResult.OK)
                 {
-                    string path = openFileDialog.FileName;
-                    if (path.Contains(folderFlag))
-                    {
-                        path = Path.GetDirectoryName(openFileDialog.FileName);
-                    }
+                    return;
                 }
+                
+                var path = openFileDialog.FileName;
+                if (path.Contains(folderFlag))
+                {
+                    path = Path.GetDirectoryName(openFileDialog.FileName);
+                }
+                ShowDataDialog(path);
             }
         }
         public override void ShowEntryDetails(int id)

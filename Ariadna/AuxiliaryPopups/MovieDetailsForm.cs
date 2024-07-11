@@ -1,35 +1,40 @@
-﻿using Microsoft.WindowsAPICodePack.Shell;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity.Validation;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Ariadna.Properties;
+using MediaInfo;
+using TMDbLib.Client;
+using TMDbLib.Objects.General;
+using TMDbLib.Objects.Search;
+using TMDbLib.Objects.TvShows;
 using TMDbLib.Utilities.Serializer;
 
-namespace Ariadna
+namespace Ariadna.AuxiliaryPopups
 {
-    public partial class MovieDetailsForm : DetailsForm
+    public class MovieDetailsForm : DetailsForm
     {
         #region Public Fields
-        public int TMDBMovieIndex { get; set; }
-        public int TMDBTVShowIndex { get; set; }
+        public int TmdbMovieIndex { get; set; }
+        public int TmdbTvShowIndex { get; set; }
         #endregion
 
         #region Private Fields
-        private readonly TMDbLib.Client.TMDbClient m_TMDbClient = new TMDbLib.Client.TMDbClient(Properties.Settings.Default.TmdbApiKey);
+        private readonly TMDbClient m_TMDbClient = new TMDbClient(Settings.Default.TmdbApiKey);
         #endregion
 
         public MovieDetailsForm(string filePath) : base(filePath) { }
         #region OVERRIDEN FUNCTIONS
         protected override void DoLoad()
         {
-            m_CastPhotos.ImageSize = new Size(Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight);
-            m_DirectorsPhotos.ImageSize = new Size(Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight);
+            m_CastPhotos.ImageSize = new Size(Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
+            m_DirectorsPhotos.ImageSize = new Size(Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
 
             // Remove extension
             m_TxtTitle.Text = m_TxtTitle.Text.Replace(".avi", "").Replace(".mkv", "").Replace(".m4v", "").Replace(".mp4", "").Replace(".mpg", "").Replace(".ts", "").Replace(".mpeg", "");
@@ -53,11 +58,11 @@ namespace Ariadna
             }
             else
             {
-                if (TMDBMovieIndex != -1)
+                if (TmdbMovieIndex != -1)
                 {
                     FillMovieFieldsFromIMDB();
                 }
-                else if (TMDBTVShowIndex != -1)
+                else if (TmdbTvShowIndex != -1)
                 {
                     FillTVShowFieldsFromIMDB();
                 }
@@ -120,31 +125,31 @@ namespace Ariadna
         {
             await FetchConfig(m_TMDbClient);
         }
-        private static async Task FetchConfig(TMDbLib.Client.TMDbClient client)
+        private static async Task FetchConfig(TMDbClient client)
         {
             FileInfo configJson = new FileInfo("config.json");
 
             if (configJson.Exists && configJson.LastWriteTimeUtc >= DateTime.UtcNow.AddHours(-10))
             {
-                string json = File.ReadAllText(configJson.FullName, System.Text.Encoding.UTF8);
-                client.SetConfig(TMDbLib.Utilities.Serializer.TMDbJsonSerializer.Instance.DeserializeFromString<TMDbLib.Objects.General.TMDbConfig>(json));
+                string json = File.ReadAllText(configJson.FullName, Encoding.UTF8);
+                client.SetConfig(TMDbJsonSerializer.Instance.DeserializeFromString<TMDbConfig>(json));
             }
             else
             {
-                TMDbLib.Objects.General.TMDbConfig config = await client.GetConfigAsync();
+                TMDbConfig config = await client.GetConfigAsync();
                 string json = TMDbJsonSerializer.Instance.SerializeToString(config);
-                File.WriteAllText(configJson.FullName, json, System.Text.Encoding.UTF8);
+                File.WriteAllText(configJson.FullName, json, Encoding.UTF8);
             }
         }
         private async void FillMovieFieldsFromIMDB()
         {
-            var entry = await m_TMDbClient.GetMovieAsync(TMDBMovieIndex, "ru-RU");
+            var entry = await m_TMDbClient.GetMovieAsync(TmdbMovieIndex, "ru-RU");
             string year = (entry.ReleaseDate != null) ? entry.ReleaseDate.Value.Year.ToString() : "0";
             FillFields(entry.PosterPath, entry.OriginalTitle, entry.Overview, year, entry.Genres);
         }
         private async void FillTVShowFieldsFromIMDB()
         {
-            var entry = await m_TMDbClient.GetTvShowAsync(TMDBTVShowIndex, TMDbLib.Objects.TvShows.TvShowMethods.Undefined, "ru-RU");
+            var entry = await m_TMDbClient.GetTvShowAsync(TmdbTvShowIndex, TvShowMethods.Undefined, "ru-RU");
             string year = (entry.FirstAirDate != null) ? entry.FirstAirDate.Value.Year.ToString() : "0";
             FillFields(entry.PosterPath, entry.OriginalName, entry.Overview, year, entry.Genres);
         }
@@ -158,9 +163,9 @@ namespace Ariadna
                 byte[] bts = await m_TMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
 
                 // Scale image
-                var bmp = new Bitmap(Properties.Settings.Default.PosterWidth, Properties.Settings.Default.PosterHeight);
+                var bmp = new Bitmap(Settings.Default.PosterWidth, Settings.Default.PosterHeight);
                 Graphics graph = Graphics.FromImage(bmp);
-                graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Properties.Settings.Default.PosterWidth, Properties.Settings.Default.PosterHeight));
+                graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Settings.Default.PosterWidth, Settings.Default.PosterHeight));
 
                 // Set Poster image
                 m_PicPoster.Image = new Bitmap(bmp);
@@ -351,7 +356,7 @@ namespace Ariadna
             {
                 try
                 {
-                    m_PicPoster.Image.Save(Properties.Settings.Default.MoviePostersRootPath + StoredDBEntryID.ToString(), System.Drawing.Imaging.ImageFormat.Png);
+                    m_PicPoster.Image.Save(Settings.Default.MoviePostersRootPath + StoredDBEntryID, ImageFormat.Png);
                 }
                 catch (Exception)
                 {
@@ -492,7 +497,7 @@ namespace Ariadna
                 m_TxtDescription.Text = Utilities.DecorateDescription(entry.description);
                 m_WanToSee.Checked = Convert.ToBoolean(entry.want_to_see);
 
-                string filename = Properties.Settings.Default.MoviePostersRootPath + entry.Id.ToString();
+                string filename = Settings.Default.MoviePostersRootPath + entry.Id;
                 if (File.Exists(filename))
                 {
                     using (var bmpTemp = new Bitmap(filename))
@@ -541,9 +546,9 @@ namespace Ariadna
                 return;
             }
 
-            var info = new MediaInfo.MediaInfoWrapper(path);
-            m_TxtDimension.Text = info.Width.ToString() + "x" + info.Height.ToString();
-            m_TxtBitrate.Text = (info.VideoRate / 1000000).ToString() + " Mbps";
+            var info = new MediaInfoWrapper(path);
+            m_TxtDimension.Text = info.Width + "x" + info.Height;
+            m_TxtBitrate.Text = (info.VideoRate / 1000000) + " Mbps";
 
             var audios = info.AudioStreams;
             List<PictureBox> flags = new List<PictureBox> { m_PicFlag1, m_PicFlag2, m_PicFlag3, m_PicFlag4 };
@@ -563,19 +568,19 @@ namespace Ariadna
 
                 if (stream.Language.Equals("Russian"))
                 {
-                    flags[index++].Image = Properties.Resources.ru;
+                    flags[index++].Image = Resources.ru;
                 }
                 else if (stream.Language.Equals("English"))
                 {
-                    flags[index++].Image = Properties.Resources.en;
+                    flags[index++].Image = Resources.en;
                 }
                 else if (stream.Language.Equals("French"))
                 {
-                    flags[index++].Image = Properties.Resources.fr;
+                    flags[index++].Image = Resources.fr;
                 }
                 else if (stream.Language.Equals("Ukrainian"))
                 {
-                    flags[index++].Image = Properties.Resources.ua;
+                    flags[index++].Image = Resources.ua;
                 }
             }
         }
@@ -589,7 +594,7 @@ namespace Ariadna
                     continue;
                 }
 
-                TMDbLib.Objects.General.SearchContainer<TMDbLib.Objects.Search.SearchPerson> results = m_TMDbClient.SearchPersonAsync(item.Text, "ru-RU").Result;
+                SearchContainer<SearchPerson> results = m_TMDbClient.SearchPersonAsync(item.Text, "ru-RU").Result;
 
                 if (results.Results.Count > 0)
                 {
@@ -605,9 +610,9 @@ namespace Ariadna
                     byte[] bts = await m_TMDbClient.GetImageBytesAsync(imgSize, UrlOriginal);
 
                     // Scale image
-                    var bmp = new Bitmap(Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight);
+                    var bmp = new Bitmap(Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
                     Graphics graph = Graphics.FromImage(bmp);
-                    graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Properties.Settings.Default.PortraitWidth, Properties.Settings.Default.PortraitHeight));
+                    graph.DrawImage(Utilities.BytesToBitmap(bts), new Rectangle(0, 0, Settings.Default.PortraitWidth, Settings.Default.PortraitHeight));
 
                     // Set Photo image
                     imageList.Images[imageList.Images.IndexOfKey(item.Text)] = bmp;

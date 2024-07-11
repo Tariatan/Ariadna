@@ -25,7 +25,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander/Totalcmd64.exe")]
+        [global::System.Configuration.DefaultSettingValueAttribute("A:\\PROGRAMS\\UTILITIES\\Total_Commander\\Total Commander\\Totalcmd64.exe")]
         public string TotalCommanderPath {
             get {
                 return ((string)(this["TotalCommanderPath"]));
@@ -43,7 +43,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("G:/Ariadna/movies/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("G:\\Ariadna\\movies\\")]
         public string MoviePostersRootPath {
             get {
                 return ((string)(this["MoviePostersRootPath"]));
@@ -52,7 +52,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("G:/Ariadna/documentary/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("G:\\Ariadna\\documentary\\")]
         public string DocumentaryPostersRootPath {
             get {
                 return ((string)(this["DocumentaryPostersRootPath"]));
@@ -61,7 +61,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("G:/Ariadna/games/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("G:\\Ariadna\\games\\")]
         public string GamePostersRootPath {
             get {
                 return ((string)(this["GamePostersRootPath"]));
@@ -70,7 +70,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("A:/GAMES/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("A:\\GAMES\\")]
         public string DefaultGamesPath {
             get {
                 return ((string)(this["DefaultGamesPath"]));
@@ -79,7 +79,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("A:/GAMES/_VR_/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("A:\\GAMES\\_VR_\\")]
         public string DefaultGamesPathVR {
             get {
                 return ((string)(this["DefaultGamesPathVR"]));
@@ -88,7 +88,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("M:/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("M:\\")]
         public string DefaultMoviesPath {
             get {
                 return ((string)(this["DefaultMoviesPath"]));
@@ -97,7 +97,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("A:/MOVIES/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("A:\\MOVIES\\")]
         public string DefaultMoviesPathTMP {
             get {
                 return ((string)(this["DefaultMoviesPathTMP"]));
@@ -106,7 +106,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("S:/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("S:\\")]
         public string DefaultSeriesPath {
             get {
                 return ((string)(this["DefaultSeriesPath"]));
@@ -124,7 +124,7 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:/Program Files/MEDIA/K-Lite Codec Pack/MPC-HC64/mpc-hc64.exe")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Program Files\\MEDIA\\K-Lite Codec Pack\\MPC-HC64\\mpc-hc64.exe")]
         public string MediaPlayerPath {
             get {
                 return ((string)(this["MediaPlayerPath"]));
@@ -250,10 +250,19 @@ namespace Ariadna.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("T:/Downloads/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("T:\\Downloads\\")]
         public string BitmapInitialSearchDir {
             get {
                 return ((string)(this["BitmapInitialSearchDir"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Video files|*.avi;*.mkv;*.mpg;*.mp4;*.m4v;*.ts|All files (*.*)|*.*")]
+        public string VideoFilesFilter {
+            get {
+                return ((string)(this["VideoFilesFilter"]));
             }
         }
     }

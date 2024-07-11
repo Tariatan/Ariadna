@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Drawing;
 using System.Data.Entity.Validation;
+using Ariadna.AuxiliaryPopups;
 
 namespace Ariadna.DBStrategies
 {
@@ -187,7 +188,7 @@ namespace Ariadna.DBStrategies
                     {
                         path = Path.GetDirectoryName(openFileDialog.FileName);
                     }
-                    FetchMovieFromIMDB(path);
+                    FetchMovieFromImdb(path);
                 }
             }
         }
@@ -288,16 +289,15 @@ namespace Ariadna.DBStrategies
             {
                 foreach (var path in paths)
                 {
-                    if (ctx.Ignores.AsNoTracking().Where(r => r.path == path).FirstOrDefault() != null)
+                    // Skip ignored or already stored
+                    if (ctx.Ignores.AsNoTracking().FirstOrDefault(r => r.path == path) != null || 
+                        ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() != null)
                     {
                         continue;
                     }
-
-                    if (ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() == null)
-                    {
-                        foundPath = path;
-                        break;
-                    }
+                   
+                    foundPath = path;
+                    break;
                 }
             }
 
@@ -306,11 +306,11 @@ namespace Ariadna.DBStrategies
                 return false;
             }
 
-            FetchMovieFromIMDB(foundPath);
+            FetchMovieFromImdb(foundPath);
             return true;
         }
-        private bool isFetching = false;
-        private async void FetchMovieFromIMDB(string path)
+        private bool isFetching;
+        private async void FetchMovieFromImdb(string path)
         {
             if(isFetching)
             {
@@ -321,8 +321,8 @@ namespace Ariadna.DBStrategies
             TMDbLib.Client.TMDbClient client = new TMDbLib.Client.TMDbClient(Properties.Settings.Default.TmdbApiKey);
             MovieDetailsForm detailsForm = new MovieDetailsForm(path)
             {
-                TMDBMovieIndex = -1,
-                TMDBTVShowIndex = -1
+                TmdbMovieIndex = -1,
+                TmdbTvShowIndex = -1
             };
 
             if (Directory.Exists(path))
@@ -335,7 +335,7 @@ namespace Ariadna.DBStrategies
                     int choice = (tvShows.Count > 1) ? GetBestTVShowChoice(tvShows, path) : 0;
                     if (choice >= 0)
                     {
-                        detailsForm.TMDBTVShowIndex = tvShows[choice].Id;
+                        detailsForm.TmdbTvShowIndex = tvShows[choice].Id;
                     }
                 }
             }
@@ -350,7 +350,7 @@ namespace Ariadna.DBStrategies
                     int choice = (movies.Count > 1) ? GetBestMovieChoice(movies, path) : 0;
                     if (choice >= 0)
                     {
-                        detailsForm.TMDBMovieIndex = movies[choice].Id;
+                        detailsForm.TmdbMovieIndex = movies[choice].Id;
                     }
                 }
             }
