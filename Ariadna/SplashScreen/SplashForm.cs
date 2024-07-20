@@ -1,46 +1,42 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace Ariadna
+namespace Ariadna.SplashScreen;
+
+public partial class SplashForm : Form
 {
-    public partial class SplashForm : Form
+    private string m_StatusInfo = string.Empty;
+
+    public string StatusInfo
     {
-        public string StatusInfo
+        set
         {
-            set
-            {
-                mStatusInfo = value;
-                ChangeStatusText();
-            }
-            get
-            {
-                return mStatusInfo;
-            }
+            m_StatusInfo = value;
+            ChangeStatusText();
         }
+        get => m_StatusInfo;
+    }
 
-        private string mStatusInfo = "";
 
-        public SplashForm()
+    public SplashForm()
+    {
+        InitializeComponent();
+    }
+
+
+    public void ChangeStatusText()
+    {
+        try
         {
-            InitializeComponent();
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(ChangeStatusText));
+                return;
+            }
+
+            m_StatusInfoLbl.Text = m_StatusInfo;
         }
-
-
-        public void ChangeStatusText()
+        catch
         {
-            try
-            {
-                if (this.InvokeRequired)
-                {
-                    this.Invoke(new MethodInvoker(this.ChangeStatusText));
-                    return;
-                }
-
-                m_StatusInfoLbl.Text = mStatusInfo;
-            }
-            catch (Exception)
-            {
-            }
         }
     }
 }

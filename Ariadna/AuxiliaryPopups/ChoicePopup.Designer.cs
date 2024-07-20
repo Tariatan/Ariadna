@@ -1,4 +1,4 @@
-﻿namespace Ariadna
+﻿namespace Ariadna.AuxiliaryPopups
 {
     partial class ChoicePopup
     {
@@ -29,67 +29,67 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ChoicePopup));
-            this.mResultList = new System.Windows.Forms.ListView();
-            this.colTitleRu = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colTitleOrig = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.colYear = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.mStatusStrip = new System.Windows.Forms.StatusStrip();
-            this.mToolStripPath = new System.Windows.Forms.ToolStripStatusLabel();
-            this.mStatusStrip.SuspendLayout();
+            this.m_ResultList = new System.Windows.Forms.ListView();
+            this.m_colTitleRu = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.m_colTitleOrig = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.m_colYear = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.m_StatusStrip = new System.Windows.Forms.StatusStrip();
+            this.m_ToolStripPath = new System.Windows.Forms.ToolStripStatusLabel();
+            this.m_StatusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
-            // mResultList
+            // m_ResultList
             // 
-            this.mResultList.BackColor = System.Drawing.Color.DarkMagenta;
-            this.mResultList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.colTitleRu,
-            this.colTitleOrig,
-            this.colYear});
-            this.mResultList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mResultList.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.mResultList.ForeColor = System.Drawing.Color.White;
-            this.mResultList.HideSelection = false;
-            this.mResultList.Location = new System.Drawing.Point(0, 0);
-            this.mResultList.Name = "mResultList";
-            this.mResultList.Size = new System.Drawing.Size(582, 257);
-            this.mResultList.TabIndex = 0;
-            this.mResultList.UseCompatibleStateImageBehavior = false;
-            this.mResultList.View = System.Windows.Forms.View.Details;
-            this.mResultList.SelectedIndexChanged += new System.EventHandler(this.OnSelectedIndexChanged);
-            this.mResultList.DoubleClick += new System.EventHandler(this.OnDoubleClick);
+            this.m_ResultList.BackColor = System.Drawing.Color.DarkMagenta;
+            this.m_ResultList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.m_colTitleRu,
+            this.m_colTitleOrig,
+            this.m_colYear});
+            this.m_ResultList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.m_ResultList.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.m_ResultList.ForeColor = System.Drawing.Color.White;
+            this.m_ResultList.HideSelection = false;
+            this.m_ResultList.Location = new System.Drawing.Point(0, 0);
+            this.m_ResultList.Name = "m_ResultList";
+            this.m_ResultList.Size = new System.Drawing.Size(582, 257);
+            this.m_ResultList.TabIndex = 0;
+            this.m_ResultList.UseCompatibleStateImageBehavior = false;
+            this.m_ResultList.View = System.Windows.Forms.View.Details;
+            this.m_ResultList.SelectedIndexChanged += new System.EventHandler(this.OnSelectedIndexChanged);
+            this.m_ResultList.DoubleClick += new System.EventHandler(this.OnDoubleClick);
             // 
-            // colTitleRu
+            // m_colTitleRu
             // 
-            this.colTitleRu.Text = "Русское название";
-            this.colTitleRu.Width = 250;
+            this.m_colTitleRu.Text = "Русское название";
+            this.m_colTitleRu.Width = 250;
             // 
-            // colTitleOrig
+            // m_colTitleOrig
             // 
-            this.colTitleOrig.Text = "Оригинальное название";
-            this.colTitleOrig.Width = 250;
+            this.m_colTitleOrig.Text = "Оригинальное название";
+            this.m_colTitleOrig.Width = 250;
             // 
-            // colYear
+            // m_colYear
             // 
-            this.colYear.Text = "Год";
-            this.colYear.Width = 80;
+            this.m_colYear.Text = "Год";
+            this.m_colYear.Width = 80;
             // 
-            // mStatusStrip
+            // m_StatusStrip
             // 
-            this.mStatusStrip.AutoSize = false;
-            this.mStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mToolStripPath});
-            this.mStatusStrip.Location = new System.Drawing.Point(0, 235);
-            this.mStatusStrip.Name = "mStatusStrip";
-            this.mStatusStrip.Size = new System.Drawing.Size(582, 22);
-            this.mStatusStrip.SizingGrip = false;
-            this.mStatusStrip.Stretch = false;
-            this.mStatusStrip.TabIndex = 1;
+            this.m_StatusStrip.AutoSize = false;
+            this.m_StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.m_ToolStripPath});
+            this.m_StatusStrip.Location = new System.Drawing.Point(0, 235);
+            this.m_StatusStrip.Name = "m_StatusStrip";
+            this.m_StatusStrip.Size = new System.Drawing.Size(582, 22);
+            this.m_StatusStrip.SizingGrip = false;
+            this.m_StatusStrip.Stretch = false;
+            this.m_StatusStrip.TabIndex = 1;
             // 
-            // mToolStripPath
+            // m_ToolStripPath
             // 
-            this.mToolStripPath.ForeColor = System.Drawing.Color.White;
-            this.mToolStripPath.Name = "mToolStripPath";
-            this.mToolStripPath.Size = new System.Drawing.Size(0, 17);
+            this.m_ToolStripPath.ForeColor = System.Drawing.Color.White;
+            this.m_ToolStripPath.Name = "m_ToolStripPath";
+            this.m_ToolStripPath.Size = new System.Drawing.Size(0, 17);
             // 
             // ChoicePopup
             // 
@@ -98,8 +98,8 @@
             this.BackColor = System.Drawing.Color.DarkMagenta;
             this.ClientSize = new System.Drawing.Size(582, 257);
             this.ControlBox = false;
-            this.Controls.Add(this.mStatusStrip);
-            this.Controls.Add(this.mResultList);
+            this.Controls.Add(this.m_StatusStrip);
+            this.Controls.Add(this.m_ResultList);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
@@ -111,19 +111,19 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Доступные записи";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnKeyDown);
-            this.mStatusStrip.ResumeLayout(false);
-            this.mStatusStrip.PerformLayout();
+            this.m_StatusStrip.ResumeLayout(false);
+            this.m_StatusStrip.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.ListView mResultList;
-        private System.Windows.Forms.ColumnHeader colTitleRu;
-        private System.Windows.Forms.ColumnHeader colTitleOrig;
-        private System.Windows.Forms.ColumnHeader colYear;
-        private System.Windows.Forms.StatusStrip mStatusStrip;
-        private System.Windows.Forms.ToolStripStatusLabel mToolStripPath;
+        private System.Windows.Forms.ListView m_ResultList;
+        private System.Windows.Forms.ColumnHeader m_colTitleRu;
+        private System.Windows.Forms.ColumnHeader m_colTitleOrig;
+        private System.Windows.Forms.ColumnHeader m_colYear;
+        private System.Windows.Forms.StatusStrip m_StatusStrip;
+        private System.Windows.Forms.ToolStripStatusLabel m_ToolStripPath;
     }
 }

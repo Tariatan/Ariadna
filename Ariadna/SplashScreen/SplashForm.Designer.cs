@@ -1,5 +1,6 @@
 ﻿using Ariadna.Themes;
-namespace Ariadna
+
+namespace Ariadna.SplashScreen
 {
     partial class SplashForm
     {

@@ -1,6 +1,6 @@
 ﻿using Ariadna.Themes;
 
-namespace Ariadna
+namespace Ariadna.AuxiliaryPopups
 {
     partial class FloatingPanel
     {
@@ -31,32 +31,32 @@ namespace Ariadna
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.mPanelListView = new System.Windows.Forms.ListView();
-            this.mPanelImageView = new System.Windows.Forms.ImageList(this.components);
+            this.m_PanelListView = new System.Windows.Forms.ListView();
+            this.m_PanelImageView = new System.Windows.Forms.ImageList(this.components);
             this.SuspendLayout();
             // 
-            // mPanelListView
+            // m_PanelListView
             // 
-            this.mPanelListView.Alignment = System.Windows.Forms.ListViewAlignment.Default;
-            this.mPanelListView.BackColor = Theme.FloatingPanelBackColor;
-            this.mPanelListView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mPanelListView.ForeColor = Theme.FloatingPanelForeColor;
-            this.mPanelListView.HideSelection = false;
-            this.mPanelListView.LargeImageList = this.mPanelImageView;
-            this.mPanelListView.Location = new System.Drawing.Point(0, 0);
-            this.mPanelListView.MultiSelect = false;
-            this.mPanelListView.Name = "mPanelListView";
-            this.mPanelListView.Size = new System.Drawing.Size(904, 160);
-            this.mPanelListView.TabIndex = 0;
-            this.mPanelListView.UseCompatibleStateImageBehavior = false;
-            this.mPanelListView.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.OnListItemChecked);
-            this.mPanelListView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.OnListEntryDoubleClicked);
+            this.m_PanelListView.Alignment = System.Windows.Forms.ListViewAlignment.Default;
+            this.m_PanelListView.BackColor = Theme.FloatingPanelBackColor;
+            this.m_PanelListView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.m_PanelListView.ForeColor = Theme.FloatingPanelForeColor;
+            this.m_PanelListView.HideSelection = false;
+            this.m_PanelListView.LargeImageList = this.m_PanelImageView;
+            this.m_PanelListView.Location = new System.Drawing.Point(0, 0);
+            this.m_PanelListView.MultiSelect = false;
+            this.m_PanelListView.Name = "m_PanelListView";
+            this.m_PanelListView.Size = new System.Drawing.Size(904, 160);
+            this.m_PanelListView.TabIndex = 0;
+            this.m_PanelListView.UseCompatibleStateImageBehavior = false;
+            this.m_PanelListView.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.OnListItemChecked);
+            this.m_PanelListView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.OnListEntryDoubleClicked);
             // 
-            // mPanelImageView
+            // m_PanelImageView
             // 
-            this.mPanelImageView.ColorDepth = System.Windows.Forms.ColorDepth.Depth16Bit;
-            this.mPanelImageView.ImageSize = new System.Drawing.Size(64, 96);
-            this.mPanelImageView.TransparentColor = System.Drawing.Color.Transparent;
+            this.m_PanelImageView.ColorDepth = System.Windows.Forms.ColorDepth.Depth16Bit;
+            this.m_PanelImageView.ImageSize = new System.Drawing.Size(64, 96);
+            this.m_PanelImageView.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // FloatingPanel
             // 
@@ -65,7 +65,7 @@ namespace Ariadna
             this.BackColor = Theme.FloatingPanelBackColor;
             this.ClientSize = new System.Drawing.Size(904, 160);
             this.ControlBox = false;
-            this.Controls.Add(this.mPanelListView);
+            this.Controls.Add(this.m_PanelListView);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.KeyPreview = true;
             this.MaximizeBox = false;
@@ -82,7 +82,7 @@ namespace Ariadna
 
         #endregion
 
-        private System.Windows.Forms.ListView mPanelListView;
-        private System.Windows.Forms.ImageList mPanelImageView;
+        private System.Windows.Forms.ListView m_PanelListView;
+        private System.Windows.Forms.ImageList m_PanelImageView;
     }
 }

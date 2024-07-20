@@ -83,5 +83,8 @@
     <Setting Name="VideoFilesFilter" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Video files|*.avi;*.mkv;*.mpg;*.mp4;*.m4v;*.ts|All files (*.*)|*.*</Value>
     </Setting>
+    <Setting Name="ImdbLanguage" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ru-RU</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

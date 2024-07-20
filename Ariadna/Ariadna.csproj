@@ -92,12 +92,21 @@
     <Compile Update="MovieGenre.cs">
       <DependentUpon>AriadnaModel.tt</DependentUpon>
     </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <EntityDeploy Include="AriadnaModel.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>AriadnaModel.Designer.cs</LastGenOutput>
     </EntityDeploy>
     <None Update="AriadnaModel.edmx.diagram">
       <DependentUpon>AriadnaModel.edmx</DependentUpon>
+    </None>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -133,15 +142,13 @@
     <PackageReference Include="EntityFramework" Version="6.5.1" />
     <PackageReference Include="ImageListView" Version="13.8.2" />
     <PackageReference Include="MediaInfo.Wrapper.Core" Version="21.9.3" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
     <PackageReference Include="Microsoft.WindowsAPICodePack-Core" Version="1.1.0.0" />
     <PackageReference Include="Microsoft.WindowsAPICodePack-Shell" Version="1.1.0.0" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" />
     <PackageReference Include="TMDbLib" Version="2.2.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extension\" />
   </ItemGroup>
 </Project>

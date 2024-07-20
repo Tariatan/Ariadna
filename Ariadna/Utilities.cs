@@ -6,7 +6,6 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
 using System.Linq;
-using static System.Int32;
 
 namespace Ariadna
 {
@@ -16,25 +15,6 @@ namespace Ariadna
         {
             NONE = 0,
             SUCCESS,
-        }
-        // Entry Data Transfer Object
-        public class EntryDto
-        {
-            public string Path { get; set; }
-            public string Title { get; set; }
-            public int Id { get; set; }
-        }
-        public class MovieChoiceDto
-        {
-            public string Title { get; set; }
-            public string TitleOrig { get; set; }
-            public int Year { get; set; }
-        }
-        public class EntryInfo
-        {
-            public string Title { get; set; }
-            public string TitleOrig { get; set; }
-            public string Path { get; set; }
         }
 
         public static Dictionary<string, Bitmap> MOVIE_GENRES = new()
@@ -132,50 +112,6 @@ namespace Ariadna
         {
             return name;
         }
-        public static string CapitalizeWords(string words)
-        {
-            var wordList = words.Trim().Split(' ');
-            var result = "";
-            for (var i = 0; i < wordList.Length; ++i)
-            {
-                if (wordList[i].Length == 0)
-                {
-                    continue;
-                }
-
-                wordList[i] = wordList[i][0].ToString().ToUpper() + wordList[i][1..];
-                if (result.Length > 0)
-                {
-                    result += " ";
-                }
-                result += wordList[i];
-            }
-
-            return result;
-        }
-        public static byte[] ImageToBytes(Image img)
-        {
-            try
-            {
-                var converter = new ImageConverter();
-                return (byte[])converter.ConvertTo(img, typeof(byte[]));
-            }
-            catch
-            {
-            }
-
-            return null;
-        }
-        public static Bitmap BytesToBitmap(byte[] bytes)
-        {
-            if ((bytes == null) || (bytes.Length == 0))
-            {
-                return null;
-            }
-
-            using var memoryStream = new MemoryStream(bytes);
-            return new Bitmap(memoryStream);
-        }
         private static readonly byte[] Empty = [137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 54, 0, 0, 0, 81, 8, 6, 0, 0, 0, 153, 180, 85, 63, 0, 0, 0, 1, 115, 82, 71, 66, 0, 174, 206, 28, 233, 0, 0, 0, 4, 103, 65, 77, 65, 0, 0, 177, 143, 11, 252, 97, 5, 0, 0, 0, 9, 112, 72, 89, 115, 0, 0, 14, 195, 0, 0, 14, 195, 1, 199, 111, 168, 100, 0, 0];
         public static bool IsValidPreview(byte[] bytes)
         {
@@ -195,20 +131,17 @@ namespace Ariadna
 
             return Empty.Where((t, i) => bytes[i] != t).Any();
         }
-        public static int ConvertId(string sId)
-        {
-            TryParse(sId, out var id);
-            return id;
-        }
         public static bool GetBitmapFromDisk(out Bitmap outBmp, string filter, int width, int height)
         {
             outBmp = null;
 
-            using OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.InitialDirectory = Properties.Settings.Default.BitmapInitialSearchDir;
-            openFileDialog.Filter = filter;
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.RestoreDirectory = true;
+            using var openFileDialog = new OpenFileDialog()
+            {
+                InitialDirectory = Properties.Settings.Default.BitmapInitialSearchDir,
+                Filter = filter,
+                FilterIndex = 1,
+                RestoreDirectory = true,
+            };
 
             if (openFileDialog.ShowDialog() != DialogResult.OK)
             {
@@ -217,7 +150,7 @@ namespace Ariadna
 
             var fileName = openFileDialog.FileName;
             var extStartPos = fileName.LastIndexOf('.') + 1;
-            var ext = "";
+            var ext = string.Empty;
             if (extStartPos > 0)
             {
                 ext = fileName[extStartPos..].ToUpper();
@@ -253,7 +186,7 @@ namespace Ariadna
         public static string DecorateDescription(string description)
         {
             var paragraphs = description.Split('\n');
-            var decoratedText = "";
+            var decoratedText = string.Empty;
             foreach (var paragraph in paragraphs)
             {
                 if (decoratedText.Length > 0)

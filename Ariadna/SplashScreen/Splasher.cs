@@ -2,78 +2,75 @@
 using System.Threading;
 using System.Windows.Forms;
 
-namespace Ariadna
+namespace Ariadna.SplashScreen;
+
+public class Splasher
 {
-    public class Splasher
+    private static SplashForm splashForm;
+    private static Thread splashThread;
+
+    //	internally used as a thread function - showing the form and
+    //	starting the message loop for it
+    private static void ShowThread()
     {
-        static SplashForm MySplashForm = null;
-        static Thread MySplashThread = null;
+        splashForm = new SplashForm();
+        Application.Run(splashForm);
+    }
 
-        //	internally used as a thread function - showing the form and
-        //	starting the messageloop for it
-        static void ShowThread()
+    //	public Method to show the SplashForm
+    public static void Show()
+    {
+        if (splashThread != null)
         {
-            MySplashForm = new SplashForm();
-            Application.Run(MySplashForm);
+            return;
         }
 
-        //	public Method to show the SplashForm
-        static public void Show()
+        splashThread = new Thread(Splasher.ShowThread)
         {
-            if (MySplashThread != null)
+            IsBackground = true
+        };
+        splashThread.SetApartmentState(ApartmentState.STA);
+        splashThread.Start();
+    }
+
+    //	public Method to hide the SplashForm
+    public static void Close()
+    {
+        if (splashThread == null || splashForm == null)
+        {
+            return;
+        }
+
+        try
+        {
+            splashForm.Invoke(new MethodInvoker(splashForm.Close));
+        }
+        catch
+        {
+        }
+        splashThread = null;
+        splashForm = null;
+    }
+
+    //	public Method to set or get the loading Status
+    public static string Status
+    {
+        set
+        {
+            if (splashForm == null)
             {
                 return;
             }
 
-            MySplashThread = new Thread(new ThreadStart(Splasher.ShowThread));
-            MySplashThread.IsBackground = true;
-            MySplashThread.SetApartmentState(ApartmentState.STA);
-            MySplashThread.Start();
+            splashForm.StatusInfo = value;
         }
-
-        //	public Method to hide the SplashForm
-        static public void Close()
+        get
         {
-            if (MySplashThread == null)
+            if (splashForm == null)
             {
-                return;
+                throw new InvalidOperationException("Splash Form not on screen");
             }
-            if (MySplashForm == null)
-            {
-                return;
-            }
-
-            try
-            {
-                MySplashForm.Invoke(new MethodInvoker(MySplashForm.Close));
-            }
-            catch (Exception)
-            {
-            }
-            MySplashThread = null;
-            MySplashForm = null;
-        }
-
-        //	public Method to set or get the loading Status
-        static public string Status
-        {
-            set
-            {
-                if (MySplashForm == null)
-                {
-                    return;
-                }
-
-                MySplashForm.StatusInfo = value;
-            }
-            get
-            {
-                if (MySplashForm == null)
-                {
-                    throw new InvalidOperationException("Splash Form not on screen");
-                }
-                return MySplashForm.StatusInfo;
-            }
+            return splashForm.StatusInfo;
         }
     }
 }

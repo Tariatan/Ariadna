@@ -265,5 +265,14 @@ namespace Ariadna.Properties {
                 return ((string)(this["VideoFilesFilter"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("ru-RU")]
+        public string ImdbLanguage {
+            get {
+                return ((string)(this["ImdbLanguage"]));
+            }
+        }
     }
 }

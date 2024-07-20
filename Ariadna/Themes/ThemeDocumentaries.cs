@@ -1,34 +1,33 @@
 ﻿using System.Drawing;
 
-namespace Ariadna.Themes
+namespace Ariadna.Themes;
+
+internal class ThemeDocumentaries : Theme
 {
-    class ThemeDocumentaries : Theme
+    public override void Init()
     {
-        public override void Init()
-        {
-            SplashScreenForeColor = Color.BlueViolet;
+        SplashScreenForeColor = Color.BlueViolet;
 
-            MainBackColor = Color.BlueViolet;
-            MainForeColor = Color.White;
-            ControlsBackColor = Color.BlueViolet;
+        MainBackColor = Color.BlueViolet;
+        MainForeColor = Color.White;
+        ControlsBackColor = Color.BlueViolet;
 
-            DetailsFormBackColor = Color.FromArgb(64, 0, 64);
-            DetailsFormForeColor = Color.White;
-            DetailsFormForeColorDimmed = Color.LightGray;
-            DetailsFormConfirmBtnBackColor = Color.FromArgb(64, 0, 64);
-            DetailsFormHighlightForeColor = Color.Gold;
+        DetailsFormBackColor = Color.FromArgb(64, 0, 64);
+        DetailsFormForeColor = Color.White;
+        DetailsFormForeColorDimmed = Color.LightGray;
+        DetailsFormConfirmBtnBackColor = Color.FromArgb(64, 0, 64);
+        DetailsFormHighlightForeColor = Color.Gold;
 
-            ListViewForeColor = Color.White;
-            ListViewGradFromColor = Color.BlueViolet;
-            ListViewGradToColor = Color.Black;
-            ListViewItemBgFromColor = Color.White;
-            ListViewItemBgToColor = Color.FromArgb(16, 16, 16);
-            ListViewItemBorderTickColor = Color.White;
-            ListViewItemBorderTuckColor = Color.Gray;
+        ListViewForeColor = Color.White;
+        ListViewGradFromColor = Color.BlueViolet;
+        ListViewGradToColor = Color.Black;
+        ListViewItemBgFromColor = Color.White;
+        ListViewItemBgToColor = Color.FromArgb(16, 16, 16);
+        ListViewItemBorderTickColor = Color.White;
+        ListViewItemBorderTuckColor = Color.Gray;
 
-            FloatingPanelBackColor = Color.BlueViolet;
-            FloatingPanelForeColor = Color.White;
+        FloatingPanelBackColor = Color.BlueViolet;
+        FloatingPanelForeColor = Color.White;
 
-        }
     }
 }

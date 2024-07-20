@@ -1,10 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Windows.Forms;
+using Ariadna.DBStrategies;
+using Ariadna.SplashScreen;
+using Ariadna.Themes;
+using Microsoft.Extensions.Logging;
 
 namespace Ariadna
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// The main entry point for the application.
@@ -16,24 +19,25 @@ namespace Ariadna
             var logger = factory.CreateLogger("Ariadna");
 
 
-            Themes.Theme theme;
-            AbstractDBStrategy strategy;
+            Theme theme;
+            AbstractDbStrategy strategy;
             var param = Environment.GetCommandLineArgs().Length > 1 ? Environment.GetCommandLineArgs()[1] : string.Empty;
 
             switch (param)
             {
                 case "games":
-                    theme = new Themes.ThemeGames();
-                    strategy = new DBStrategies.GamesDBStrategy(logger);
+                    theme = new ThemeGames();
+                    strategy = new GamesDbStrategy(logger);
                     break;
                 case "documentaries":
-                    theme = new Themes.ThemeDocumentaries();
-                    strategy = new DBStrategies.DocumentariesDBStrategy(logger);
+                    theme = new ThemeDocumentaries();
+                    strategy = new DocumentariesDbStrategy(logger);
                     break;
-                // if (param == "movies")
+
+                case "movies":
                 default:
-                    theme = new Themes.ThemeMovies();
-                    strategy = new DBStrategies.MoviesDBStrategy(logger);
+                    theme = new ThemeMovies();
+                    strategy = new MoviesDbStrategy(logger);
                     break;
             }
             

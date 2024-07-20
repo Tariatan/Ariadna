@@ -6,302 +6,296 @@ using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Drawing;
+using Ariadna.AuxiliaryPopups;
+using Ariadna.Data;
+using Ariadna.ImageListHelpers;
 using Microsoft.Extensions.Logging;
 
-namespace Ariadna.DBStrategies
+namespace Ariadna.DBStrategies;
+
+public class GamesDbStrategy : AbstractDbStrategy
 {
-    public class GamesDBStrategy : AbstractDBStrategy
+    private readonly ILogger logger;
+    private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new();
+
+    public GamesDbStrategy(ILogger logger)
     {
-        private readonly ILogger logger;
-        private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new PosterFromFileAdaptor();
+        this.logger = logger;
+        m_PosterImageAdaptor.RootPath = Properties.Settings.Default.GamePostersRootPath;
+    }
 
-        public GamesDBStrategy(ILogger logger)
-        {
-            this.logger = logger;
-            m_PosterImageAdaptor.RootPath = Properties.Settings.Default.GamePostersRootPath;
-        }
-
-        public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
+    public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
         
-        public override List<Utilities.EntryDto> GetEntries()
+    public override List<EntryDto> GetEntries()
+    {
+        using var ctx = new AriadnaEntities();
+        return ctx.Games.AsNoTracking().OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
+    }
+    public override List<EntryDto> QueryEntries(QueryParams values)
+    {
+        using var ctx = new AriadnaEntities();
+        IQueryable<Game> query = ctx.Games.AsNoTracking();
+
+        // -- Search Name --
+        if (!string.IsNullOrEmpty(values.Name))
         {
-            using (var ctx = new AriadnaEntities())
+            var toSearch = values.Name.ToUpper();
+            query = query.Where(r => r.title.ToUpper().Contains(toSearch) ||
+                                     r.title_original.ToUpper().Contains(toSearch) ||
+                                     r.file_path.ToUpper().Contains(toSearch));
+        }
+        // -- GENRE --
+        if (!string.IsNullOrEmpty(values.Genre))
+        {
+            var entry = ctx.GenreOfGames.AsNoTracking().FirstOrDefault(r => r.name == values.Genre);
+            if (entry != null)
             {
-                return ctx.Games.AsNoTracking().OrderBy(r => r.title).Select(x => new Utilities.EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
+                query = query.Where(r => r.GameGenres.Any(l => (l.genreId == entry.Id)));
             }
         }
-        public override List<Utilities.EntryDto> QueryEntries(QueryParams values)
+        // -- WISH LIST --
+        if (values.IsWish)
         {
-            using (var ctx = new AriadnaEntities())
-            {
-                IQueryable<Game> query = ctx.Games.AsNoTracking();
-
-                // -- Search Name --
-                if (!string.IsNullOrEmpty(values.Name))
-                {
-                    var toSearch = values.Name.ToUpper();
-                    query = query.Where(r => r.title.ToUpper().Contains(toSearch) ||
-                                             r.title_original.ToUpper().Contains(toSearch) ||
-                                             r.file_path.ToUpper().Contains(toSearch));
-                }
-                // -- GENRE --
-                if (!string.IsNullOrEmpty(values.Genre))
-                {
-                    var entry = ctx.GenreOfGames.AsNoTracking().Where(r => r.name == values.Genre).FirstOrDefault();
-                    if (entry != null)
-                    {
-                        query = query.Where(r => r.GameGenres.Any(l => (l.genreId == entry.Id)));
-                    }
-                }
-                // -- WISH LIST --
-                if (values.IsWish)
-                {
-                    query = query.Where(r => (r.want_to_play == true));
-                }
-                // -- RECENTLY Added --
-                if (values.IsRecent)
-                {
-                    var recentDateStart = DateTime.Now.AddMonths(-6);
-                    query = query.Where(r => ((r.creation_time > recentDateStart)));
-                }
-                // -- NEW --
-                if (values.IsNew)
-                {
-                    query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
-                }
-                // -- VR --
-                if (values.IsVR)
-                {
-                    query = query.Where(r => (r.vr == true));
-                }
-                // -- nonVR --
-                if (values.IsNonVR)
-                {
-                    query = query.Where(r => (r.vr == false));
-                }
-
-                return query.OrderBy(r => r.title).Select(x => new Utilities.EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
-            }
+            query = query.Where(r => (r.want_to_play == true));
         }
-        public override Utilities.EntryInfo GetEntryInfo(int id)
+        // -- RECENTLY Added --
+        if (values.IsRecent)
         {
-            Utilities.EntryInfo details = new Utilities.EntryInfo();
-            using (var ctx = new AriadnaEntities())
-            {
-                var entry = ctx.Games.Where(r => r.Id == id).FirstOrDefault();
-                if (entry != null)
-                {
-                    details.Path = entry.file_path;
-                    details.Title = entry.title;
-                    details.TitleOrig = entry.title_original;
-                }
-            }
+            var recentDateStart = DateTime.Now.AddMonths(-6);
+            query = query.Where(r => ((r.creation_time > recentDateStart)));
+        }
+        // -- NEW --
+        if (values.IsNew)
+        {
+            query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
+        }
+        // -- VR --
+        if (values.IsVr)
+        {
+            query = query.Where(r => (r.vr == true));
+        }
+        // -- nonVR --
+        if (values.IsNonVr)
+        {
+            query = query.Where(r => (r.vr == false));
+        }
 
+        return query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
+    }
+    public override EntryInfo GetEntryInfo(int id)
+    {
+        var details = new EntryInfo();
+        using var ctx = new AriadnaEntities();
+
+        var entry = ctx.Games.FirstOrDefault(r => r.Id == id);
+        if (entry == null)
+        {
             return details;
         }
-        public override void RemoveEntry(int id)
+
+        details.Path = entry.file_path;
+        details.Title = entry.title;
+        details.TitleOrig = entry.title_original;
+
+        return details;
+    }
+    public override void RemoveEntry(int id)
+    {
+        using var ctx = new AriadnaEntities();
+        var entry = ctx.Games.FirstOrDefault(r => r.Id == id);
+        if (entry == null)
         {
-            using (var ctx = new AriadnaEntities())
+            return;
+        }
+
+        ctx.GameGenres.RemoveRange(ctx.GameGenres.Where(r => (r.gameId == id)));
+
+        ctx.Games.Remove(entry);
+
+        ctx.SaveChanges();
+
+        var posterPath = Properties.Settings.Default.GamePostersRootPath + id;
+        if (File.Exists(posterPath))
+        {
+            File.Delete(posterPath);
+        }
+        for (var i = 1u; i <= 4; ++i)
+        {
+            var name = posterPath + Properties.Settings.Default.PreviewSuffix + i;
+            if (File.Exists(name))
             {
-                var entry = ctx.Games.Where(r => r.Id == id).FirstOrDefault();
-                if (entry != null)
-                {
-                    ctx.GameGenres.RemoveRange(ctx.GameGenres.Where(r => (r.gameId == id)));
-
-                    ctx.Games.Remove(entry);
-
-                    ctx.SaveChanges();
-
-                    string posterPath = Properties.Settings.Default.GamePostersRootPath + id;
-                    if (File.Exists(posterPath))
-                    {
-                        File.Delete(posterPath);
-                    }
-                    for (var i = 1u; i <= 4; ++i)
-                    {
-                        string name = posterPath + Properties.Settings.Default.PreviewSuffix + i;
-                        if (File.Exists(name))
-                        {
-                            File.Delete(name);
-                        }
-                    }
-                }
+                File.Delete(name);
             }
         }
-        public override bool FindNextEntryAutomatically()
+    }
+    public override bool FindNextEntryAutomatically()
+    {
+        if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultGamesPath)))
         {
-            if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultGamesPath)))
-            {
-                return true;
-            }
-
-            if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultGamesPathVR)))
-            {
-                return true;
-            }
-
-            return false;
-        }
-        public override void FindNextEntryManually()
-        {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.InitialDirectory = Properties.Settings.Default.DefaultGamesPath;
-                openFileDialog.RestoreDirectory = true;
-
-                // Allow folders
-                openFileDialog.ValidateNames = false;
-                openFileDialog.CheckFileExists = false;
-                openFileDialog.CheckPathExists = true;
-                const string folderFlag = "Choose folder";
-                openFileDialog.FileName = folderFlag;
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    string path = openFileDialog.FileName;
-                    if (path.Contains(folderFlag))
-                    {
-                        path = Path.GetDirectoryName(openFileDialog.FileName);
-                    }
-                    ShowDataDialog(path);
-                }
-            }
-        }
-        public override void ShowEntryDetails(int id)
-        {
-            var path = FindStoredEntryPathById(id);
-            if (string.IsNullOrEmpty(path))
-            {
-                return;
-            }
-
-            ShowDataDialog(path);
-        }
-        public override void ExecuteEntry(int id)
-        {
-            var path = FindStoredEntryPathById(id);
-            if (string.IsNullOrEmpty(path))
-            {
-                return;
-            }
-
-            // Open directory
-            if (Directory.Exists(path))
-            {
-                Process.Start(new ProcessStartInfo()
-                {
-                    FileName = path,
-                    UseShellExecute = true,
-                    Verb = "open"
-                });
-            }
-            else
-            {
-                MessageBox.Show(path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-        public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
-        public override SortedDictionary<string, Bitmap> GetActors(string name, int limit) => null;
-        public override SortedDictionary<string, Bitmap> GetGenres(string name)
-        {
-            var values = new SortedDictionary<string, Bitmap>();
-            using (var ctx = new AriadnaEntities())
-            {
-                var genres = ctx.GenreOfGames.AsNoTracking().ToList();
-
-                foreach (var genre in genres)
-                {
-                    values[genre.name] = Utilities.GetGameGenreImage(genre.name);
-                }
-            }
-            return values;
-        }
-        public override void FilterControls(MainPanel panel)
-        {
-            panel.m_ToolStrip_DirectorLbl.Visible = false;
-            panel.m_ToolStrip_ActorLbl.Visible = false;
-            panel.m_ToolStrip_ActorName.Visible = false;
-            panel.m_ToolStrip_DirectorName.Visible = false;
-            panel.m_ToolStrip_ClearActorBtn.Visible = false;
-            panel.m_ToolStrip_ClearDirectorBtn.Visible = false;
-            panel.m_ToolStrip_ClearDirectorBtn.Visible = false;
-            panel.m_ToolStrip_DirectorSprt.Visible = false;
-            panel.m_ToolStrip_ActorSprt.Visible = false;
-            panel.m_ToolStrip_SeriesBtn.Visible = false;
-            panel.m_ToolStrip_SeriesLbl.Visible = false;
-            panel.m_ToolStrip_SeriesSprtr.Visible = false;
-            panel.m_ToolStrip_MoviesBtn.Visible = false;
-            panel.m_ToolStrip_MoviesLbl.Visible = false;
-            panel.m_ToolStrip_MoviesSprtr.Visible = false;
-
-            panel.m_ToolStrip_VRSprtr.Visible = true;
-            panel.m_ToolStrip_VRLbl.Visible = true;
-            panel.m_ToolStrip_VRBtn.Visible = true;
-            panel.m_ToolStrip_nonVRSprtr.Visible = true;
-            panel.m_ToolStrip_nonVRLbl.Visible = true;
-            panel.m_ToolStrip_nonVRBtn.Visible = true;
-            panel.Icon = Properties.Resources.AriadnaGames;
-        }
-        private bool FindFirstNotInserted(String[] paths)
-        {
-            string foundPath = null;
-            using (var ctx = new AriadnaEntities())
-            {
-                foreach (var path in paths)
-                {
-                    if (ctx.Ignores.AsNoTracking().Where(r => r.path == path).FirstOrDefault() != null)
-                    {
-                        continue;
-                    }
-
-                    if (ctx.Games.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() == null)
-                    {
-                        foundPath = path;
-                        break;
-                    }
-                }
-            }
-
-            if(string.IsNullOrEmpty(foundPath))
-            {
-                return false;
-            }
-
-            ShowDataDialog(foundPath);
             return true;
         }
-        private void ShowDataDialog(string path)
+
+        if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultGamesPathVR)))
         {
-            var detailsForm = new GameDetailsForm(path, logger);
-            detailsForm.FormClosed += new FormClosedEventHandler(OnDetailsFormClosed);
-            detailsForm.ShowDialog();
+            return true;
         }
-        private void OnDetailsFormClosed(object sender, FormClosedEventArgs e)
+
+        return false;
+    }
+    public override void FindNextEntryManually()
+    {
+        const string folderFlag = "Choose folder";
+        using var openFileDialog = new OpenFileDialog()
         {
-            var detailsForm = sender as GameDetailsForm;
-            if (detailsForm.FormCloseReason != Utilities.EFormCloseReason.SUCCESS)
+            InitialDirectory = Properties.Settings.Default.DefaultGamesPath,
+            RestoreDirectory = true,
+
+            // Allow folders
+            ValidateNames = false,
+            CheckFileExists = false,
+            CheckPathExists = true,
+            FileName = folderFlag,
+        };
+
+        if (openFileDialog.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        var path = openFileDialog.FileName;
+        if (path.Contains(folderFlag))
+        {
+            path = Path.GetDirectoryName(openFileDialog.FileName);
+        }
+        ShowDataDialog(path);
+    }
+    public override void ShowEntryDetails(int id)
+    {
+        var path = FindStoredEntryPathById(id);
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
+
+        ShowDataDialog(path);
+    }
+    public override void ExecuteEntry(int id)
+    {
+        var path = FindStoredEntryPathById(id);
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
+
+        // Open directory
+        if (Directory.Exists(path))
+        {
+            Process.Start(new ProcessStartInfo()
             {
-                return;
+                FileName = path,
+                UseShellExecute = true,
+                Verb = "open"
+            });
+        }
+        else
+        {
+            MessageBox.Show(path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+    }
+    public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
+    public override SortedDictionary<string, Bitmap> GetActors(string name, int limit) => null;
+    public override SortedDictionary<string, Bitmap> GetGenres(string name)
+    {
+        var values = new SortedDictionary<string, Bitmap>();
+        using var ctx = new AriadnaEntities();
+        var genres = ctx.GenreOfGames.AsNoTracking().ToList();
+
+        foreach (var genre in genres)
+        {
+            values[genre.name] = Utilities.GetGameGenreImage(genre.name);
+        }
+
+        return values;
+    }
+    public override void FilterControls(MainPanel panel)
+    {
+        panel.m_ToolStrip_DirectorLbl.Visible = false;
+        panel.m_ToolStrip_ActorLbl.Visible = false;
+        panel.m_ToolStrip_ActorName.Visible = false;
+        panel.m_ToolStrip_DirectorName.Visible = false;
+        panel.m_ToolStrip_ClearActorBtn.Visible = false;
+        panel.m_ToolStrip_ClearDirectorBtn.Visible = false;
+        panel.m_ToolStrip_ClearDirectorBtn.Visible = false;
+        panel.m_ToolStrip_DirectorSprt.Visible = false;
+        panel.m_ToolStrip_ActorSprt.Visible = false;
+        panel.m_ToolStrip_SeriesBtn.Visible = false;
+        panel.m_ToolStrip_SeriesLbl.Visible = false;
+        panel.m_ToolStrip_SeriesSprtr.Visible = false;
+        panel.m_ToolStrip_MoviesBtn.Visible = false;
+        panel.m_ToolStrip_MoviesLbl.Visible = false;
+        panel.m_ToolStrip_MoviesSprtr.Visible = false;
+
+        panel.m_ToolStrip_VRSprtr.Visible = true;
+        panel.m_ToolStrip_VRLbl.Visible = true;
+        panel.m_ToolStrip_VRBtn.Visible = true;
+        panel.m_ToolStrip_nonVRSprtr.Visible = true;
+        panel.m_ToolStrip_nonVRLbl.Visible = true;
+        panel.m_ToolStrip_nonVRBtn.Visible = true;
+        panel.Icon = Properties.Resources.AriadnaGames;
+    }
+    private bool FindFirstNotInserted(string[] paths)
+    {
+        string foundPath = null;
+        using var ctx = new AriadnaEntities();
+        foreach (var path in paths)
+        {
+            if (ctx.Ignores.AsNoTracking().FirstOrDefault(r => r.path == path) != null)
+            {
+                continue;
             }
 
-            EntryInsertedEventArgs eventArgs = new EntryInsertedEventArgs(detailsForm.StoredDBEntryID);
-            OnEntryInserted(eventArgs);
-        }
-        private string FindStoredEntryPathById(int id)
-        {
-            if (id != -1)
+            if (ctx.Games.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() == null)
             {
-                using (var ctx = new AriadnaEntities())
-                {
-                    var path = ctx.Games.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault().file_path;
-                    if (!string.IsNullOrEmpty(path))
-                    {
-                        return path;
-                    }
-                }
+                foundPath = path;
+                break;
             }
-
-            return "";
         }
+
+        if(string.IsNullOrEmpty(foundPath))
+        {
+            return false;
+        }
+
+        ShowDataDialog(foundPath);
+        return true;
+    }
+    private void ShowDataDialog(string path)
+    {
+        var detailsForm = new GameDetailsForm(path, logger);
+        detailsForm.FormClosed += OnDetailsFormClosed;
+        detailsForm.ShowDialog();
+    }
+    private void OnDetailsFormClosed(object sender, FormClosedEventArgs e)
+    {
+        var detailsForm = sender as GameDetailsForm;
+        if (detailsForm!.FormCloseReason != Utilities.EFormCloseReason.SUCCESS)
+        {
+            return;
+        }
+
+        var eventArgs = new EntryInsertedEventArgs(detailsForm.StoredDbEntryId);
+        OnEntryInserted(eventArgs);
+    }
+    private string FindStoredEntryPathById(int id)
+    {
+        if (id == -1)
+        {
+            return string.Empty;
+        }
+
+        using var ctx = new AriadnaEntities();
+        var path = ctx.Games.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault()?.file_path;
+
+        return !string.IsNullOrEmpty(path) ? path : string.Empty;
     }
 }

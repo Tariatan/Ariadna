@@ -35,17 +35,17 @@ namespace Ariadna
             this.m_ImageListView = new Manina.Windows.Forms.ImageListView();
             this.m_ToolStrip = new System.Windows.Forms.ToolStrip();
             this.m_ToolStrip_AddBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_NameLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_EntryName = new System.Windows.Forms.ToolStripTextBox();
             this.m_ToolStrip_ClearTitleBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_WishlistLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_WishlistBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_RecentLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_RecentBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_NewLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_NewBtn = new System.Windows.Forms.ToolStripButton();
             this.m_ToolStrip_VRSprtr = new System.Windows.Forms.ToolStripSeparator();
@@ -60,7 +60,7 @@ namespace Ariadna
             this.m_ToolStrip_MoviesSprtr = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_MoviesLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_MoviesBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_DirectorLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_DirectorName = new System.Windows.Forms.ToolStripTextBox();
             this.m_ToolStrip_ClearDirectorBtn = new System.Windows.Forms.ToolStripButton();
@@ -72,7 +72,7 @@ namespace Ariadna
             this.m_ToolStrip_GenreNameLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_GenreName = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_ClearGenreBtn = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
+            this.m_ToolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
             this.m_ToolStrip_EntriesCountLbl = new System.Windows.Forms.ToolStripLabel();
             this.m_ToolStrip_EntriesCount = new System.Windows.Forms.ToolStripLabel();
             this.m_QuickListFlow = new System.Windows.Forms.FlowLayoutPanel();
@@ -88,7 +88,7 @@ namespace Ariadna
             this.m_ImageListView.Location = new System.Drawing.Point(0, 25);
             this.m_ImageListView.MultiSelect = false;
             this.m_ImageListView.Name = "m_ImageListView";
-            this.m_ImageListView.PersistentCacheDirectory = "";
+            this.m_ImageListView.PersistentCacheDirectory = string.Empty;
             this.m_ImageListView.PersistentCacheSize = ((long)(100));
             this.m_ImageListView.Size = new System.Drawing.Size(1583, 632);
             this.m_ImageListView.TabIndex = 1;
@@ -107,17 +107,17 @@ namespace Ariadna
             this.m_ToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.m_ToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.m_ToolStrip_AddBtn,
-            this.toolStripSeparator1,
+            this.m_ToolStripSeparator1,
             this.m_ToolStrip_NameLbl,
             this.m_ToolStrip_EntryName,
             this.m_ToolStrip_ClearTitleBtn,
-            this.toolStripSeparator3,
+            this.m_ToolStripSeparator3,
             this.m_ToolStrip_WishlistLbl,
             this.m_ToolStrip_WishlistBtn,
-            this.toolStripSeparator5,
+            this.m_ToolStripSeparator5,
             this.m_ToolStrip_RecentLbl,
             this.m_ToolStrip_RecentBtn,
-            this.toolStripSeparator7,
+            this.m_ToolStripSeparator7,
             this.m_ToolStrip_NewLbl,
             this.m_ToolStrip_NewBtn,
             this.m_ToolStrip_VRSprtr,
@@ -132,7 +132,7 @@ namespace Ariadna
             this.m_ToolStrip_MoviesSprtr,
             this.m_ToolStrip_MoviesLbl,
             this.m_ToolStrip_MoviesBtn,
-            this.toolStripSeparator4,
+            this.m_ToolStripSeparator4,
             this.m_ToolStrip_DirectorLbl,
             this.m_ToolStrip_DirectorName,
             this.m_ToolStrip_ClearDirectorBtn,
@@ -144,7 +144,7 @@ namespace Ariadna
             this.m_ToolStrip_GenreNameLbl,
             this.m_ToolStrip_GenreName,
             this.m_ToolStrip_ClearGenreBtn,
-            this.toolStripSeparator8,
+            this.m_ToolStripSeparator8,
             this.m_ToolStrip_EntriesCountLbl,
             this.m_ToolStrip_EntriesCount});
             this.m_ToolStrip.Location = new System.Drawing.Point(0, 0);
@@ -163,10 +163,10 @@ namespace Ariadna
             this.m_ToolStrip_AddBtn.Text = "Добавить";
             this.m_ToolStrip_AddBtn.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ToolStrip_AddBtn_MouseUp);
             // 
-            // toolStripSeparator1
+            // m_ToolStripSeparator1
             // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            this.m_ToolStripSeparator1.Name = "m_ToolStripSeparator1";
+            this.m_ToolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
             // m_ToolStrip_NameLbl
             // 
@@ -194,10 +194,10 @@ namespace Ariadna
             this.m_ToolStrip_ClearTitleBtn.ToolTipText = "Очистить";
             this.m_ToolStrip_ClearTitleBtn.Click += new System.EventHandler(this.ToolStrip_ClearTitleBtn_Clicked);
             // 
-            // toolStripSeparator3
+            // m_ToolStripSeparator3
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            this.m_ToolStripSeparator3.Name = "m_ToolStripSeparator3";
+            this.m_ToolStripSeparator3.Size = new System.Drawing.Size(6, 25);
             // 
             // m_ToolStrip_WishlistLbl
             // 
@@ -214,10 +214,10 @@ namespace Ariadna
             this.m_ToolStrip_WishlistBtn.ToolTipText = "Хотелки";
             this.m_ToolStrip_WishlistBtn.Click += new System.EventHandler(this.ToolStrip_CheckboxedFilter_Clicked);
             // 
-            // toolStripSeparator5
+            // m_ToolStripSeparator5
             // 
-            this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(6, 25);
+            this.m_ToolStripSeparator5.Name = "m_ToolStripSeparator5";
+            this.m_ToolStripSeparator5.Size = new System.Drawing.Size(6, 25);
             // 
             // m_ToolStrip_RecentLbl
             // 
@@ -234,10 +234,10 @@ namespace Ariadna
             this.m_ToolStrip_RecentBtn.Text = "Недавние";
             this.m_ToolStrip_RecentBtn.Click += new System.EventHandler(this.ToolStrip_CheckboxedFilter_Clicked);
             // 
-            // toolStripSeparator7
+            // m_ToolStripSeparator7
             // 
-            this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(6, 25);
+            this.m_ToolStripSeparator7.Name = "m_ToolStripSeparator7";
+            this.m_ToolStripSeparator7.Size = new System.Drawing.Size(6, 25);
             // 
             // m_ToolStrip_NewLbl
             // 
@@ -340,10 +340,10 @@ namespace Ariadna
             this.m_ToolStrip_MoviesBtn.Text = "Movies";
             this.m_ToolStrip_MoviesBtn.Click += new System.EventHandler(this.ToolStrip_ToolStrip_MoviesBtn_Clicked);
             // 
-            // toolStripSeparator4
+            // m_ToolStripSeparator4
             // 
-            this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(6, 25);
+            this.m_ToolStripSeparator4.Name = "m_ToolStripSeparator4";
+            this.m_ToolStripSeparator4.Size = new System.Drawing.Size(6, 25);
             // 
             // m_ToolStrip_DirectorLbl
             // 
@@ -428,10 +428,10 @@ namespace Ariadna
             this.m_ToolStrip_ClearGenreBtn.ToolTipText = "Очистить";
             this.m_ToolStrip_ClearGenreBtn.Click += new System.EventHandler(this.ToolStrip_ClearGenreBtn_Clicked);
             // 
-            // toolStripSeparator8
+            // m_ToolStripSeparator8
             // 
-            this.toolStripSeparator8.Name = "toolStripSeparator8";
-            this.toolStripSeparator8.Size = new System.Drawing.Size(6, 25);
+            this.m_ToolStripSeparator8.Name = "m_ToolStripSeparator8";
+            this.m_ToolStripSeparator8.Size = new System.Drawing.Size(6, 25);
             // 
             // m_ToolStrip_EntriesCountLbl
             // 
@@ -486,23 +486,23 @@ namespace Ariadna
         private Manina.Windows.Forms.ImageListView m_ImageListView;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_AddBtn;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_RecentBtn;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripSeparator m_ToolStripSeparator1;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_RecentLbl;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_NewLbl;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_NewBtn;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripSeparator m_ToolStripSeparator3;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_NameLbl;
         private System.Windows.Forms.ToolStripTextBox m_ToolStrip_EntryName;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.ToolStripSeparator m_ToolStripSeparator4;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_WishlistLbl;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_WishlistBtn;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripSeparator m_ToolStripSeparator5;
         private System.Windows.Forms.FlowLayoutPanel m_QuickListFlow;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_ClearTitleBtn;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_GenreNameLbl;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_ClearGenreBtn;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_GenreName;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
+        private System.Windows.Forms.ToolStripSeparator m_ToolStripSeparator8;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_EntriesCountLbl;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_EntriesCount;
         public System.Windows.Forms.ToolStripLabel m_ToolStrip_DirectorLbl;
@@ -518,7 +518,7 @@ namespace Ariadna
         public System.Windows.Forms.ToolStripButton m_ToolStrip_VRBtn;
         public System.Windows.Forms.ToolStripLabel m_ToolStrip_nonVRLbl;
         public System.Windows.Forms.ToolStripButton m_ToolStrip_nonVRBtn;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
+        private System.Windows.Forms.ToolStripSeparator m_ToolStripSeparator7;
         public System.Windows.Forms.ToolStripSeparator m_ToolStrip_VRSprtr;
         public System.Windows.Forms.ToolStripSeparator m_ToolStrip_nonVRSprtr;
         public System.Windows.Forms.ToolStripSeparator m_ToolStrip_SeriesSprtr;

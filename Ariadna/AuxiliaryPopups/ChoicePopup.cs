@@ -1,39 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
+using Ariadna.Data;
 
-namespace Ariadna
+namespace Ariadna.AuxiliaryPopups;
+
+public partial class ChoicePopup : Form
 {
-    public partial class ChoicePopup : Form
+    public int Index { get; set; }
+    public ChoicePopup(string path, List<MovieChoiceDto> results)
     {
-        public int index { get; set; }
-        public ChoicePopup(string path, List<Utilities.MovieChoiceDto> results)
-        {
-            InitializeComponent();
+        InitializeComponent();
 
-            foreach (var result in results)
-            {
-                var itm = new ListViewItem(new string[] { result.Title, result.TitleOrig, result.Year.ToString() });
-                mResultList.Items.Add(itm);
-            }
-            mToolStripPath.Text = path;
-            index = -1;
-        }
-        private void OnSelectedIndexChanged(object sender, EventArgs e)
+        foreach (var itm in results.Select(result => new ListViewItem([result.Title, result.TitleOrig, result.Year.ToString()])))
         {
-            index = mResultList.FocusedItem.Index;
+            m_ResultList.Items.Add(itm);
         }
-        private void OnDoubleClick(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+        m_ToolStripPath.Text = path;
+        Index = -1;
+    }
+    private void OnSelectedIndexChanged(object sender, EventArgs e)
+    {
+        Index = m_ResultList.FocusedItem!.Index;
+    }
+    private void OnDoubleClick(object sender, EventArgs e)
+    {
+        Close();
+    }
 
-        private void OnKeyDown(object sender, KeyEventArgs e)
+    private void OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Escape)
         {
-            if (e.KeyCode == Keys.Escape)
-            {
-                this.Close();
-            }
+            Close();
         }
     }
 }

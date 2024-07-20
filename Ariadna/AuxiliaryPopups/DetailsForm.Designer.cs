@@ -1,5 +1,5 @@
 ﻿
-namespace Ariadna
+namespace Ariadna.AuxiliaryPopups
 {
     partial class DetailsForm
     {
@@ -17,7 +17,6 @@ namespace Ariadna
             if (disposing && (components != null))
             {
                 components.Dispose();
-                NO_PREVIEW_IMAGE_SMALL.Dispose();
             }
             base.Dispose(disposing);
         }
