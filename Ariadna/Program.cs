@@ -49,7 +49,7 @@ namespace Ariadna
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            var panel = new MainPanel(strategy, logger);
+            var panel = new MainPanel(strategy);
             Application.Run(panel);
 
             //	if the form is still shown...

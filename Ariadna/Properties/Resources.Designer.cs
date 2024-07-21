@@ -649,5 +649,145 @@ namespace Ariadna.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+
+        public static string Oops {
+            get {
+                object obj = ResourceManager.GetObject("Oops", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string FailedToSaveGenres
+        {
+            get {
+                object obj = ResourceManager.GetObject("FailedToSaveGenres", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string DeleteEntryAndFile
+        {
+            get {
+                object obj = ResourceManager.GetObject("DeleteEntryAndFile", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string DeleteEntry
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("DeleteEntry", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string PathNotFound
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("PathNotFound", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string FailedToSaveEntry
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("FailedToSaveEntry", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string FailedToSavePoster
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("FailedToSavePoster", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string Colon
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("Colon", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string FailedToSaveCast
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("FailedToSaveCast", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string FailedToSaveDirectors
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("FailedToSaveDirectors", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string UpdateEntry
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("UpdateEntry", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string Update
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("Update", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string InsertEntry
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("InsertEntry", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string Insert
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("Insert", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string Ignore
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("Ignore", resourceCulture);
+                return ((string)(obj));
+            }
+        }
+
+        public static string Mbps
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("Mbps", resourceCulture);
+                return ((string)(obj));
+            }
+        }
     }
 }

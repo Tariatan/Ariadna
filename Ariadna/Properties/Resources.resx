@@ -151,6 +151,12 @@
   <data name="criminal" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\criminal.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="DeleteEntry" xml:space="preserve">
+    <value>Delete entry?</value>
+  </data>
+  <data name="DeleteEntryAndFile" xml:space="preserve">
+    <value>Delete both the entry and the corresponding file?</value>
+  </data>
   <data name="detective" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\detective.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -165,6 +171,12 @@
   </data>
   <data name="en" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\lang\en.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="FailedToSaveEntry" xml:space="preserve">
+    <value>Properties.Resources.DeleteEntry</value>
+  </data>
+  <data name="FailedToSaveGenres" xml:space="preserve">
+    <value>Failed to save genre list</value>
   </data>
   <data name="fairytail" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\fairytail.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -228,6 +240,12 @@
   </data>
   <data name="No_Preview_Image_Wide_small" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\No_Preview_Image_Wide_small.bmp;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Oops" xml:space="preserve">
+    <value>Oops!</value>
+  </data>
+  <data name="FailedToSaveEntryPathNotFound" xml:space="preserve">
+    <value>Path not found</value>
   </data>
   <data name="planets" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\planets.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -294,5 +312,35 @@
   </data>
   <data name="xmas" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\genres\xmas.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Colon" xml:space="preserve">
+    <value>:</value>
+  </data>
+  <data name="FailedToSaveCast" xml:space="preserve">
+    <value>Failed to save cast</value>
+  </data>
+  <data name="FailedToSaveDirectors" xml:space="preserve">
+    <value>Failed to save directors</value>
+  </data>
+  <data name="FailedToSavePoster" xml:space="preserve">
+    <value>Failed to save poster</value>
+  </data>
+  <data name="Ignore" xml:space="preserve">
+    <value>Ignore</value>
+  </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Insert entry</value>
+  </data>
+  <data name="InsertEntry" xml:space="preserve">
+    <value>Insert entry</value>
+  </data>
+  <data name="Mbps" xml:space="preserve">
+    <value>Mbps</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="UpdateEntry" xml:space="preserve">
+    <value>Update entry</value>
   </data>
 </root>

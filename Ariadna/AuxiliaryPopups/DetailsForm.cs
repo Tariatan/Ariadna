@@ -14,7 +14,7 @@ namespace Ariadna.AuxiliaryPopups;
 
 public partial class DetailsForm : Form
 {
-    private readonly ILogger logger;
+    private readonly ILogger m_Logger;
 
     #region Public Fields
     public Utilities.EFormCloseReason FormCloseReason { get; set; }
@@ -35,7 +35,7 @@ public partial class DetailsForm : Form
 
     public DetailsForm(string filePath, ILogger logger)
     {
-        this.logger = logger;
+        m_Logger = logger;
         FilePath = filePath;
         StoredDbEntryId = -1;
         InitializeComponent();
@@ -61,7 +61,7 @@ public partial class DetailsForm : Form
         m_LblDuration.ForeColor = Theme.DetailsFormForeColor;
         m_TxtDescription.BackColor = Theme.DetailsFormBackColor;
         m_TxtDescription.ForeColor = Theme.DetailsFormForeColor;
-        m_WanToSee.ForeColor = Theme.DetailsFormHighlightForeColor;
+        m_WantToSee.ForeColor = Theme.DetailsFormHighlightForeColor;
         m_LblGenre.ForeColor = Theme.DetailsFormForeColor;
         m_LblTitle.ForeColor = Theme.DetailsFormForeColor;
         m_LblTitleOrig.ForeColor = Theme.DetailsFormForeColor;
@@ -168,13 +168,13 @@ public partial class DetailsForm : Form
     {
         if (m_IsInUpdateMode)
         {
-            Text = "Обновление записи";
-            m_BtnInsert.Text = "Обновить";
+            Text = Resources.UpdateEntry;
+            m_BtnInsert.Text = Resources.Update;
         }
         else
         {
-            Text = "Добавление записи";
-            m_BtnInsert.Text = "Вставить";
+            Text = Resources.InsertEntry;
+            m_BtnInsert.Text = Resources.Insert;
         }
     }
     private void OnKeyDown(object sender, KeyEventArgs e)
@@ -183,7 +183,7 @@ public partial class DetailsForm : Form
 
         if (e.Modifiers.HasFlag(Keys.Shift))
         {
-            m_BtnInsert.Text = "В игнор";
+            m_BtnInsert.Text = Resources.Ignore;
         }
 
         switch (e.KeyCode)
@@ -210,7 +210,7 @@ public partial class DetailsForm : Form
     }
     private void OnPicPoster_DoubleClick(object sender, EventArgs e)
     {
-        if (Utilities.GetBitmapFromDisk(out Bitmap bmp,
+        if (Utilities.GetBitmapFromDisk(out var bmp,
                 $"Image ({Settings.Default.PosterWidth}x{Settings.Default.PosterHeight}) (*.*)|*.*", Settings.Default.PosterWidth, Settings.Default.PosterHeight))
         {
             m_PicPoster.Image = (bmp != null) ? new Bitmap(bmp) : new Bitmap(Resources.No_Preview_Image);
@@ -316,7 +316,7 @@ public partial class DetailsForm : Form
     private void OnDirectorsDoubleClicked(object sender, MouseEventArgs e)
     {
         if (Utilities.GetBitmapFromDisk(out Bitmap bmp,
-                $"Фото ({Settings.Default.PortraitWidth}x{Settings.Default.PortraitHeight}) (*.*)|*.*", Settings.Default.PortraitWidth, Settings.Default.PortraitHeight))
+                $"Photo ({Settings.Default.PortraitWidth}x{Settings.Default.PortraitHeight}) (*.*)|*.*", Settings.Default.PortraitWidth, Settings.Default.PortraitHeight))
         {
             bmp ??= new Bitmap(Resources.No_Preview_Image_small);
 
@@ -327,7 +327,7 @@ public partial class DetailsForm : Form
     private void OnCastDoubleClicked(object sender, MouseEventArgs e)
     {
         if (Utilities.GetBitmapFromDisk(out Bitmap bmp,
-                $"Фото ({Settings.Default.PortraitWidth}x{Settings.Default.PortraitHeight}) (*.*)|*.*", Settings.Default.PortraitWidth, Settings.Default.PortraitHeight))
+                $"Photo ({Settings.Default.PortraitWidth}x{Settings.Default.PortraitHeight}) (*.*)|*.*", Settings.Default.PortraitWidth, Settings.Default.PortraitHeight))
         {
             bmp ??= new Bitmap(Resources.No_Preview_Image_small);
 
@@ -523,9 +523,9 @@ public partial class DetailsForm : Form
             return;
         }
 
-        var info = new MediaInfoWrapper(path, logger);
-        m_TxtDimension.Text = info.Width + "x" + info.Height;
-        m_TxtBitrate.Text = (info.VideoRate / 1000000) + " Mbps";
+        var info = new MediaInfoWrapper(path, m_Logger);
+        m_TxtDimension.Text = info.Width.ToString() + 'x' + info.Height;
+        m_TxtBitrate.Text = (info.VideoRate / 1000000) + ' ' + Resources.Mbps;
 
         var audios = info.AudioStreams;
         var flags = new List<PictureBox> { m_PicFlag1, m_PicFlag2, m_PicFlag3, m_PicFlag4 };
@@ -545,10 +545,10 @@ public partial class DetailsForm : Form
 
             flags[index++].Image = stream.Language switch
             {
+                "Ukrainian" => Resources.ua,
                 "Russian" => Resources.ru,
                 "English" => Resources.en,
                 "French" => Resources.fr,
-                "Ukrainian" => Resources.ua,
                 _ => flags[index++].Image
             };
         }

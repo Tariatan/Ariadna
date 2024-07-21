@@ -1,28 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Manina.Windows.Forms;
-using System.IO;
-using System.Windows.Forms;
+using System.Data.Entity.Validation;
 using System.Diagnostics;
 using System.Drawing;
-using System.Data.Entity.Validation;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
 using Ariadna.ImageListHelpers;
+using Ariadna.Properties;
+using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 
 namespace Ariadna.DBStrategies;
 
 public class DocumentariesDbStrategy : AbstractDbStrategy
 {
-    private readonly ILogger logger;
-    private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new PosterFromFileAdaptor();
+    private readonly ILogger m_Logger;
+    private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new();
 
     public DocumentariesDbStrategy(ILogger logger)
     {
-        this.logger = logger;
-        m_PosterImageAdaptor.RootPath = Properties.Settings.Default.DocumentaryPostersRootPath;
+        m_Logger = logger;
+        m_PosterImageAdaptor.RootPath = Settings.Default.DocumentaryPostersRootPath;
     }
 
     public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
@@ -63,7 +64,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         // -- RECENTLY Added --
         if (values.IsRecent)
         {
-            var recentDateStart = DateTime.Now.AddMonths(-Properties.Settings.Default.RecentInMonth);
+            var recentDateStart = DateTime.Now.AddMonths(-Settings.Default.RecentInMonth);
             query = query.Where(r => ((r.creation_time > recentDateStart)));
         }
         // -- NEW --
@@ -104,7 +105,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
             ctx.SaveChanges();
         }
 
-        var posterPath = Properties.Settings.Default.DocumentaryPostersRootPath + id;
+        var posterPath = Settings.Default.DocumentaryPostersRootPath + id;
         if (!File.Exists(posterPath))
         {
             return;
@@ -121,7 +122,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
     }
     public override bool FindNextEntryAutomatically()
     {
-        foreach(var baseDir in Directory.GetDirectories(Properties.Settings.Default.DefaultDoocumentariesPath))
+        foreach(var baseDir in Directory.GetDirectories(Settings.Default.DefaultDoocumentariesPath))
         {
             if (FindFirstNotInserted(Directory.GetDirectories(baseDir)))
             {
@@ -140,10 +141,11 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
     public override void FindNextEntryManually()
     {
         const string folderFlag = "File or folder";
+        // ReSharper disable once UsingStatementResourceInitialization
         using var openFileDialog = new OpenFileDialog
         {
-            InitialDirectory = Properties.Settings.Default.DefaultDoocumentariesPath,
-            Filter = Properties.Settings.Default.VideoFilesFilter,
+            InitialDirectory = Settings.Default.DefaultDoocumentariesPath,
+            Filter = Settings.Default.VideoFilesFilter,
             FilterIndex = 1,
             RestoreDirectory = true,
             // Allow folders
@@ -177,7 +179,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
     }
     private void ShowDataDialog(string path)
     {
-        var detailsForm = new DocumentaryDetailsForm(path, logger);
+        var detailsForm = new DocumentaryDetailsForm(path, m_Logger);
         detailsForm.FormClosed += OnDetailsFormClosed;
         detailsForm.ShowDialog();
     }
@@ -192,27 +194,27 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         // Check if it is a file first
         if (File.Exists(path))
         {
-            if (!File.Exists(Properties.Settings.Default.MediaPlayerPath))
+            if (!File.Exists(Settings.Default.MediaPlayerPath))
             {
                 return;
             }
 
             // Enclose the path in quotes as required by MPC
-            Process.Start(Properties.Settings.Default.MediaPlayerPath, "\"" + path + "\"");
+            Process.Start(Settings.Default.MediaPlayerPath, "\"" + path + "\"");
         }
         // Checked if it is a directory
         else if (Directory.Exists(path))
         {
-            Process.Start(new ProcessStartInfo()
+            Process.Start(new ProcessStartInfo
             {
-                FileName = Properties.Settings.Default.TotalCommanderPath,
-                WorkingDirectory = Path.GetDirectoryName(Properties.Settings.Default.TotalCommanderPath)!,
+                FileName = Settings.Default.TotalCommanderPath,
+                WorkingDirectory = Path.GetDirectoryName(Settings.Default.TotalCommanderPath)!,
                 Arguments = $"/O /L=\"{path}\"",
             });
         }
         else
         {
-            MessageBox.Show(path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
     public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
@@ -248,7 +250,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         panel.m_ToolStrip_MoviesLbl.Visible = false;
         panel.m_ToolStrip_MoviesSprtr.Visible = false;
 
-        panel.Icon = Properties.Resources.AriadnaDocumentaries;
+        panel.Icon = Resources.AriadnaDocumentaries;
     }
     private bool FindFirstNotInserted(string[] paths)
     {
@@ -300,6 +302,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         
         return !string.IsNullOrEmpty(path) ? path : string.Empty;
     }
+    // ReSharper disable once UnusedMember.Local
     private void DeleteUnusedGenres()
     {
         using var ctx = new AriadnaEntities();
@@ -321,6 +324,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
             ctx.SaveChanges();
         }
     }
+    // ReSharper disable once UnusedMember.Local
     private void UpdateEntryData()
     {
         using var ctx = new AriadnaEntities();
@@ -336,7 +340,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
             }
             catch (DbEntityValidationException)
             {
-                MessageBox.Show(entry.title, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(entry.title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

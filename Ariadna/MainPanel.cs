@@ -13,7 +13,6 @@ using Ariadna.Properties;
 using Ariadna.SplashScreen;
 using Ariadna.Themes;
 using Manina.Windows.Forms;
-using Microsoft.Extensions.Logging;
 
 namespace Ariadna;
 
@@ -23,7 +22,6 @@ public partial class MainPanel : Form
     private bool m_SuppressNameChangedEvent;
 
     private readonly AbstractDbStrategy m_DbStrategy;
-    private readonly ILogger logger;
 
     private readonly ImageListViewAriadnaRenderer m_ListViewRenderer = new();
 
@@ -39,13 +37,12 @@ public partial class MainPanel : Form
     private const string EMPTY_DOTS = ". . .";
     #endregion
 
-    public MainPanel(AbstractDbStrategy strategy, ILogger logger)
+    public MainPanel(AbstractDbStrategy strategy)
     {
         InitializeComponent();
         ApplyTheme();
 
         m_DbStrategy = strategy;
-        this.logger = logger;
         m_DbStrategy.FilterControls(this);
         m_DbStrategy.EntryInserted += OnNewEntryInserted;
 
@@ -98,7 +95,7 @@ public partial class MainPanel : Form
     }
     private void UpdateImageList(List<EntryDto> entries)
     {
-        m_ToolStrip_EntriesCount.Text = entries.Count().ToString();
+        m_ToolStrip_EntriesCount.Text = entries.Count.ToString();
 
         m_ImageListView.Items.Clear();
 
@@ -235,7 +232,7 @@ public partial class MainPanel : Form
         var info = m_DbStrategy.GetEntryInfo(id);
 
         var msg = info.Title + " / " + info.TitleOrig + "\n" + info.Path;
-        var caption = deleteFile ? "Удалить запись и файл?" : "Удалить запись?";
+        var caption = deleteFile ? Resources.DeleteEntryAndFile : Resources.DeleteEntry;
         var dialogResult = MessageBox.Show(msg, caption, MessageBoxButtons.YesNoCancel, deleteFile ? MessageBoxIcon.Warning : MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
         if (dialogResult != DialogResult.Yes)
         {
@@ -276,7 +273,7 @@ public partial class MainPanel : Form
         }
         else
         {
-            MessageBox.Show(info.Path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(info.Path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
     private void OnNewEntryInserted(object sender, AbstractDbStrategy.EntryInsertedEventArgs e)
@@ -427,6 +424,7 @@ public partial class MainPanel : Form
         }
     }
 
+    // ReSharper disable once UnusedMember.Local
     private void DeleteUnusedActors()
     {
         using var ctx = new AriadnaEntities();
@@ -626,7 +624,7 @@ public partial class MainPanel : Form
     {
         if (m_FloatingPanel.Visible)
         {
-            m_ToolStrip_GenreName.Text = string.Join(" ", m_FloatingPanel.EntryNames.ToArray());
+            m_ToolStrip_GenreName.Text = string.Join(" ", m_FloatingPanel.EntryNames);
 
             QueryEntries();
         }

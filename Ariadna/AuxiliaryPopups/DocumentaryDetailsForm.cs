@@ -14,8 +14,6 @@ namespace Ariadna.AuxiliaryPopups;
 
 public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsForm(filePath, logger)
 {
-    private readonly ILogger logger = logger;
-
     #region OVERRIDEN FUNCTIONS
     protected override void DoLoad()
     {
@@ -30,14 +28,7 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
         m_TxtDescription.Height = m_TxtDescription.Height * 5/2;
 
         // Remove extension
-        m_TxtTitle.Text = m_TxtTitle.Text.
-            Replace(".avi", string.Empty).
-            Replace(".mkv", string.Empty).
-            Replace(".m4v", string.Empty).
-            Replace(".mp4", string.Empty).
-            Replace(".mpg", string.Empty).
-            Replace(".ts", string.Empty).
-            Replace(".mpeg", string.Empty);
+        m_TxtTitle.Text = m_TxtTitle.Text.RemoveExtensions();
         var length = Utilities.GetVideoDuration(FilePath);
         m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
 
@@ -76,7 +67,7 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
     }
     protected override List<string> GetGenres()
     {
-        return Utilities.DOCUMENTARY_GENRES.Keys.ToList();
+        return Utilities.DocumentaryGenres.Keys.ToList();
     }
     protected override string GetGenreBySynonym(string name)
     {
@@ -114,7 +105,7 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
         }
         catch (DbEntityValidationException)
         {
-            MessageBox.Show("Ой", "Ошибка сохранения списка жанров", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.Oops, Resources.FailedToSaveGenres, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
         }
 
@@ -149,7 +140,7 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
         entry.file_path = m_TxtPath.Text.Trim();
         entry.description = m_TxtDescription.Text;
         entry.creation_time = File.GetLastWriteTimeUtc(FilePath);
-        entry.want_to_see = m_WanToSee.Checked;
+        entry.want_to_see = m_WantToSee.Checked;
 
         if (bAddEntry)
         {
@@ -162,7 +153,7 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
         }
         catch (DbEntityValidationException)
         {
-            MessageBox.Show(title, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
         }
 
@@ -185,7 +176,7 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
         }
         catch (Exception)
         {
-            MessageBox.Show("Ошибка сохранения постера", "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.FailedToSavePoster, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         return true;
@@ -238,7 +229,7 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
         m_TxtTitleOrig.Text = entry.title_original;
         m_TxtPath.Text = entry.file_path;
         m_TxtDescription.Text = Utilities.DecorateDescription(entry.description);
-        m_WanToSee.Checked = Convert.ToBoolean(entry.want_to_see);
+        m_WantToSee.Checked = Convert.ToBoolean(entry.want_to_see);
 
         var filename = Settings.Default.DocumentaryPostersRootPath + entry.Id;
         if (File.Exists(filename))

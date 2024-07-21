@@ -15,14 +15,11 @@ using TMDbLib.Client;
 using TMDbLib.Objects.General;
 using TMDbLib.Objects.TvShows;
 using TMDbLib.Utilities.Serializer;
-using static System.Int32;
 
 namespace Ariadna.AuxiliaryPopups;
 
 public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(filePath, logger)
 {
-    private readonly ILogger logger = logger;
-
     #region Public Fields
     public int TmdbMovieIndex { get; set; }
     public int TmdbTvShowIndex { get; set; }
@@ -39,14 +36,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         m_DirectorsPhotos.ImageSize = new Size(Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
 
         // Remove extension
-        m_TxtTitle.Text = m_TxtTitle.Text.
-            Replace(".avi", string.Empty).
-            Replace(".mkv", string.Empty).
-            Replace(".m4v", string.Empty).
-            Replace(".mp4", string.Empty).
-            Replace(".mpg", string.Empty).
-            Replace(".ts", string.Empty).
-            Replace(".mpeg", string.Empty);
+        m_TxtTitle.Text = m_TxtTitle.Text.RemoveExtensions();
         var length = Utilities.GetVideoDuration(FilePath);
         m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
 
@@ -118,7 +108,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
     }
     protected override List<string> GetGenres()
     {
-        return Utilities.MOVIE_GENRES.Keys.ToList();
+        return Utilities.MovieGenres.Keys.ToList();
     }
     protected override string GetGenreBySynonym(string name)
     {
@@ -215,7 +205,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         }
         catch (DbEntityValidationException)
         {
-            MessageBox.Show("Ой", "Ошибка сохранения списка жанров", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.Oops, Resources.FailedToSaveGenres, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
         }
 
@@ -249,7 +239,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         }
         catch (DbEntityValidationException)
         {
-            MessageBox.Show("Ой!", "Ошибка сохранения списка актеров", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.Oops, Resources.FailedToSaveCast, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
         }
 
@@ -284,7 +274,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         }
         catch (DbEntityValidationException)
         {
-            MessageBox.Show("Ой!", "Ошибка сохранения списка режисеров", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.Oops, Resources.FailedToSaveDirectors, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
         }
 
@@ -319,7 +309,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         entry.file_path = m_TxtPath.Text.Trim();
         entry.description = m_TxtDescription.Text;
         entry.creation_time = File.GetLastWriteTimeUtc(FilePath);
-        entry.want_to_see = m_WanToSee.Checked;
+        entry.want_to_see = m_WantToSee.Checked;
 
         if (bAddEntry)
         {
@@ -332,7 +322,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         }
         catch (DbEntityValidationException)
         {
-            MessageBox.Show(title, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
         }
 
@@ -355,7 +345,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         }
         catch (Exception)
         {
-            MessageBox.Show("Ошибка сохранения постера", "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.FailedToSavePoster, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         return true;
@@ -476,7 +466,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         m_TxtTitleOrig.Text = entry.title_original;
         m_TxtPath.Text = entry.file_path;
         m_TxtDescription.Text = Utilities.DecorateDescription(entry.description);
-        m_WanToSee.Checked = Convert.ToBoolean(entry.want_to_see);
+        m_WantToSee.Checked = Convert.ToBoolean(entry.want_to_see);
 
         var filename = Settings.Default.MoviePostersRootPath + entry.Id;
         if (File.Exists(filename))

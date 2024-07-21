@@ -1,27 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Manina.Windows.Forms;
-using System.IO;
-using System.Windows.Forms;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
 using Ariadna.ImageListHelpers;
+using Ariadna.Properties;
+using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 
 namespace Ariadna.DBStrategies;
 
 public class GamesDbStrategy : AbstractDbStrategy
 {
-    private readonly ILogger logger;
+    private readonly ILogger m_Logger;
     private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new();
 
     public GamesDbStrategy(ILogger logger)
     {
-        this.logger = logger;
-        m_PosterImageAdaptor.RootPath = Properties.Settings.Default.GamePostersRootPath;
+        m_Logger = logger;
+        m_PosterImageAdaptor.RootPath = Settings.Default.GamePostersRootPath;
     }
 
     public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
@@ -114,14 +115,14 @@ public class GamesDbStrategy : AbstractDbStrategy
 
         ctx.SaveChanges();
 
-        var posterPath = Properties.Settings.Default.GamePostersRootPath + id;
+        var posterPath = Settings.Default.GamePostersRootPath + id;
         if (File.Exists(posterPath))
         {
             File.Delete(posterPath);
         }
         for (var i = 1u; i <= 4; ++i)
         {
-            var name = posterPath + Properties.Settings.Default.PreviewSuffix + i;
+            var name = posterPath + Settings.Default.PreviewSuffix + i;
             if (File.Exists(name))
             {
                 File.Delete(name);
@@ -130,12 +131,12 @@ public class GamesDbStrategy : AbstractDbStrategy
     }
     public override bool FindNextEntryAutomatically()
     {
-        if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultGamesPath)))
+        if (FindFirstNotInserted(Directory.GetDirectories(Settings.Default.DefaultGamesPath)))
         {
             return true;
         }
 
-        if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultGamesPathVR)))
+        if (FindFirstNotInserted(Directory.GetDirectories(Settings.Default.DefaultGamesPathVR)))
         {
             return true;
         }
@@ -145,9 +146,10 @@ public class GamesDbStrategy : AbstractDbStrategy
     public override void FindNextEntryManually()
     {
         const string folderFlag = "Choose folder";
-        using var openFileDialog = new OpenFileDialog()
+        // ReSharper disable once UsingStatementResourceInitialization
+        using var openFileDialog = new OpenFileDialog
         {
-            InitialDirectory = Properties.Settings.Default.DefaultGamesPath,
+            InitialDirectory = Settings.Default.DefaultGamesPath,
             RestoreDirectory = true,
 
             // Allow folders
@@ -190,7 +192,7 @@ public class GamesDbStrategy : AbstractDbStrategy
         // Open directory
         if (Directory.Exists(path))
         {
-            Process.Start(new ProcessStartInfo()
+            Process.Start(new ProcessStartInfo
             {
                 FileName = path,
                 UseShellExecute = true,
@@ -199,7 +201,7 @@ public class GamesDbStrategy : AbstractDbStrategy
         }
         else
         {
-            MessageBox.Show(path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
     public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
@@ -241,7 +243,7 @@ public class GamesDbStrategy : AbstractDbStrategy
         panel.m_ToolStrip_nonVRSprtr.Visible = true;
         panel.m_ToolStrip_nonVRLbl.Visible = true;
         panel.m_ToolStrip_nonVRBtn.Visible = true;
-        panel.Icon = Properties.Resources.AriadnaGames;
+        panel.Icon = Resources.AriadnaGames;
     }
     private bool FindFirstNotInserted(string[] paths)
     {
@@ -271,7 +273,7 @@ public class GamesDbStrategy : AbstractDbStrategy
     }
     private void ShowDataDialog(string path)
     {
-        var detailsForm = new GameDetailsForm(path, logger);
+        var detailsForm = new GameDetailsForm(path, m_Logger);
         detailsForm.FormClosed += OnDetailsFormClosed;
         detailsForm.ShowDialog();
     }

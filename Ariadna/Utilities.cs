@@ -17,7 +17,7 @@ namespace Ariadna
             SUCCESS,
         }
 
-        public static Dictionary<string, Bitmap> MOVIE_GENRES = new()
+        public static readonly Dictionary<string, Bitmap> MovieGenres = new()
         {
             {"Боевик", Properties.Resources.action},
             {"Приключение", Properties.Resources.adventure},
@@ -45,7 +45,7 @@ namespace Ariadna
             {"Вестерн", Properties.Resources.western},
             {"Новогодний", Properties.Resources.xmas},
         };
-        public static Dictionary<string, Bitmap> DOCUMENTARY_GENRES = new()
+        public static readonly Dictionary<string, Bitmap> DocumentaryGenres = new()
         {
             {"Travel", Properties.Resources.travel},
             {"Art. History", Properties.Resources.art},
@@ -56,7 +56,7 @@ namespace Ariadna
             {"Science", Properties.Resources.science},
             {"Misc", Properties.Resources.misc},
         };
-        public static Dictionary<string, Bitmap> GAME_GENRES = new()
+        public static readonly Dictionary<string, Bitmap> GameGenres = new()
         {
             {"Adventure", Properties.Resources.adventure},
             {"Fighting", Properties.Resources.fighting},
@@ -84,7 +84,7 @@ namespace Ariadna
         };
         public static Bitmap GetMovieGenreImage(string name)
         {
-            return MOVIE_GENRES.TryGetValue(name, out var value) ? value : Properties.Resources.No_Image;
+            return MovieGenres.TryGetValue(name, out var value) ? value : Properties.Resources.No_Image;
         }
         public static string GetMovieGenreBySynonym(string name)
         {
@@ -98,7 +98,7 @@ namespace Ariadna
         }
         public static Bitmap GetGameGenreImage(string name)
         {
-            return GAME_GENRES.TryGetValue(name, out var value) ? value : Properties.Resources.No_Image;
+            return GameGenres.TryGetValue(name, out var value) ? value : Properties.Resources.No_Image;
         }
         public static string GetGameGenreBySynonym(string name)
         {
@@ -106,7 +106,7 @@ namespace Ariadna
         }
         public static Bitmap GetDocumentaryGenreImage(string name)
         {
-            return DOCUMENTARY_GENRES.TryGetValue(name, out var value) ? value : Properties.Resources.No_Image;
+            return DocumentaryGenres.TryGetValue(name, out var value) ? value : Properties.Resources.No_Image;
         }
         public static string GetDocumentaryGenreBySynonym(string name)
         {
@@ -135,6 +135,7 @@ namespace Ariadna
         {
             outBmp = null;
 
+            // ReSharper disable once UsingStatementResourceInitialization
             using var openFileDialog = new OpenFileDialog()
             {
                 InitialDirectory = Properties.Settings.Default.BitmapInitialSearchDir,

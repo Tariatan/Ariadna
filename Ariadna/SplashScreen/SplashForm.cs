@@ -37,6 +37,7 @@ public partial class SplashForm : Form
         }
         catch
         {
+            // Nothing to do
         }
     }
 }

@@ -63,6 +63,7 @@ internal class ImageListViewAriadnaRenderer : ImageListView.ImageListViewRendere
 
         DrawItemText(g, item, bounds);
     }
+    // ReSharper disable once UnusedMember.Local
     private void FillItemBackground(Graphics g, Rectangle bounds)
     {
         using Brush brush = new SolidBrush(Color.Green);

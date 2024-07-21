@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Ariadna.Extension;
+using Ariadna.Properties;
 using Microsoft.Extensions.Logging;
 using static System.Drawing.Imaging.ImageFormat;
 
@@ -13,8 +14,6 @@ namespace Ariadna.AuxiliaryPopups;
 
 public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(filePath, logger)
 {
-    private readonly ILogger logger = logger;
-
     #region OVERRIDEN FUNCTIONS
     protected override void DoLoad()
     {
@@ -49,9 +48,9 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
         m_VR.Visible = true;
         m_LblVersion.Visible = true;
         m_TxtVersion.Visible = true;
-        m_VR.Checked = FilePath.Contains(Properties.Settings.Default.DefaultGamesPathVR);
+        m_VR.Checked = FilePath.Contains(Settings.Default.DefaultGamesPathVR);
 
-        Icon = Properties.Resources.AriadnaGames;
+        Icon = Resources.AriadnaGames;
         #endregion
 
         using var ctx = new AriadnaEntities();
@@ -86,7 +85,7 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
     }
     protected override List<string> GetGenres()
     {
-        return Utilities.GAME_GENRES.Keys.ToList();
+        return Utilities.GameGenres.Keys.ToList();
     }
     protected override string GetGenreBySynonym(string name)
     {
@@ -123,7 +122,7 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
         }
         catch (DbEntityValidationException)
         {
-            MessageBox.Show("Ой", "Ошибка сохранения списка жанров", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.Oops, Resources.FailedToSaveGenres, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
         }
 
@@ -157,7 +156,7 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
         entry.year = m_TxtYear.Text.ToInt();
         entry.file_path = m_TxtPath.Text.Trim();
         entry.creation_time = File.GetLastWriteTimeUtc(FilePath);
-        entry.want_to_play = m_WanToSee.Checked;
+        entry.want_to_play = m_WantToSee.Checked;
         entry.vr = m_VR.Checked;
         entry.version = m_TxtVersion.Text.Trim();
 
@@ -172,7 +171,7 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
         }
         catch (DbEntityValidationException ex)
         {
-            MessageBox.Show(title + ":\n" + ex.Message, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(title + Resources.Colon + '\n' + ex.Message, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
         }
 
@@ -191,17 +190,17 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
 
         try
         {
-            var name = Properties.Settings.Default.GamePostersRootPath + StoredDbEntryId;
+            var name = Settings.Default.GamePostersRootPath + StoredDbEntryId;
             m_PicPoster.Image.Save(name, Png);
 
-            m_Preview1.Image.Save(name + Properties.Settings.Default.PreviewSuffix + 1, Png);
-            m_Preview2.Image.Save(name + Properties.Settings.Default.PreviewSuffix + 2, Png);
-            m_Preview3.Image.Save(name + Properties.Settings.Default.PreviewSuffix + 3, Png);
-            m_Preview4.Image.Save(name + Properties.Settings.Default.PreviewSuffix + 4, Png);
+            m_Preview1.Image.Save(name + Settings.Default.PreviewSuffix + 1, Png);
+            m_Preview2.Image.Save(name + Settings.Default.PreviewSuffix + 2, Png);
+            m_Preview3.Image.Save(name + Settings.Default.PreviewSuffix + 3, Png);
+            m_Preview4.Image.Save(name + Settings.Default.PreviewSuffix + 4, Png);
         }
         catch (Exception)
         {
-            MessageBox.Show("Ошибка сохранения постера", "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(Resources.FailedToSavePoster, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
         }
 
@@ -254,7 +253,7 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
         m_TxtTitle.Text = entry.title;
         m_TxtTitleOrig.Text = entry.title_original;
         m_TxtPath.Text = entry.file_path;
-        m_WanToSee.Checked = Convert.ToBoolean(entry.want_to_play);
+        m_WantToSee.Checked = Convert.ToBoolean(entry.want_to_play);
         m_VR.Checked = Convert.ToBoolean(entry.vr);
         m_TxtVersion.Text = entry.version;
 
@@ -264,7 +263,7 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
             AddGenre(genres.GenreOfGame.name);
         }
 
-        var filename = Properties.Settings.Default.GamePostersRootPath + entry.Id;
+        var filename = Settings.Default.GamePostersRootPath + entry.Id;
         if (File.Exists(filename))
         {
             using var bmpTemp = new Bitmap(filename);
@@ -273,7 +272,7 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
 
         for (var i = 1u; i <= 4; ++i)
         {
-            var name = filename + Properties.Settings.Default.PreviewSuffix + i;
+            var name = filename + Settings.Default.PreviewSuffix + i;
             if (!File.Exists(name))
             {
                 continue;

@@ -1,29 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Manina.Windows.Forms;
-using System.IO;
-using System.Windows.Forms;
+using System.Data.Entity.Validation;
 using System.Diagnostics;
 using System.Drawing;
-using System.Data.Entity.Validation;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
 using Ariadna.Extension;
 using Ariadna.ImageListHelpers;
+using Ariadna.Properties;
+using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
+using TMDbLib.Client;
+using TMDbLib.Objects.Search;
 
 namespace Ariadna.DBStrategies;
 
 public class MoviesDbStrategy : AbstractDbStrategy
 {
-    private readonly ILogger logger;
+    private readonly ILogger m_Logger;
     private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new();
 
     public MoviesDbStrategy(ILogger logger)
     {
-        this.logger = logger;
-        m_PosterImageAdaptor.RootPath = Properties.Settings.Default.MoviePostersRootPath;
+        m_Logger = logger;
+        m_PosterImageAdaptor.RootPath = Settings.Default.MoviePostersRootPath;
     }
 
     public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
@@ -83,7 +86,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
         // -- RECENTLY Added --
         if (values.IsRecent)
         {
-            var recentDateStart = DateTime.Now.AddMonths(-Properties.Settings.Default.RecentInMonth);
+            var recentDateStart = DateTime.Now.AddMonths(-Settings.Default.RecentInMonth);
             query = query.Where(r => ((r.creation_time > recentDateStart)));
         }
         // -- NEW --
@@ -94,13 +97,13 @@ public class MoviesDbStrategy : AbstractDbStrategy
         // -- SERIES --
         if (values.IsSeries)
         {
-            query = query.Where(r => (r.file_path.StartsWith(Properties.Settings.Default.DefaultSeriesPath.Substring(0, 1))));
+            query = query.Where(r => (r.file_path.StartsWith(Settings.Default.DefaultSeriesPath.Substring(0, 1))));
         }
         // -- MOVIES --
         if (values.IsMovies)
         {
-            query = query.Where(r => (r.file_path.StartsWith(Properties.Settings.Default.DefaultMoviesPath.Substring(0, 1)) ||
-                                      r.file_path.StartsWith(Properties.Settings.Default.DefaultMoviesPathTMP.Substring(0, 1))));
+            query = query.Where(r => (r.file_path.StartsWith(Settings.Default.DefaultMoviesPath.Substring(0, 1)) ||
+                                      r.file_path.StartsWith(Settings.Default.DefaultMoviesPathTMP.Substring(0, 1))));
         }
                 
         return query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
@@ -137,7 +140,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
             ctx.SaveChanges();
         }
 
-        var posterPath = Properties.Settings.Default.MoviePostersRootPath + id;
+        var posterPath = Settings.Default.MoviePostersRootPath + id;
         if (!File.Exists(posterPath))
         {
             return;
@@ -154,16 +157,16 @@ public class MoviesDbStrategy : AbstractDbStrategy
     }
     public override bool FindNextEntryAutomatically()
     {
-        if (FindFirstNotInserted(Directory.GetFiles(Properties.Settings.Default.DefaultMoviesPath)))
+        if (FindFirstNotInserted(Directory.GetFiles(Settings.Default.DefaultMoviesPath)))
         {
             return true;
         }
-        if (FindFirstNotInserted(Directory.GetFiles(Properties.Settings.Default.DefaultMoviesPathTMP)))
+        if (FindFirstNotInserted(Directory.GetFiles(Settings.Default.DefaultMoviesPathTMP)))
         {
             return true;
         }
 
-        if (FindFirstNotInserted(Directory.GetDirectories(Properties.Settings.Default.DefaultSeriesPath)))
+        if (FindFirstNotInserted(Directory.GetDirectories(Settings.Default.DefaultSeriesPath)))
         {
             return true;
         }
@@ -173,10 +176,11 @@ public class MoviesDbStrategy : AbstractDbStrategy
     public override void FindNextEntryManually()
     {
         const string folderFlag = "File or folder";
-        using var openFileDialog = new OpenFileDialog()
+        // ReSharper disable once UsingStatementResourceInitialization
+        using var openFileDialog = new OpenFileDialog
         {
-            InitialDirectory = Properties.Settings.Default.DefaultMoviesPath,
-            Filter = "Видео файлы|*.avi;*.mkv;*.mpg;*.mp4;*.m4v;*.ts|All files (*.*)|*.*",
+            InitialDirectory = Settings.Default.DefaultMoviesPath,
+            Filter = Settings.Default.VideoFilesFilter,
             FilterIndex = 1,
             RestoreDirectory = true,
 
@@ -208,7 +212,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
             return;
         }
 
-        var detailsForm = new MovieDetailsForm(path, logger);
+        var detailsForm = new MovieDetailsForm(path, m_Logger);
         detailsForm.FormClosed += OnDetailsFormClosed;
         detailsForm.ShowDialog();
     }
@@ -223,27 +227,27 @@ public class MoviesDbStrategy : AbstractDbStrategy
         // Check if it is a file first
         if (File.Exists(path))
         {
-            if (!File.Exists(Properties.Settings.Default.MediaPlayerPath))
+            if (!File.Exists(Settings.Default.MediaPlayerPath))
             {
                 return;
             }
 
             // Enclose the path in quotes as required by MPC
-            Process.Start(Properties.Settings.Default.MediaPlayerPath, "\"" + path + "\"");
+            Process.Start(Settings.Default.MediaPlayerPath, "\"" + path + "\"");
         }
         // Checked if it is a directory
         else if (Directory.Exists(path))
         {
-            Process.Start(new ProcessStartInfo()
+            Process.Start(new ProcessStartInfo
             {
                 FileName = "A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander/Totalcmd64.exe",
-                WorkingDirectory = Path.GetDirectoryName("A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander"),
+                WorkingDirectory = Path.GetDirectoryName("A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander")!,
                 Arguments = $"/O /L=\"{path}\"",
             });
         }
         else
         {
-            MessageBox.Show(path, "Путь не найден", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
     public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
@@ -311,17 +315,17 @@ public class MoviesDbStrategy : AbstractDbStrategy
         FetchMovieFromImdb(foundPath);
         return true;
     }
-    private bool isFetching;
+    private bool m_IsFetching;
     private async void FetchMovieFromImdb(string path)
     {
-        if(isFetching)
+        if(m_IsFetching)
         {
             return;
         }
 
-        isFetching = true;
-        var client = new TMDbLib.Client.TMDbClient(Properties.Settings.Default.TmdbApiKey);
-        var detailsForm = new MovieDetailsForm(path, logger)
+        m_IsFetching = true;
+        var client = new TMDbClient(Settings.Default.TmdbApiKey);
+        var detailsForm = new MovieDetailsForm(path, m_Logger)
         {
             TmdbMovieIndex = -1,
             TmdbTvShowIndex = -1
@@ -360,9 +364,9 @@ public class MoviesDbStrategy : AbstractDbStrategy
         detailsForm.FormClosed += OnDetailsFormClosed;
         detailsForm.ShowDialog();
 
-        isFetching = false;
+        m_IsFetching = false;
     }
-    private int GetBestMovieChoice(List<TMDbLib.Objects.Search.SearchMovie> movies, string path)
+    private int GetBestMovieChoice(List<SearchMovie> movies, string path)
     {
         var titles = new List<MovieChoiceDto>();
         foreach (var result in movies.Take(20))
@@ -375,7 +379,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
         choice.ShowDialog(Form.ActiveForm);
         return choice.Index;
     }
-    private int GetBestTvShowChoice(List<TMDbLib.Objects.Search.SearchTv> movies, string path)
+    private int GetBestTvShowChoice(List<SearchTv> movies, string path)
     {
         var titles = new List<MovieChoiceDto>();
         foreach (var result in movies.Take(20))
@@ -415,6 +419,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
 
         return string.Empty;
     }
+    // ReSharper disable once UnusedMember.Local
     private void DeleteUnusedActors()
     {
         using var ctx = new AriadnaEntities();
@@ -435,6 +440,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
             ctx.SaveChanges();
         }
     }
+    // ReSharper disable once UnusedMember.Local
     private void DeleteUnusedGenres()
     {
         using var ctx = new AriadnaEntities();
@@ -455,6 +461,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
             ctx.SaveChanges();
         }
     }
+    // ReSharper disable once UnusedMember.Local
     private void UpdateEntryData()
     {
         using var ctx = new AriadnaEntities();
@@ -469,7 +476,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
             }
             catch (DbEntityValidationException)
             {
-                MessageBox.Show(entry.title, "Ошибка сохранения записи", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(entry.title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

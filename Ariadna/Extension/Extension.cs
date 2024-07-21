@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
@@ -44,6 +45,7 @@ public static class Extension
         }
         catch
         {
+            // Nothing to do
         }
 
         return null;
@@ -72,5 +74,17 @@ public static class Extension
         {
             listView.Items.Remove(listView.FocusedItem!);
         }
+    }
+
+    public static string RemoveExtensions(this string path)
+    {
+        return path.
+            Replace(".avi", string.Empty).
+            Replace(".mkv", string.Empty).
+            Replace(".m4v", string.Empty).
+            Replace(".mp4", string.Empty).
+            Replace(".mpg", string.Empty).
+            Replace(".ts", string.Empty).
+            Replace(".mpeg", string.Empty);
     }
 }
