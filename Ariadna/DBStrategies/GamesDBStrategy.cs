@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -9,10 +10,11 @@ using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
 using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
+using DbProvider;
 using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 
-namespace Ariadna.DBStrategies;
+namespace Ariadna.DbStrategies;
 
 public class GamesDbStrategy : AbstractDbStrategy
 {
@@ -171,6 +173,10 @@ public class GamesDbStrategy : AbstractDbStrategy
         }
         ShowDataDialog(path);
     }
+
+    public override void UpdateSubgenre(MainPanel panel) {}
+    public override string[] QuickListFilter() => ["}", "«"];
+
     public override void ShowEntryDetails(int id)
     {
         var path = FindStoredEntryPathById(id);
@@ -194,9 +200,9 @@ public class GamesDbStrategy : AbstractDbStrategy
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = path,
-                UseShellExecute = true,
-                Verb = "open"
+                FileName = Settings.Default.TotalCommanderPath,
+                WorkingDirectory = Path.GetDirectoryName(Settings.Default.TotalCommanderPath)!,
+                Arguments = $"/O /L=\"{path}\"",
             });
         }
         else
@@ -204,9 +210,10 @@ public class GamesDbStrategy : AbstractDbStrategy
             MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
-    public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
-    public override SortedDictionary<string, Bitmap> GetActors(string name, int limit) => null;
-    public override SortedDictionary<string, Bitmap> GetGenres(string name)
+    public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
+    public override ImmutableSortedDictionary<string, Bitmap> GetActors(string name, int limit) => null;
+    public override ImmutableSortedDictionary<string, Bitmap> GetSubgenres(string name) => null;
+    public override ImmutableSortedDictionary<string, Bitmap> GetGenres()
     {
         var values = new SortedDictionary<string, Bitmap>();
         using var ctx = new AriadnaEntities();
@@ -217,7 +224,7 @@ public class GamesDbStrategy : AbstractDbStrategy
             values[genre.name] = Utilities.GetGameGenreImage(genre.name);
         }
 
-        return values;
+        return values.ToImmutableSortedDictionary();
     }
     public override void FilterControls(MainPanel panel)
     {
@@ -238,7 +245,7 @@ public class GamesDbStrategy : AbstractDbStrategy
         panel.m_ToolStrip_MoviesSprtr.Visible = false;
 
         panel.m_ToolStrip_VRSprtr.Visible = true;
-        panel.m_ToolStrip_VRLbl.Visible = true;
+        panel.m_ToolStrip_VrLbl.Visible = true;
         panel.m_ToolStrip_VRBtn.Visible = true;
         panel.m_ToolStrip_nonVRSprtr.Visible = true;
         panel.m_ToolStrip_nonVRLbl.Visible = true;

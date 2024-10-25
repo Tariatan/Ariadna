@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data.Entity.Validation;
 using System.Diagnostics;
 using System.Drawing;
@@ -10,10 +11,11 @@ using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
 using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
+using DbProvider;
 using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 
-namespace Ariadna.DBStrategies;
+namespace Ariadna.DbStrategies;
 
 public class DocumentariesDbStrategy : AbstractDbStrategy
 {
@@ -27,7 +29,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
     }
 
     public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
-        
+
     public override List<EntryDto> GetEntries()
     {
         using var ctx = new AriadnaEntities();
@@ -167,6 +169,10 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         }
         ShowDataDialog(path);
     }
+
+    public override void UpdateSubgenre(MainPanel panel) {}
+    public override string[] QuickListFilter() => ["}", "«"];
+
     public override void ShowEntryDetails(int id)
     {
         var path = FindStoredEntryPathById(id);
@@ -217,9 +223,10 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
             MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
-    public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
-    public override SortedDictionary<string, Bitmap> GetActors(string name, int limit) => null;
-    public override SortedDictionary<string, Bitmap> GetGenres(string name)
+    public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
+    public override ImmutableSortedDictionary<string, Bitmap> GetActors(string name, int limit) => null;
+    public override ImmutableSortedDictionary<string, Bitmap> GetSubgenres(string name) => null;
+    public override ImmutableSortedDictionary<string, Bitmap> GetGenres()
     {
         var values = new SortedDictionary<string, Bitmap>();
         using var ctx = new AriadnaEntities();
@@ -230,7 +237,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
             values[genre.name] = Utilities.GetDocumentaryGenreImage(genre.name);
         }
 
-        return values;
+        return values.ToImmutableSortedDictionary();
     }
     public override void FilterControls(MainPanel panel)
     {

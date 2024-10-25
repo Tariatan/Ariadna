@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
+using DbProvider;
 using Microsoft.Extensions.Logging;
 
 namespace Ariadna.AuxiliaryPopups;
@@ -28,7 +29,7 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
         m_TxtDescription.Height = m_TxtDescription.Height * 5/2;
 
         // Remove extension
-        m_TxtTitle.Text = m_TxtTitle.Text.RemoveExtensions();
+        m_TxtTitle.Text = m_TxtTitle.Text.RemoveExtension();
         var length = Utilities.GetVideoDuration(FilePath);
         m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
 

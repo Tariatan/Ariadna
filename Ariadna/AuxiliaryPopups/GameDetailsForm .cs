@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
+using DbProvider;
 using Microsoft.Extensions.Logging;
 using static System.Drawing.Imaging.ImageFormat;
 

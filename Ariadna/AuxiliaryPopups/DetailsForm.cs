@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
 using Ariadna.Themes;
+using DbProvider;
 using MediaInfo;
 using Microsoft.Extensions.Logging;
 
@@ -380,7 +382,7 @@ public partial class DetailsForm : Form
         FloatingPanel.Size = m_GenresList.Size with { Height = Settings.Default.GenreImageHeight * 7 - 10 };
         FloatingPanel.BackColor = BackColor;
 
-        FloatingPanel.UpdateListView(values, FloatingPanel.EPanelContentType.GENRES, false, false, Settings.Default.GenreImageWidth, Settings.Default.GenreImageHeight);
+        FloatingPanel.UpdateListView(values.ToImmutableSortedDictionary(), FloatingPanel.EPanelContentType.GENRES, false, false, Settings.Default.GenreImageWidth, Settings.Default.GenreImageHeight);
         if (!FloatingPanel.Visible)
         {
             FloatingPanel.Show(this);
@@ -525,7 +527,7 @@ public partial class DetailsForm : Form
 
         var info = new MediaInfoWrapper(path, m_Logger);
         m_TxtDimension.Text = info.Width.ToString() + 'x' + info.Height;
-        m_TxtBitrate.Text = (info.VideoRate / 1000000) + ' ' + Resources.Mbps;
+        m_TxtBitrate.Text = (info.VideoRate / 1000000).ToString() + ' ' + Resources.Mbps;
 
         var audios = info.AudioStreams;
         var flags = new List<PictureBox> { m_PicFlag1, m_PicFlag2, m_PicFlag3, m_PicFlag4 };
@@ -545,12 +547,48 @@ public partial class DetailsForm : Form
 
             flags[index++].Image = stream.Language switch
             {
-                "Ukrainian" => Resources.ua,
-                "Russian" => Resources.ru,
-                "English" => Resources.en,
-                "French" => Resources.fr,
+                "Ukrainian" => Resources.ua_flag,
+                "Russian" => Resources.ru_flag,
+                "English" => Resources.en_flag,
+                "French" => Resources.fr_flag,
                 _ => flags[index++].Image
             };
         }
+    }
+    protected void AddNewListItem(ListView listView, ImageList imageList, string name, Bitmap image = null)
+    {
+        if (name == "↓")
+        {
+            return;
+        }
+
+        if (listView.FindItemWithText(name) != null)
+        {
+            return;
+        }
+
+        if (image == null)
+        {
+            using var ctx = new AriadnaEntities();
+            var director = ctx.Directors.AsNoTracking().FirstOrDefault(r => r.name == name);
+            if (director?.photo != null)
+            {
+                image = director.photo.ToBitmap();
+            }
+
+            if (image == null)
+            {
+                var actor = ctx.Actors.AsNoTracking().FirstOrDefault(r => r.name == name);
+                if (actor?.photo != null && Utilities.IsValidPreview(actor.photo))
+                {
+                    image = actor.photo.ToBitmap();
+                }
+            }
+
+            image ??= new Bitmap(Resources.No_Preview_Image_small);
+        }
+
+        imageList.Images.Add(name, image);
+        listView.Items.Add(new ListViewItem(name, imageList.Images.IndexOfKey(name)));
     }
 }

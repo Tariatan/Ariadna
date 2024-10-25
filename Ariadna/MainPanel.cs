@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
-using Ariadna.DBStrategies;
+using Ariadna.DbStrategies;
 using Ariadna.Extension;
 using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
 using Ariadna.SplashScreen;
 using Ariadna.Themes;
+using DbProvider;
 using Manina.Windows.Forms;
 
 namespace Ariadna;
@@ -34,7 +36,6 @@ public partial class MainPanel : Form
 
     private const int MAX_SEARCH_FILTER_COUNT = 200;
 
-    private const string EMPTY_DOTS = ". . .";
     #endregion
 
     public MainPanel(AbstractDbStrategy strategy)
@@ -65,7 +66,7 @@ public partial class MainPanel : Form
         m_ToolStrip_WishlistLbl.ForeColor = Theme.MainForeColor;
         m_ToolStrip_RecentLbl.ForeColor = Theme.MainForeColor;
         m_ToolStrip_NewLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_VRLbl.ForeColor = Theme.MainForeColor;
+        m_ToolStrip_VrLbl.ForeColor = Theme.MainForeColor;
         m_ToolStrip_nonVRLbl.ForeColor = Theme.MainForeColor;
         m_ToolStrip_DirectorLbl.ForeColor = Theme.MainForeColor;
         m_ToolStrip_DirectorName.BackColor = Theme.ControlsBackColor;
@@ -76,13 +77,15 @@ public partial class MainPanel : Form
         m_ToolStrip_GenreNameLbl.ForeColor = Theme.MainForeColor;
         m_ToolStrip_GenreName.BackColor = Theme.ControlsBackColor;
         m_ToolStrip_GenreName.ForeColor = Theme.MainForeColor;
+        m_ToolStrip_SubgenreNameLbl.ForeColor = Theme.MainForeColor;
+        m_ToolStrip_SubgenreName.BackColor = Theme.ControlsBackColor;
+        m_ToolStrip_SubgenreName.ForeColor = Theme.MainForeColor;
         m_ToolStrip_EntriesCountLbl.ForeColor = Theme.MainForeColor;
         m_ToolStrip_EntriesCount.ForeColor = Theme.MainForeColor;
         m_ToolStrip_SeriesLbl.ForeColor = Theme.MainForeColor;
         m_ToolStrip_MoviesLbl.ForeColor = Theme.MainForeColor;
         m_QuickListFlow.BackColor = Theme.MainBackColor;
         BackColor = Theme.MainBackColor;
-
     }
     private void MainPanel_Load(object sender, EventArgs e)
     {
@@ -103,7 +106,7 @@ public partial class MainPanel : Form
         var listViewItems = new List<ImageListViewItem>(entries.Count);
         foreach (var entry in entries)
         {
-            firstChars.Add(entry.Title[..1]);
+            firstChars.Add(entry.Title[..1].ToUpper());
 
             var item = new ImageListViewItem(entry.Id.ToString(), entry.Title);
             listViewItems.Add(item);
@@ -125,6 +128,7 @@ public partial class MainPanel : Form
             Director = m_ToolStrip_DirectorName.Text,
             Actor = m_ToolStrip_ActorName.Text,
             Genre = m_ToolStrip_GenreName.Text,
+            Subgenre = m_ToolStrip_SubgenreName.Text,
             IsWish = m_ToolStrip_WishlistBtn.Checked,
             IsRecent = m_ToolStrip_RecentBtn.Checked,
             IsNew = m_ToolStrip_NewBtn.Checked,
@@ -146,9 +150,9 @@ public partial class MainPanel : Form
         {
             var any = false;
             // Filter out following symbols
-            foreach (var c in new[] { "}", "«" })
+            foreach (var c in m_DbStrategy.QuickListFilter())
             {
-                if (firstChar.Contains(c))
+                if (firstChar.Contains(c.ToUpper()))
                 {
                     any = true;
                     break;
@@ -176,9 +180,9 @@ public partial class MainPanel : Form
     }
     private void OnQuickListClicked(object sender, EventArgs e)
     {
-        Button charBtn = sender as Button;
+        var charBtn = sender as Button;
 
-        var selection = m_ImageListView.Items.FirstOrDefault(x => x.Text.StartsWith(charBtn!.Text));
+        var selection = m_ImageListView.Items.FirstOrDefault(x => x.Text.StartsWith(charBtn!.Text, true, null));
         m_ImageListView.EnsureVisible(selection!.Index);
         selection.Selected = true;
     }
@@ -200,10 +204,10 @@ public partial class MainPanel : Form
         {
             return;
         }
-        
+
         e.Handled = true;
 
-        if(FindNextEntryAutomatically() is false)
+        if (FindNextEntryAutomatically() is false)
         {
             m_DbStrategy.FindNextEntryManually();
         }
@@ -231,7 +235,7 @@ public partial class MainPanel : Form
 
         var info = m_DbStrategy.GetEntryInfo(id);
 
-        var msg = info.Title + " / " + info.TitleOrig + "\n" + info.Path;
+        var msg = info.Title + " / " + info.TitleOrig + '\n' + info.Path;
         var caption = deleteFile ? Resources.DeleteEntryAndFile : Resources.DeleteEntry;
         var dialogResult = MessageBox.Show(msg, caption, MessageBoxButtons.YesNoCancel, deleteFile ? MessageBoxIcon.Warning : MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
         if (dialogResult != DialogResult.Yes)
@@ -286,7 +290,7 @@ public partial class MainPanel : Form
         {
             return;
         }
-        
+
         m_ImageListView.EnsureVisible(selection.Index);
         selection.Selected = true;
     }
@@ -379,8 +383,13 @@ public partial class MainPanel : Form
     }
     private void ToolStrip_Genre_Clicked(object sender, EventArgs e)
     {
-        var values = m_DbStrategy.GetGenres(m_ToolStrip_GenreName.Text!.ToUpper());
+        var values = m_DbStrategy.GetGenres();
         ShowFloatingPanel(values, FloatingPanel.EPanelContentType.GENRES, false, false, Settings.Default.GenreImageWidth, Settings.Default.GenreImageHeight);
+    }
+    private void ToolStrip_Subgenre_Clicked(object sender, EventArgs e)
+    {
+        var values = m_DbStrategy.GetSubgenres(m_ToolStrip_GenreName.Text);
+        ShowFloatingPanel(values, FloatingPanel.EPanelContentType.SUBGENRES, false, false, Settings.Default.GenreImageWidth, Settings.Default.GenreImageHeight);
     }
     private void ToolStrip_ClearDirectorBtn_Clicked(object sender, EventArgs e)
     {
@@ -415,15 +424,29 @@ public partial class MainPanel : Form
         DeleteUnusedGenres();
 
         HideFloatingPanel();
-            
-        if (!string.IsNullOrEmpty(m_ToolStrip_GenreName.Text) && (m_ToolStrip_GenreName.Text != EMPTY_DOTS))
+
+        if (!string.IsNullOrEmpty(m_ToolStrip_GenreName.Text) && (m_ToolStrip_GenreName.Text != Utilities.EmptyDots))
         {
 
-            m_ToolStrip_GenreName.Text = EMPTY_DOTS;
+            m_ToolStrip_GenreName.Text = Utilities.EmptyDots;
             QueryEntries();
         }
     }
+    private void ToolStrip_ClearSubgenreBtn_Clicked(object sender, EventArgs e)
+    {
+        HideFloatingPanel();
 
+        if (!string.IsNullOrEmpty(m_ToolStrip_SubgenreName.Text) && (m_ToolStrip_SubgenreName.Text != Utilities.EmptyDots))
+        {
+
+            m_ToolStrip_SubgenreName.Text = Utilities.EmptyDots;
+            QueryEntries();
+        }
+    }
+    private void OnGenreChanged(object sender, EventArgs e)
+    {
+        m_DbStrategy.UpdateSubgenre(this);
+    }
     // ReSharper disable once UnusedMember.Local
     private void DeleteUnusedActors()
     {
@@ -479,18 +502,21 @@ public partial class MainPanel : Form
     }
     private void OnEntryNameTextChanged(object sender, EventArgs e)
     {
+        m_ImageListView.Items.FocusedItem = null;
         m_TypeTimer.Stop();
         m_TypeField = ETypeField.TITLE;
         m_TypeTimer.Start();
     }
     private void OnDirectorNameTextChanged(object sender, EventArgs e)
     {
+        m_ImageListView.Items.FocusedItem = null;
         m_TypeTimer.Stop();
         m_TypeField = ETypeField.DIRECTOR;
         m_TypeTimer.Start();
     }
     private void OnActorNameTextChanged(object sender, EventArgs e)
     {
+        m_ImageListView.Items.FocusedItem = null;
         m_TypeTimer.Stop();
         m_TypeField = ETypeField.ACTOR;
         m_TypeTimer.Start();
@@ -564,7 +590,7 @@ public partial class MainPanel : Form
     }
     #endregion
     #region Floating Panel operations
-    private void ShowFloatingPanel(SortedDictionary<string, Bitmap> values, FloatingPanel.EPanelContentType contentType, bool checkBox, bool multiSelect, int imageW, int imageH)
+    private void ShowFloatingPanel(ImmutableSortedDictionary<string, Bitmap> values, FloatingPanel.EPanelContentType contentType, bool checkBox, bool multiSelect, int imageW, int imageH)
     {
         var width = Size.Width - 12 * 2;
         var height = imageH * 3 + 12;
@@ -598,7 +624,7 @@ public partial class MainPanel : Form
         }
 
         var result = m_FloatingPanel.EntryNames.FirstOrDefault();
-        if(string.IsNullOrEmpty(result))
+        if (string.IsNullOrEmpty(result))
         {
             return;
         }
@@ -613,6 +639,9 @@ public partial class MainPanel : Form
                 break;
             case FloatingPanel.EPanelContentType.GENRES:
                 m_ToolStrip_GenreName.Text = result;
+                break;
+            case FloatingPanel.EPanelContentType.SUBGENRES:
+                m_ToolStrip_SubgenreName.Text = result;
                 break;
         }
 
@@ -637,6 +666,11 @@ public partial class MainPanel : Form
     private void OnListViewClick(object sender, EventArgs e) => HideFloatingPanel();
     private void OnListViewKeyDown(object sender, KeyEventArgs e) => HideFloatingPanel();
     private void OnMouseCaptureChanged(object sender, EventArgs e) => HideFloatingPanel();
-    private void OnEntryNameTextEntered(object sender, EventArgs e) => HideFloatingPanel();
+
+    private void OnEntryNameTextEntered(object sender, EventArgs e)
+    {
+        m_ImageListView.Items.FocusedItem = null;
+        HideFloatingPanel();
+    }
     #endregion
 }

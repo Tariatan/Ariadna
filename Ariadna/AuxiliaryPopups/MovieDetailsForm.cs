@@ -6,16 +6,16 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
+using DbProvider;
 using Microsoft.Extensions.Logging;
 using TMDbLib.Client;
-using TMDbLib.Objects.General;
 using TMDbLib.Objects.TvShows;
 using TMDbLib.Utilities.Serializer;
-
 namespace Ariadna.AuxiliaryPopups;
 
 public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(filePath, logger)
@@ -36,7 +36,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         m_DirectorsPhotos.ImageSize = new Size(Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
 
         // Remove extension
-        m_TxtTitle.Text = m_TxtTitle.Text.RemoveExtensions();
+        m_TxtTitle.Text = m_TxtTitle.Text.RemoveExtension();
         var length = Utilities.GetVideoDuration(FilePath);
         m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
 
@@ -97,6 +97,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
 
         return true;
     }
+
     protected override void DoAddListViewItemFromClipboard(ListView listView, ImageList imageList)
     {
         foreach (var item in Clipboard.GetText().Split(','))
@@ -131,7 +132,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         if (configJson.Exists && configJson.LastWriteTimeUtc >= DateTime.UtcNow.AddHours(-10))
         {
             var json = await File.ReadAllTextAsync(configJson.FullName, Encoding.UTF8);
-            client.SetConfig(TMDbJsonSerializer.Instance.DeserializeFromString<TMDbConfig>(json));
+            client.SetConfig(TMDbJsonSerializer.Instance.DeserializeFromString<TMDbLib.Objects.General.TMDbConfig>(json));
         }
         else
         {
@@ -159,7 +160,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
             // Download first available Poster
             var imgSize = m_TmDbClient.Config.Images.PosterSizes.Last();
             var urlOriginal = m_TmDbClient.GetImageUrl(imgSize, posterPath).AbsoluteUri;
-            var bts = await m_TmDbClient.GetImageBytesAsync(imgSize, urlOriginal);
+            var bts = await m_TmDbClient.GetImageBytesAsync(imgSize, urlOriginal, false, CancellationToken.None);
 
             // Scale image
             var bmp = new Bitmap(Settings.Default.PosterWidth, Settings.Default.PosterHeight);
@@ -531,41 +532,5 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
             imageList.Images[imageList.Images.IndexOfKey(item.Text)] = bmp;
             listView.Refresh();
         }
-    }
-    private void AddNewListItem(ListView listView, ImageList imageList, string name, Bitmap image = null)
-    {
-        if (name == "↓")
-        {
-            return;
-        }
-
-        if (listView.FindItemWithText(name) != null)
-        {
-            return;
-        }
-
-        if (image == null)
-        {
-            using var ctx = new AriadnaEntities();
-            var director = ctx.Directors.AsNoTracking().FirstOrDefault(r => r.name == name);
-            if (director?.photo != null)
-            {
-                image = director.photo.ToBitmap();
-            }
-
-            if (image == null)
-            {
-                var actor = ctx.Actors.AsNoTracking().FirstOrDefault(r => r.name == name);
-                if (actor?.photo != null && Utilities.IsValidPreview(actor.photo))
-                {
-                    image = actor.photo.ToBitmap();
-                }
-            }
-
-            image ??= new Bitmap(Resources.No_Preview_Image_small);
-        }
-
-        imageList.Images.Add(name, image);
-        listView.Items.Add(new ListViewItem(name, imageList.Images.IndexOfKey(name)));
     }
 }

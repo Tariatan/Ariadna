@@ -28,6 +28,9 @@
     <Compile Update="AuxiliaryPopups\GameDetailsForm .cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="AuxiliaryPopups\LibraryDetailsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="AuxiliaryPopups\MovieDetailsForm.cs">
       <SubType>Form</SubType>
     </Compile>

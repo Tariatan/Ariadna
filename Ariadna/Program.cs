@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using Ariadna.DBStrategies;
+using Ariadna.DbStrategies;
 using Ariadna.SplashScreen;
 using Ariadna.Themes;
 using Microsoft.Extensions.Logging;
@@ -33,8 +33,12 @@ namespace Ariadna
                     theme = new ThemeDocumentaries();
                     strategy = new DocumentariesDbStrategy(logger);
                     break;
+                case "library":
+                    theme = new ThemeLibrary();
+                    strategy = new LibraryDbStrategy(logger);
+                    break;
 
-                case "movies":
+                //case "movies":
                 default:
                     theme = new ThemeMovies();
                     strategy = new MoviesDbStrategy(logger);

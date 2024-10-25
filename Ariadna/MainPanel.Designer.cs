@@ -49,7 +49,7 @@ namespace Ariadna
             m_ToolStrip_NewLbl = new System.Windows.Forms.ToolStripLabel();
             m_ToolStrip_NewBtn = new System.Windows.Forms.ToolStripButton();
             m_ToolStrip_VRSprtr = new System.Windows.Forms.ToolStripSeparator();
-            m_ToolStrip_VRLbl = new System.Windows.Forms.ToolStripLabel();
+            m_ToolStrip_VrLbl = new System.Windows.Forms.ToolStripLabel();
             m_ToolStrip_VRBtn = new System.Windows.Forms.ToolStripButton();
             m_ToolStrip_nonVRSprtr = new System.Windows.Forms.ToolStripSeparator();
             m_ToolStrip_nonVRLbl = new System.Windows.Forms.ToolStripLabel();
@@ -72,6 +72,9 @@ namespace Ariadna
             m_ToolStrip_GenreNameLbl = new System.Windows.Forms.ToolStripLabel();
             m_ToolStrip_GenreName = new System.Windows.Forms.ToolStripLabel();
             m_ToolStrip_ClearGenreBtn = new System.Windows.Forms.ToolStripButton();
+            m_ToolStrip_SubgenreNameLbl = new System.Windows.Forms.ToolStripLabel();
+            m_ToolStrip_SubgenreName = new System.Windows.Forms.ToolStripLabel();
+            m_ToolStrip_ClearSubgenreBtn = new System.Windows.Forms.ToolStripButton();
             m_ToolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
             m_ToolStrip_EntriesCountLbl = new System.Windows.Forms.ToolStripLabel();
             m_ToolStrip_EntriesCount = new System.Windows.Forms.ToolStripLabel();
@@ -105,7 +108,7 @@ namespace Ariadna
             m_ToolStrip.CanOverflow = false;
             m_ToolStrip.GripMargin = new System.Windows.Forms.Padding(2, 2, 2, 5);
             m_ToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-            m_ToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { m_ToolStrip_AddBtn, m_ToolStripSeparator1, m_ToolStrip_NameLbl, m_ToolStrip_EntryName, m_ToolStrip_ClearTitleBtn, m_ToolStripSeparator3, m_ToolStrip_WishlistLbl, m_ToolStrip_WishlistBtn, m_ToolStripSeparator5, m_ToolStrip_RecentLbl, m_ToolStrip_RecentBtn, m_ToolStripSeparator7, m_ToolStrip_NewLbl, m_ToolStrip_NewBtn, m_ToolStrip_VRSprtr, m_ToolStrip_VRLbl, m_ToolStrip_VRBtn, m_ToolStrip_nonVRSprtr, m_ToolStrip_nonVRLbl, m_ToolStrip_nonVRBtn, m_ToolStrip_SeriesSprtr, m_ToolStrip_SeriesLbl, m_ToolStrip_SeriesBtn, m_ToolStrip_MoviesSprtr, m_ToolStrip_MoviesLbl, m_ToolStrip_MoviesBtn, m_ToolStripSeparator4, m_ToolStrip_DirectorLbl, m_ToolStrip_DirectorName, m_ToolStrip_ClearDirectorBtn, m_ToolStrip_DirectorSprt, m_ToolStrip_ActorLbl, m_ToolStrip_ActorName, m_ToolStrip_ClearActorBtn, m_ToolStrip_ActorSprt, m_ToolStrip_GenreNameLbl, m_ToolStrip_GenreName, m_ToolStrip_ClearGenreBtn, m_ToolStripSeparator8, m_ToolStrip_EntriesCountLbl, m_ToolStrip_EntriesCount });
+            m_ToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { m_ToolStrip_AddBtn, m_ToolStripSeparator1, m_ToolStrip_NameLbl, m_ToolStrip_EntryName, m_ToolStrip_ClearTitleBtn, m_ToolStripSeparator3, m_ToolStrip_WishlistLbl, m_ToolStrip_WishlistBtn, m_ToolStripSeparator5, m_ToolStrip_RecentLbl, m_ToolStrip_RecentBtn, m_ToolStripSeparator7, m_ToolStrip_NewLbl, m_ToolStrip_NewBtn, m_ToolStrip_VRSprtr, m_ToolStrip_VrLbl, m_ToolStrip_VRBtn, m_ToolStrip_nonVRSprtr, m_ToolStrip_nonVRLbl, m_ToolStrip_nonVRBtn, m_ToolStrip_SeriesSprtr, m_ToolStrip_SeriesLbl, m_ToolStrip_SeriesBtn, m_ToolStrip_MoviesSprtr, m_ToolStrip_MoviesLbl, m_ToolStrip_MoviesBtn, m_ToolStripSeparator4, m_ToolStrip_DirectorLbl, m_ToolStrip_DirectorName, m_ToolStrip_ClearDirectorBtn, m_ToolStrip_DirectorSprt, m_ToolStrip_ActorLbl, m_ToolStrip_ActorName, m_ToolStrip_ClearActorBtn, m_ToolStrip_ActorSprt, m_ToolStrip_GenreNameLbl, m_ToolStrip_GenreName, m_ToolStrip_ClearGenreBtn, m_ToolStrip_SubgenreNameLbl, m_ToolStrip_SubgenreName, m_ToolStrip_ClearSubgenreBtn, m_ToolStripSeparator8, m_ToolStrip_EntriesCountLbl, m_ToolStrip_EntriesCount });
             m_ToolStrip.Location = new System.Drawing.Point(0, 0);
             m_ToolStrip.Name = "m_ToolStrip";
             m_ToolStrip.Padding = new System.Windows.Forms.Padding(0);
@@ -149,7 +152,7 @@ namespace Ariadna
             m_ToolStrip_ClearTitleBtn.Image = (System.Drawing.Image)resources.GetObject("m_ToolStrip_ClearTitleBtn.Image");
             m_ToolStrip_ClearTitleBtn.Name = "m_ToolStrip_ClearTitleBtn";
             m_ToolStrip_ClearTitleBtn.Size = new System.Drawing.Size(23, 22);
-            m_ToolStrip_ClearTitleBtn.ToolTipText = "Очистить";
+            m_ToolStrip_ClearTitleBtn.ToolTipText = "Clear";
             m_ToolStrip_ClearTitleBtn.Click += ToolStrip_ClearTitleBtn_Clicked;
             // 
             // m_ToolStripSeparator3
@@ -169,7 +172,6 @@ namespace Ariadna
             m_ToolStrip_WishlistBtn.Image = (System.Drawing.Image)resources.GetObject("m_ToolStrip_WishlistBtn.Image");
             m_ToolStrip_WishlistBtn.Name = "m_ToolStrip_WishlistBtn";
             m_ToolStrip_WishlistBtn.Size = new System.Drawing.Size(23, 22);
-            m_ToolStrip_WishlistBtn.ToolTipText = "Хотелки";
             m_ToolStrip_WishlistBtn.Click += ToolStrip_CheckboxedFilter_Clicked;
             // 
             // m_ToolStripSeparator5
@@ -218,12 +220,12 @@ namespace Ariadna
             m_ToolStrip_VRSprtr.Size = new System.Drawing.Size(6, 25);
             m_ToolStrip_VRSprtr.Visible = false;
             // 
-            // m_ToolStrip_VRLbl
+            // m_ToolStrip_VrLbl
             // 
-            m_ToolStrip_VRLbl.Name = "m_ToolStrip_VRLbl";
-            m_ToolStrip_VRLbl.Size = new System.Drawing.Size(21, 22);
-            m_ToolStrip_VRLbl.Text = "VR";
-            m_ToolStrip_VRLbl.Visible = false;
+            m_ToolStrip_VrLbl.Name = "m_ToolStrip_VrLbl";
+            m_ToolStrip_VrLbl.Size = new System.Drawing.Size(21, 22);
+            m_ToolStrip_VrLbl.Text = "VR";
+            m_ToolStrip_VrLbl.Visible = false;
             // 
             // m_ToolStrip_VRBtn
             // 
@@ -324,7 +326,7 @@ namespace Ariadna
             m_ToolStrip_ClearDirectorBtn.Image = (System.Drawing.Image)resources.GetObject("m_ToolStrip_ClearDirectorBtn.Image");
             m_ToolStrip_ClearDirectorBtn.Name = "m_ToolStrip_ClearDirectorBtn";
             m_ToolStrip_ClearDirectorBtn.Size = new System.Drawing.Size(23, 22);
-            m_ToolStrip_ClearDirectorBtn.ToolTipText = "Очистить";
+            m_ToolStrip_ClearDirectorBtn.ToolTipText = "Clear";
             m_ToolStrip_ClearDirectorBtn.Click += ToolStrip_ClearDirectorBtn_Clicked;
             // 
             // m_ToolStrip_DirectorSprt
@@ -353,7 +355,7 @@ namespace Ariadna
             m_ToolStrip_ClearActorBtn.Image = (System.Drawing.Image)resources.GetObject("m_ToolStrip_ClearActorBtn.Image");
             m_ToolStrip_ClearActorBtn.Name = "m_ToolStrip_ClearActorBtn";
             m_ToolStrip_ClearActorBtn.Size = new System.Drawing.Size(23, 22);
-            m_ToolStrip_ClearActorBtn.ToolTipText = "Очистить";
+            m_ToolStrip_ClearActorBtn.ToolTipText = "Clear";
             m_ToolStrip_ClearActorBtn.Click += ToolStrip_ClearActorBtn_Clicked;
             // 
             // m_ToolStrip_ActorSprt
@@ -374,6 +376,7 @@ namespace Ariadna
             m_ToolStrip_GenreName.Size = new System.Drawing.Size(22, 22);
             m_ToolStrip_GenreName.Text = ". . .";
             m_ToolStrip_GenreName.Click += ToolStrip_Genre_Clicked;
+            m_ToolStrip_GenreName.TextChanged += OnGenreChanged;
             // 
             // m_ToolStrip_ClearGenreBtn
             // 
@@ -381,8 +384,34 @@ namespace Ariadna
             m_ToolStrip_ClearGenreBtn.Image = (System.Drawing.Image)resources.GetObject("m_ToolStrip_ClearGenreBtn.Image");
             m_ToolStrip_ClearGenreBtn.Name = "m_ToolStrip_ClearGenreBtn";
             m_ToolStrip_ClearGenreBtn.Size = new System.Drawing.Size(23, 22);
-            m_ToolStrip_ClearGenreBtn.ToolTipText = "Очистить";
+            m_ToolStrip_ClearGenreBtn.ToolTipText = "Clear";
             m_ToolStrip_ClearGenreBtn.Click += ToolStrip_ClearGenreBtn_Clicked;
+            // 
+            // m_ToolStrip_SubgenreNameLbl
+            // 
+            m_ToolStrip_SubgenreNameLbl.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, 204);
+            m_ToolStrip_SubgenreNameLbl.Name = "m_ToolStrip_SubgenreNameLbl";
+            m_ToolStrip_SubgenreNameLbl.Size = new System.Drawing.Size(61, 22);
+            m_ToolStrip_SubgenreNameLbl.Text = "Subgenre";
+            m_ToolStrip_SubgenreNameLbl.Visible = false;
+            // 
+            // m_ToolStrip_SubgenreName
+            // 
+            m_ToolStrip_SubgenreName.Name = "m_ToolStrip_SubgenreName";
+            m_ToolStrip_SubgenreName.Size = new System.Drawing.Size(22, 22);
+            m_ToolStrip_SubgenreName.Text = ". . .";
+            m_ToolStrip_SubgenreName.Visible = false;
+            m_ToolStrip_SubgenreName.Click += ToolStrip_Subgenre_Clicked;
+            // 
+            // m_ToolStrip_ClearSubgenreBtn
+            // 
+            m_ToolStrip_ClearSubgenreBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            m_ToolStrip_ClearSubgenreBtn.Image = (System.Drawing.Image)resources.GetObject("m_ToolStrip_ClearSubgenreBtn.Image");
+            m_ToolStrip_ClearSubgenreBtn.Name = "m_ToolStrip_ClearSubgenreBtn";
+            m_ToolStrip_ClearSubgenreBtn.Size = new System.Drawing.Size(23, 22);
+            m_ToolStrip_ClearSubgenreBtn.ToolTipText = "Clear";
+            m_ToolStrip_ClearSubgenreBtn.Visible = false;
+            m_ToolStrip_ClearSubgenreBtn.Click += ToolStrip_ClearSubgenreBtn_Clicked;
             // 
             // m_ToolStripSeparator8
             // 
@@ -456,7 +485,7 @@ namespace Ariadna
         private System.Windows.Forms.ToolStripButton m_ToolStrip_ClearTitleBtn;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_GenreNameLbl;
         private System.Windows.Forms.ToolStripButton m_ToolStrip_ClearGenreBtn;
-        private System.Windows.Forms.ToolStripLabel m_ToolStrip_GenreName;
+        public System.Windows.Forms.ToolStripLabel m_ToolStrip_GenreName;
         private System.Windows.Forms.ToolStripSeparator m_ToolStripSeparator8;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_EntriesCountLbl;
         private System.Windows.Forms.ToolStripLabel m_ToolStrip_EntriesCount;
@@ -469,7 +498,7 @@ namespace Ariadna
         public System.Windows.Forms.ToolStripSeparator m_ToolStrip_DirectorSprt;
         public System.Windows.Forms.ToolStripSeparator m_ToolStrip_ActorSprt;
         public System.Windows.Forms.ToolStrip m_ToolStrip;
-        public System.Windows.Forms.ToolStripLabel m_ToolStrip_VRLbl;
+        public System.Windows.Forms.ToolStripLabel m_ToolStrip_VrLbl;
         public System.Windows.Forms.ToolStripButton m_ToolStrip_VRBtn;
         public System.Windows.Forms.ToolStripLabel m_ToolStrip_nonVRLbl;
         public System.Windows.Forms.ToolStripButton m_ToolStrip_nonVRBtn;
@@ -482,6 +511,9 @@ namespace Ariadna
         public System.Windows.Forms.ToolStripSeparator m_ToolStrip_MoviesSprtr;
         public System.Windows.Forms.ToolStripLabel m_ToolStrip_MoviesLbl;
         public System.Windows.Forms.ToolStripButton m_ToolStrip_MoviesBtn;
+        public System.Windows.Forms.ToolStripLabel m_ToolStrip_SubgenreNameLbl;
+        public System.Windows.Forms.ToolStripLabel m_ToolStrip_SubgenreName;
+        public System.Windows.Forms.ToolStripButton m_ToolStrip_ClearSubgenreBtn;
     }
 }
 

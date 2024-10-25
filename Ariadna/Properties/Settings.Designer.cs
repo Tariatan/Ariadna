@@ -274,5 +274,32 @@ namespace Ariadna.Properties {
                 return ((string)(this["ImdbLanguage"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("A:\\LIBRARY\\")]
+        public string DefaultLibraryPath {
+            get {
+                return ((string)(this["DefaultLibraryPath"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("G:\\Ariadna\\library\\")]
+        public string LibraryPostersRootPath {
+            get {
+                return ((string)(this["LibraryPostersRootPath"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("All files (*.*)|*.*")]
+        public string LibraryFilesFilter {
+            get {
+                return ((string)(this["LibraryFilesFilter"]));
+            }
+        }
     }
 }

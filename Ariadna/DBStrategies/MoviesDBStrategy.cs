@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data.Entity.Validation;
 using System.Diagnostics;
 using System.Drawing;
@@ -11,12 +12,13 @@ using Ariadna.Data;
 using Ariadna.Extension;
 using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
+using DbProvider;
 using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using TMDbLib.Client;
 using TMDbLib.Objects.Search;
 
-namespace Ariadna.DBStrategies;
+namespace Ariadna.DbStrategies;
 
 public class MoviesDbStrategy : AbstractDbStrategy
 {
@@ -30,7 +32,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
     }
 
     public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
-        
+
     public override List<EntryDto> GetEntries()
     {
         //UpdateMovieData();
@@ -204,6 +206,9 @@ public class MoviesDbStrategy : AbstractDbStrategy
 
         FetchMovieFromImdb(path);
     }
+    public override void UpdateSubgenre(MainPanel panel){}
+    public override string[] QuickListFilter() => ["}", "«"];
+
     public override void ShowEntryDetails(int id)
     {
         var path = FindStoredEntryPathById(id);
@@ -240,8 +245,8 @@ public class MoviesDbStrategy : AbstractDbStrategy
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = "A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander/Totalcmd64.exe",
-                WorkingDirectory = Path.GetDirectoryName("A:/PROGRAMS/UTILITIES/Total_Commander/Total Commander")!,
+                FileName = Settings.Default.TotalCommanderPath,
+                WorkingDirectory = Path.GetDirectoryName(Settings.Default.TotalCommanderPath)!,
                 Arguments = $"/O /L=\"{path}\"",
             });
         }
@@ -250,7 +255,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
             MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
-    public override SortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
+    public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
     {
         var values = new SortedDictionary<string, Bitmap>();
         using var ctx = new AriadnaEntities();
@@ -261,9 +266,9 @@ public class MoviesDbStrategy : AbstractDbStrategy
             values[director.Director.name] = director.Director.photo.ToBitmap();
         }
 
-        return values;
+        return values.ToImmutableSortedDictionary();
     }
-    public override SortedDictionary<string, Bitmap> GetActors(string name, int limit)
+    public override ImmutableSortedDictionary<string, Bitmap> GetActors(string name, int limit)
     {
         var values = new SortedDictionary<string, Bitmap>();
         using var ctx = new AriadnaEntities();
@@ -274,9 +279,11 @@ public class MoviesDbStrategy : AbstractDbStrategy
             values[actor.Actor.name] = actor.Actor.photo.ToBitmap();
         }
 
-        return values;
+        return values.ToImmutableSortedDictionary();
     }
-    public override SortedDictionary<string, Bitmap> GetGenres(string name)
+
+    public override ImmutableSortedDictionary<string, Bitmap> GetSubgenres(string name) => null;
+    public override ImmutableSortedDictionary<string, Bitmap> GetGenres()
     {
         var values = new SortedDictionary<string, Bitmap>();
         using var ctx = new AriadnaEntities();
@@ -287,7 +294,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
             values[genre.name] = Utilities.GetMovieGenreImage(genre.name);
         }
 
-        return values;
+        return values.ToImmutableSortedDictionary();
     }
     public override void FilterControls(MainPanel panel) {}
     private bool FindFirstNotInserted(string[] paths)

@@ -76,15 +76,9 @@ public static class Extension
         }
     }
 
-    public static string RemoveExtensions(this string path)
+    public static string RemoveExtension(this string path)
     {
-        return path.
-            Replace(".avi", string.Empty).
-            Replace(".mkv", string.Empty).
-            Replace(".m4v", string.Empty).
-            Replace(".mp4", string.Empty).
-            Replace(".mpg", string.Empty).
-            Replace(".ts", string.Empty).
-            Replace(".mpeg", string.Empty);
+        var pos = path.IndexOf('.');
+        return pos != -1 ? path[..path.LastIndexOf('.')] : path;
     }
 }

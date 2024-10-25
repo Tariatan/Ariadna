@@ -192,7 +192,7 @@ namespace Ariadna.AuxiliaryPopups
             // m_DirectorsPhotos
             // 
             m_DirectorsPhotos.ColorDepth = System.Windows.Forms.ColorDepth.Depth16Bit;
-            m_DirectorsPhotos.ImageSize = new System.Drawing.Size(64, 96);
+            m_DirectorsPhotos.ImageSize = new System.Drawing.Size(54, 81);
             m_DirectorsPhotos.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // m_LblGenre

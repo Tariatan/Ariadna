@@ -6,11 +6,11 @@ internal class ThemeDocumentaries : Theme
 {
     public override void Init()
     {
-        SplashScreenForeColor = Color.BlueViolet;
+        SplashScreenForeColor = Color.SteelBlue;
 
-        MainBackColor = Color.BlueViolet;
+        MainBackColor = Color.SteelBlue;
         MainForeColor = Color.White;
-        ControlsBackColor = Color.BlueViolet;
+        ControlsBackColor = Color.SteelBlue;
 
         DetailsFormBackColor = Color.FromArgb(64, 0, 64);
         DetailsFormForeColor = Color.White;
@@ -19,15 +19,14 @@ internal class ThemeDocumentaries : Theme
         DetailsFormHighlightForeColor = Color.Gold;
 
         ListViewForeColor = Color.White;
-        ListViewGradFromColor = Color.BlueViolet;
+        ListViewGradFromColor = Color.SteelBlue;
         ListViewGradToColor = Color.Black;
         ListViewItemBgFromColor = Color.White;
         ListViewItemBgToColor = Color.FromArgb(16, 16, 16);
         ListViewItemBorderTickColor = Color.White;
         ListViewItemBorderTuckColor = Color.Gray;
 
-        FloatingPanelBackColor = Color.BlueViolet;
+        FloatingPanelBackColor = Color.SteelBlue;
         FloatingPanelForeColor = Color.White;
-
     }
 }

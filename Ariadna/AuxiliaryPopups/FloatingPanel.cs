@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -12,6 +13,7 @@ public partial class FloatingPanel : Form
         DIRECTORS = 0,
         CAST,
         GENRES,
+        SUBGENRES,
     }
 
     public EPanelContentType PanelContentType { get; set; }
@@ -25,7 +27,7 @@ public partial class FloatingPanel : Form
         InitializeComponent();
         EntryNames = [];
     }
-    public void UpdateListView(SortedDictionary<string, Bitmap> values, EPanelContentType contentType, bool checkBox = false, bool multiSelect = false, int imageW = 64, int imageH = 96)
+    public void UpdateListView(ImmutableSortedDictionary<string, Bitmap> values, EPanelContentType contentType, bool checkBox = false, bool multiSelect = false, int imageW = 64, int imageH = 96)
     {
         EntryNames.Clear();
         FormCloseReason = Utilities.EFormCloseReason.NONE;

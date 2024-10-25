@@ -1,4 +1,6 @@
 .vs
 Ariadna/bin/
 Ariadna/obj/
+DbProvider/bin/
+DbProvider/obj/
 packages

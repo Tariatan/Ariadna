@@ -24,7 +24,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
     <Optimize>true</Optimize>
-    <NoWarn>1701;1702;CA1416;NU1701;NETSDK1206</NoWarn>
+    <NoWarn>1701;1702;CA1416;NU1701;NETSDK1206;CS0436</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Ariadna.ico</ApplicationIcon>
@@ -32,78 +32,15 @@
     <SupportedOSPlatformVersion>8.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <NoWarn>1701;1702;CA1416;NU1701;NETSDK1206</NoWarn>
+    <NoWarn>1701;1702;CA1416;NU1701;NETSDK1206;CS0436</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Update="Actor.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="AriadnaModel.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>AriadnaModel.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Update="AriadnaModel.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="AriadnaModel.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AriadnaModel.edmx</DependentUpon>
-    </Compile>
-    <Compile Update="Director.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Documentary.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="DocumentaryGenre.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Game.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="GameGenre.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Genre.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="GenreOfDocumentary.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="GenreOfGame.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Ignore.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Movie.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="MovieCast.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="MovieDirector.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
-    <Compile Update="MovieGenre.cs">
-      <DependentUpon>AriadnaModel.tt</DependentUpon>
-    </Compile>
+    <Compile Update="AuxiliaryPopups\LibraryDetailsForm.cs" />
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <EntityDeploy Include="AriadnaModel.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>AriadnaModel.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <None Update="AriadnaModel.edmx.diagram">
-      <DependentUpon>AriadnaModel.edmx</DependentUpon>
-    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -114,16 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Ariadna.ico" />
-    <Content Include="AriadnaModel.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>AriadnaModel.edmx</DependentUpon>
-      <LastGenOutput>AriadnaModel.Context.cs</LastGenOutput>
-    </Content>
-    <Content Include="AriadnaModel.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>AriadnaModel.edmx</DependentUpon>
-      <LastGenOutput>AriadnaModel.cs</LastGenOutput>
-    </Content>
     <Content Include="Resources\empty_icon.png" />
   </ItemGroup>
   <ItemGroup>
@@ -139,9 +66,37 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+	<EntityDeploy Include="..\DbProvider\AriadnaModel.edmx" Link="AriadnaModel.edmx" />
+    <Compile Include="..\DbProvider\Actor.cs" Link="EntityLink\Actor.cs" />
+    <Compile Include="..\DbProvider\AriadnaModel.Context.cs" Link="EntityLink\AriadnaModel.Context.cs" />
+    <Compile Include="..\DbProvider\Author.cs" Link="EntityLink\Author.cs" />
+    <Compile Include="..\DbProvider\Director.cs" Link="EntityLink\Director.cs" />
+    <Compile Include="..\DbProvider\Documentary.cs" Link="EntityLink\Documentary.cs" />
+    <Compile Include="..\DbProvider\DocumentaryGenre.cs" Link="EntityLink\DocumentaryGenre.cs" />
+    <Compile Include="..\DbProvider\Game.cs" Link="EntityLink\Game.cs" />
+    <Compile Include="..\DbProvider\GameGenre.cs" Link="EntityLink\GameGenre.cs" />
+    <Compile Include="..\DbProvider\Genre.cs" Link="EntityLink\Genre.cs" />
+    <Compile Include="..\DbProvider\GenreOfDocumentary.cs" Link="EntityLink\GenreOfDocumentary.cs" />
+    <Compile Include="..\DbProvider\GenreOfGame.cs" Link="EntityLink\GenreOfGame.cs" />
+    <Compile Include="..\DbProvider\GenreOfLibrary.cs" Link="EntityLink\GenreOfLibrary.cs" />
+    <Compile Include="..\DbProvider\Ignore.cs" Link="EntityLink\Ignore.cs" />
+    <Compile Include="..\DbProvider\Library.cs" Link="EntityLink\Library.cs" />
+    <Compile Include="..\DbProvider\LibraryAuthor.cs" Link="EntityLink\LibraryAuthor.cs" />
+    <Compile Include="..\DbProvider\LibraryGenre.cs" Link="EntityLink\LibraryGenre.cs" />
+    <Compile Include="..\DbProvider\Movie.cs" Link="EntityLink\Movie.cs" />
+    <Compile Include="..\DbProvider\MovieCast.cs" Link="EntityLink\MovieCast.cs" />
+    <Compile Include="..\DbProvider\MovieDirector.cs" Link="EntityLink\MovieDirector.cs" />
+    <Compile Include="..\DbProvider\MovieGenre.cs" Link="EntityLink\MovieGenre.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="EntityFramework" Version="6.5.1" />
     <PackageReference Include="ImageListView" Version="13.8.2" />
     <PackageReference Include="MediaInfo.Wrapper.Core" Version="21.9.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
     <PackageReference Include="Microsoft.WindowsAPICodePack-Core" Version="1.1.0.0" />
     <PackageReference Include="Microsoft.WindowsAPICodePack-Shell" Version="1.1.0.0" />
@@ -149,6 +104,10 @@
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="EntityLink\" />
     <Folder Include="Extension\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DbProvider\DbProvider.csproj" />
   </ItemGroup>
 </Project>
