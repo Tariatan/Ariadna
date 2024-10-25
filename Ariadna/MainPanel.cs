@@ -282,16 +282,17 @@ public partial class MainPanel : Form
     }
     private void OnNewEntryInserted(object sender, AbstractDbStrategy.EntryInsertedEventArgs e)
     {
+        var selection = m_ImageListView.Items.FirstOrDefault(x => (string)x.VirtualItemKey == e.Id.ToString());
+
         QueryEntries();
         //UpdateImageList(dbStrategy.GetEntries());
 
-        var selection = m_ImageListView.Items.FirstOrDefault(x => (string)x.VirtualItemKey == e.Id.ToString());
         if (selection == null)
         {
             return;
         }
 
-        m_ImageListView.EnsureVisible(selection.Index);
+        m_ImageListView.EnsureVisible(selection.Index == 0 ? 0 : selection.Index - 1);
         selection.Selected = true;
     }
     #region Image List View handlers
