@@ -361,6 +361,7 @@ public class LibraryDbStrategy : AbstractDbStrategy
         foreach (var genre in genres)
         {
             var usedGenres = ctx.LibraryGenres.FirstOrDefault(r => (r.genreId == genre.Id));
+
             if (usedGenres == null)
             {
                 ctx.GenreOfLibraries.Remove(genre);
