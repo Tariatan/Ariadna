@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 using TMDbLib.Client;
 using TMDbLib.Objects.Search;
 
-namespace Ariadna.DbStrategies;
+namespace Ariadna.DatabaseStrategies;
 
 public class MoviesDbStrategy : AbstractDbStrategy
 {

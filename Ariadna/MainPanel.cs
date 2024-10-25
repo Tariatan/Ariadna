@@ -7,7 +7,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
-using Ariadna.DbStrategies;
+using Ariadna.DatabaseStrategies;
 using Ariadna.Extension;
 using Ariadna.ImageListHelpers;
 using Ariadna.Properties;

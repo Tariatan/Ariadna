@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using Ariadna.DbStrategies;
+using Ariadna.DatabaseStrategies;
 using Ariadna.SplashScreen;
 using Ariadna.Themes;
 using Microsoft.Extensions.Logging;

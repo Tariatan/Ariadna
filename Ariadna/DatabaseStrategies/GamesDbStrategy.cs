@@ -14,7 +14,7 @@ using DbProvider;
 using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 
-namespace Ariadna.DbStrategies;
+namespace Ariadna.DatabaseStrategies;
 
 public class GamesDbStrategy : AbstractDbStrategy
 {

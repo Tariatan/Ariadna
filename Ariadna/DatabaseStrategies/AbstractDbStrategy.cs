@@ -5,7 +5,7 @@ using System.Drawing;
 using Ariadna.Data;
 using Manina.Windows.Forms;
 
-namespace Ariadna.DbStrategies;
+namespace Ariadna.DatabaseStrategies;
 
 public abstract class AbstractDbStrategy
 {
