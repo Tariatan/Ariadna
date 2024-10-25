@@ -10,6 +10,7 @@ namespace Ariadna.DbStrategies;
 public abstract class AbstractDbStrategy
 {
     public event EntryInsertedEventHandler EntryInserted;
+    // ReSharper disable once IdentifierTypo
     public delegate void EntryInsertedEventHandler(object sender, EntryInsertedEventArgs hlpevent);
 
     public class EntryInsertedEventArgs(int id) : EventArgs
