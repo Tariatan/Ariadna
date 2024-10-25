@@ -2,7 +2,7 @@
   "profiles": {
     "Ariadna": {
       "commandName": "Project",
-      "commandLineArgs": "library"
+      "commandLineArgs": "movies"
     }
   }
 }
