@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -497,30 +498,35 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
     }
     private async void FetchPreviews(ListView listView, ImageList imageList)
     {
-        foreach (ListViewItem item in listView.Items)
+        var actorNames = (from ListViewItem item in listView.Items 
+            where !Utilities.IsValidPreview(imageList.Images[imageList.Images.IndexOfKey(item.Text)].ToBytes())
+            select item.Text).ToList();
+
+        var downloadTasks = actorNames.Select(name => FetchAndDownloadActorPhotoAsync(name, listView, imageList));
+        await Task.WhenAll(downloadTasks);
+    }
+
+    private async Task FetchAndDownloadActorPhotoAsync(string actorName, ListView listView, ImageList imageList)
+    {
+        try
         {
-            // Skip entries with valid preview set
-            if (Utilities.IsValidPreview(imageList.Images[imageList.Images.IndexOfKey(item.Text)].ToBytes()))
+            // Search for the actor
+            var searchResult = await m_TmDbClient.SearchPersonAsync(actorName, "ru-RU");
+            var actor = searchResult.Results?.FirstOrDefault();
+
+            if (actor == null)
             {
-                continue;
+                return;
             }
 
-            var results = m_TmDbClient.SearchPersonAsync(item.Text, "ru-RU").Result;
-
-            if (results.Results.Count <= 0)
+            if (string.IsNullOrEmpty(actor.ProfilePath))
             {
-                continue;
-            }
-
-            var person = results.Results.First();
-            if (person.ProfilePath == null)
-            {
-                continue;
+                return;
             }
 
             // Download first available Photo
             var imgSize = m_TmDbClient.Config.Images.ProfileSizes.Last();
-            var urlOriginal = m_TmDbClient.GetImageUrl(imgSize, person.ProfilePath).AbsoluteUri;
+            var urlOriginal = m_TmDbClient.GetImageUrl(imgSize, actor.ProfilePath).AbsoluteUri;
             var bts = await m_TmDbClient.GetImageBytesAsync(imgSize, urlOriginal);
 
             // Scale image
@@ -529,8 +535,12 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
             graph.DrawImage(bts.ToBitmap(), new Rectangle(0, 0, Settings.Default.PortraitWidth, Settings.Default.PortraitHeight));
 
             // Set Photo image
-            imageList.Images[imageList.Images.IndexOfKey(item.Text)] = bmp;
+            imageList.Images[imageList.Images.IndexOfKey(actorName)] = bmp;
             listView.Refresh();
+        }
+        catch (Exception)
+        {
+            // ignored
         }
     }
 }
