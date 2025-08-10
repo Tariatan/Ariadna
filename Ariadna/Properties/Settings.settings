@@ -95,5 +95,14 @@
     <Setting Name="LibraryFilesFilter" Type="System.String" Scope="Application">
       <Value Profile="(Default)">All files (*.*)|*.*</Value>
     </Setting>
+    <Setting Name="FormLocation" Type="System.Drawing.Point" Scope="User">
+      <Value Profile="(Default)">0, 0</Value>
+    </Setting>
+    <Setting Name="FormSize" Type="System.Drawing.Size" Scope="User">
+      <Value Profile="(Default)">1920, 1080</Value>
+    </Setting>
+    <Setting Name="DefaultMoviesPathTMP2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">S:\MOVIES\</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

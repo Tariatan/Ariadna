@@ -110,6 +110,7 @@ public static class Utilities
         {"Architecture", Properties.Resources.architecture},
         {"Android", Properties.Resources.android},
         {"Misc", Properties.Resources.misc},
+        {"Rust", Properties.Resources.rust},
     };
     public static readonly Dictionary<string, Bitmap> LibraryMiscGenres = new()
     {
@@ -241,7 +242,7 @@ public static class Utilities
         }
 
         // Check supported extensions
-        var extensions = new HashSet<string> { "BMP", "GIF", "EXIF", "JPG", "JPEG", "PNG", "TIFF" };
+        var extensions = new HashSet<string> { "BMP", "GIF", "EXIF", "JPG", "JPEG", "PNG", "TIFF", "WEBP" };
         if ((ext.Length > 0) && !extensions.Contains(ext))
         {
             return false;
@@ -250,9 +251,22 @@ public static class Utilities
         outBmp = new Bitmap(width, height);
         var graph = Graphics.FromImage(outBmp);
 
-        using var bmpTemp = new Bitmap(fileName);
-        Image image = new Bitmap(bmpTemp);
-        graph.DrawImage(image, new Rectangle(0, 0, width, height));
+        if (ext == "WEBP")
+        {
+            // Use a library like SkiaSharp to load .webp files
+            using var skBitmap = SkiaSharp.SKBitmap.Decode(fileName);
+            using var skImage = SkiaSharp.SKImage.FromBitmap(skBitmap);
+            using var skData = skImage.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+            using var stream = skData.AsStream();
+            using var webpImage = new Bitmap(stream);
+            graph.DrawImage(webpImage, new Rectangle(0, 0, width, height));
+        }
+        else
+        {
+            using var bmpTemp = new Bitmap(fileName);
+            Image image = new Bitmap(bmpTemp);
+            graph.DrawImage(image, new Rectangle(0, 0, width, height));
+        }
 
         return true;
     }

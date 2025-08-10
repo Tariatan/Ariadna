@@ -510,11 +510,17 @@ public partial class DetailsForm : Form
     {
         if (Directory.Exists(path))
         {
+            // Try to get the first file to retrieve media info
             var firstFile = Directory.EnumerateFiles(path).FirstOrDefault();
+
+            // Otherwise go into the first folder and get the first file
             if (string.IsNullOrEmpty(firstFile))
             {
                 var firstSubDir = Directory.GetDirectories(path).FirstOrDefault();
-                firstFile = Directory.EnumerateFiles(firstSubDir!).FirstOrDefault();
+                if (string.IsNullOrEmpty(firstSubDir) is false)
+                {
+                    firstFile = Directory.EnumerateFiles(firstSubDir!).FirstOrDefault();
+                }
             }
 
             path = firstFile;

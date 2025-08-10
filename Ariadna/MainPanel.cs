@@ -89,12 +89,34 @@ public partial class MainPanel : Form
     }
     private void MainPanel_Load(object sender, EventArgs e)
     {
+        // Restore position and size
+        if (Settings.Default.FormSize != Size.Empty)
+        {
+            Size = Settings.Default.FormSize;
+        }
+
+        if (Settings.Default.FormLocation != Point.Empty)
+        {
+            Location = Settings.Default.FormLocation;
+        }
+
         // Bring MainPanel to front
         Activate();
 
         Splasher.Close();
 
         m_ToolStrip_EntryName.Focus();
+
+        m_ToolStrip_RecentBtn.Checked = true;
+        m_ToolStrip_RecentBtn.Image = Resources.icon_checked;
+        QueryEntries();
+    }
+    private void OnFormClosing(object sender, FormClosingEventArgs e)
+    {
+        // Save position and size
+        Settings.Default.FormLocation = Location;
+        Settings.Default.FormSize = Size;
+        Settings.Default.Save();
     }
     private void UpdateImageList(List<EntryDto> entries)
     {
@@ -233,6 +255,8 @@ public partial class MainPanel : Form
             return;
         }
 
+        var index = m_ImageListView.Items.FirstOrDefault(x => (string)x.VirtualItemKey == id.ToString())?.Index;
+
         var info = m_DbStrategy.GetEntryInfo(id);
 
         var msg = info.Title + " / " + info.TitleOrig + '\n' + info.Path;
@@ -249,6 +273,11 @@ public partial class MainPanel : Form
         //UpdateImageList(dbStrategy.GetEntries());
 
         m_ToolStrip_EntryName.Text = string.Empty;
+
+        if (index is not null)
+        {
+            m_ImageListView.EnsureVisible(index.Value);
+        }
 
         if (!deleteFile)
         {
@@ -286,6 +315,9 @@ public partial class MainPanel : Form
 
         QueryEntries();
         //UpdateImageList(dbStrategy.GetEntries());
+
+
+        selection ??= m_ImageListView.Items.FirstOrDefault(x => (string)x.VirtualItemKey == e.Id.ToString());
 
         if (selection == null)
         {

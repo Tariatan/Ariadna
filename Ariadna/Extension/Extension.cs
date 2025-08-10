@@ -1,5 +1,4 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
@@ -50,7 +49,7 @@ public static class Extension
 
         return null;
     }
-    
+
     public static Bitmap ToBitmap(this byte[] bytes)
     {
         if ((bytes == null) || (bytes.Length == 0))
@@ -78,7 +77,12 @@ public static class Extension
 
     public static string RemoveExtension(this string path)
     {
-        var pos = path.IndexOf('.');
-        return pos != -1 ? path[..path.LastIndexOf('.')] : path;
+        return path
+            .Replace(".mkv", "")
+            .Replace(".ts", "")
+            .Replace(".mp4", "")
+            .Replace(".mpeg", "")
+            .Replace(".mpg", "")
+            .Replace(".avi", "");
     }
 }

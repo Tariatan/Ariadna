@@ -45,6 +45,8 @@ public class MoviesDbStrategy : AbstractDbStrategy
         using var ctx = new AriadnaEntities();
         IQueryable<Movie> query = ctx.Movies.AsNoTracking();
 
+        var alphabeticOrder = true;
+
         // -- Search Name --
         if (!string.IsNullOrEmpty(values.Name))
         {
@@ -90,25 +92,34 @@ public class MoviesDbStrategy : AbstractDbStrategy
         {
             var recentDateStart = DateTime.Now.AddMonths(-Settings.Default.RecentInMonth);
             query = query.Where(r => ((r.creation_time > recentDateStart)));
+
+            alphabeticOrder = false;
         }
         // -- NEW --
         if (values.IsNew)
         {
             query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
+
+            alphabeticOrder = false;
         }
         // -- SERIES --
         if (values.IsSeries)
         {
-            query = query.Where(r => (r.file_path.StartsWith(Settings.Default.DefaultSeriesPath.Substring(0, 1))));
+            query = query.Where(r => (r.file_path.StartsWith(Settings.Default.DefaultSeriesPath.Substring(0, 1)) &&
+                                                             (!r.file_path.Contains(Settings.Default.DefaultMoviesPathTMP2))));
         }
         // -- MOVIES --
         if (values.IsMovies)
         {
             query = query.Where(r => (r.file_path.StartsWith(Settings.Default.DefaultMoviesPath.Substring(0, 1)) ||
-                                      r.file_path.StartsWith(Settings.Default.DefaultMoviesPathTMP.Substring(0, 1))));
+                                      r.file_path.StartsWith(Settings.Default.DefaultMoviesPathTMP.Substring(0, 1)) ||
+                                      r.file_path.StartsWith(Settings.Default.DefaultMoviesPathTMP2.Substring(0, 1)) 
+                                      ));
         }
-                
-        return query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
+
+        return alphabeticOrder ?
+            query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList() :
+            query.OrderByDescending(r => r.creation_time).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
     }
     public override EntryInfo GetEntryInfo(int id)
     {
@@ -164,6 +175,10 @@ public class MoviesDbStrategy : AbstractDbStrategy
             return true;
         }
         if (FindFirstNotInserted(Directory.GetFiles(Settings.Default.DefaultMoviesPathTMP)))
+        {
+            return true;
+        }
+        if (FindFirstNotInserted(Directory.GetFiles(Settings.Default.DefaultMoviesPathTMP2)))
         {
             return true;
         }
