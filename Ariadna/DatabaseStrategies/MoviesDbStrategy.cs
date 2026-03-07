@@ -106,14 +106,13 @@ public class MoviesDbStrategy : AbstractDbStrategy
         if (values.IsSeries)
         {
             query = query.Where(r => (r.file_path.StartsWith(Settings.Default.DefaultSeriesPath.Substring(0, 1)) &&
-                                                             (!r.file_path.Contains(Settings.Default.DefaultMoviesPathTMP2))));
+                                      !r.file_path.Contains(Settings.Default.DefaultMoviesPathTMP2)));
         }
         // -- MOVIES --
         if (values.IsMovies)
         {
             query = query.Where(r => (r.file_path.StartsWith(Settings.Default.DefaultMoviesPath.Substring(0, 1)) ||
-                                      r.file_path.StartsWith(Settings.Default.DefaultMoviesPathTMP.Substring(0, 1)) ||
-                                      r.file_path.StartsWith(Settings.Default.DefaultMoviesPathTMP2.Substring(0, 1)) 
+                                      r.file_path.Contains(Settings.Default.DefaultMoviesPathTMP2) 
                                       ));
         }
 
@@ -174,10 +173,6 @@ public class MoviesDbStrategy : AbstractDbStrategy
         {
             return true;
         }
-        if (FindFirstNotInserted(Directory.GetFiles(Settings.Default.DefaultMoviesPathTMP)))
-        {
-            return true;
-        }
         if (FindFirstNotInserted(Directory.GetFiles(Settings.Default.DefaultMoviesPathTMP2)))
         {
             return true;
@@ -226,6 +221,9 @@ public class MoviesDbStrategy : AbstractDbStrategy
 
     public override void ShowEntryDetails(int id)
     {
+        // UpdateEntryData();
+        // return;
+
         var path = FindStoredEntryPathById(id);
         if (string.IsNullOrEmpty(path))
         {
@@ -247,13 +245,10 @@ public class MoviesDbStrategy : AbstractDbStrategy
         // Check if it is a file first
         if (File.Exists(path))
         {
-            if (!File.Exists(Settings.Default.MediaPlayerPath))
-            {
-                return;
-            }
+            // Uncomment if MPC preferred
+            // OpenWithMpc();
 
-            // Enclose the path in quotes as required by MPC
-            Process.Start(Settings.Default.MediaPlayerPath, "\"" + path + "\"");
+            Process.Start(new ProcessStartInfo{FileName = path, UseShellExecute = true});
         }
         // Checked if it is a directory
         else if (Directory.Exists(path))
@@ -269,7 +264,21 @@ public class MoviesDbStrategy : AbstractDbStrategy
         {
             MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        return;
+
+        void OpenWithMpc()
+        {
+            if (!File.Exists(Settings.Default.MediaPlayerPath))
+            {
+                return;
+            }
+
+            // Enclose the path in quotes as required by MPC
+            Process.Start(Settings.Default.MediaPlayerPath, "\"" + path + "\"");
+        }
     }
+
     public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
     {
         var values = new SortedDictionary<string, Bitmap>();
@@ -490,7 +499,15 @@ public class MoviesDbStrategy : AbstractDbStrategy
         var entries = ctx.Movies.ToList();
         foreach(var entry in entries)
         {
-            entry.creation_time = File.GetLastWriteTimeUtc(entry.file_path);
+            bool save = false;
+            //entry.creation_time = File.GetLastWriteTimeUtc(entry.file_path);
+            if (entry.file_path.Contains("A:\\"))
+            {
+                entry.file_path = entry.file_path.Replace("A:\\", "S:\\");
+                save = true;
+            }
+
+            if (!save) continue;
 
             try
             {
@@ -501,5 +518,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
                 MessageBox.Show(entry.title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        return;
     }
 }

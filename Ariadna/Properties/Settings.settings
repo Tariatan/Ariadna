@@ -26,9 +26,6 @@
     <Setting Name="DefaultMoviesPath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">M:\</Value>
     </Setting>
-    <Setting Name="DefaultMoviesPathTMP" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">A:\MOVIES\</Value>
-    </Setting>
     <Setting Name="DefaultSeriesPath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">S:\</Value>
     </Setting>

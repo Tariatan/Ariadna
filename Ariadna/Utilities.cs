@@ -111,6 +111,7 @@ public static class Utilities
         {"Android", Properties.Resources.android},
         {"Misc", Properties.Resources.misc},
         {"Rust", Properties.Resources.rust},
+        {"Ai", Properties.Resources.ai},
     };
     public static readonly Dictionary<string, Bitmap> LibraryMiscGenres = new()
     {

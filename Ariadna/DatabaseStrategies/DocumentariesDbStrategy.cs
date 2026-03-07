@@ -200,13 +200,10 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         // Check if it is a file first
         if (File.Exists(path))
         {
-            if (!File.Exists(Settings.Default.MediaPlayerPath))
-            {
-                return;
-            }
+            // Uncomment if MPC preferred
+            // OpenWithMpc();
 
-            // Enclose the path in quotes as required by MPC
-            Process.Start(Settings.Default.MediaPlayerPath, "\"" + path + "\"");
+            Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
         }
         // Checked if it is a directory
         else if (Directory.Exists(path))
@@ -221,6 +218,19 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         else
         {
             MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        return;
+
+        void OpenWithMpc()
+        {
+            if (!File.Exists(Settings.Default.MediaPlayerPath))
+            {
+                return;
+            }
+
+            // Enclose the path in quotes as required by MPC
+            Process.Start(Settings.Default.MediaPlayerPath, "\"" + path + "\"");
         }
     }
     public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
