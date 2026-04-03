@@ -2,6 +2,8 @@
 .dotnet/
 Ariadna/bin/
 Ariadna/obj/
+Ariadna.Tests/bin/
+Ariadna.Tests/obj/
 DbProvider/bin/
 DbProvider/obj/
 packages
