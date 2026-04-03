@@ -245,10 +245,11 @@ public class MoviesDbStrategy : AbstractDbStrategy
         // Check if it is a file first
         if (File.Exists(path))
         {
-            // Uncomment if MPC preferred
-            // OpenWithMpc();
+            // Open with MPC
+            OpenWithMpc();
 
-            Process.Start(new ProcessStartInfo{FileName = path, UseShellExecute = true});
+            // Open with default player
+            //Process.Start(new ProcessStartInfo{FileName = path, UseShellExecute = true});
         }
         // Checked if it is a directory
         else if (Directory.Exists(path))

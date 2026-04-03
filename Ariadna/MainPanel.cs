@@ -107,8 +107,9 @@ public partial class MainPanel : Form
 
         m_ToolStrip_EntryName.Focus();
 
-        m_ToolStrip_RecentBtn.Checked = true;
-        m_ToolStrip_RecentBtn.Image = Resources.icon_checked;
+        // Show Recent entries at startup
+//        m_ToolStrip_RecentBtn.Checked = true;
+//        m_ToolStrip_RecentBtn.Image = Resources.icon_checked;
         QueryEntries();
     }
     private void OnFormClosing(object sender, FormClosingEventArgs e)
