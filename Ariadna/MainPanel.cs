@@ -111,6 +111,7 @@ public partial class MainPanel : Form
 //        m_ToolStrip_RecentBtn.Checked = true;
 //        m_ToolStrip_RecentBtn.Image = Resources.icon_checked;
         QueryEntries();
+        SelectRandomEntry();
     }
     private void OnFormClosing(object sender, FormClosingEventArgs e)
     {
@@ -164,6 +165,25 @@ public partial class MainPanel : Form
         UpdateImageList(m_DbStrategy.QueryEntries(values));
 
         Cursor.Current = Cursors.Default;
+    }
+    private void SelectRandomEntry()
+    {
+        if (m_ImageListView.Items.Count == 0)
+        {
+            return;
+        }
+
+        var randomIndex = Random.Shared.Next(m_ImageListView.Items.Count);
+        var selection = m_ImageListView.Items[randomIndex];
+        if (selection == null)
+        {
+            return;
+        }
+
+        m_ImageListView.Items.FocusedItem = selection;
+        selection.Selected = true;
+        m_ImageListView.EnsureVisible(selection.Index);
+        m_ImageListView.Focus();
     }
     private void FillQuickList(HashSet<string> firstChars)
     {
