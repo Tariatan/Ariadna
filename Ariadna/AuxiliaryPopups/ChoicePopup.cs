@@ -12,18 +12,16 @@ public partial class ChoicePopup : Form
     public ChoicePopup(string path, List<MovieChoiceDto> results)
     {
         InitializeComponent();
-
-        foreach (var itm in results.Select(result => new ListViewItem([result.Title, result.TitleOrig, result.Year.ToString()])))
-        {
-            m_ResultList.Items.Add(itm);
-        }
+        AddResults(results);
         m_ToolStripPath.Text = path;
         Index = -1;
     }
+
     private void OnSelectedIndexChanged(object sender, EventArgs e)
     {
         Index = m_ResultList.FocusedItem!.Index;
     }
+
     private void OnDoubleClick(object sender, EventArgs e)
     {
         Close();
@@ -35,5 +33,18 @@ public partial class ChoicePopup : Form
         {
             Close();
         }
+    }
+
+    private void AddResults(IEnumerable<MovieChoiceDto> results)
+    {
+        foreach (var item in results.Select(CreateResultListViewItem))
+        {
+            m_ResultList.Items.Add(item);
+        }
+    }
+
+    private static ListViewItem CreateResultListViewItem(MovieChoiceDto result)
+    {
+        return new ListViewItem([result.Title, result.TitleOrig, result.Year.ToString()]);
     }
 }

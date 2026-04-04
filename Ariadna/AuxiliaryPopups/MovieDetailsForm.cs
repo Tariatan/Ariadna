@@ -1,8 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Data.Entity.Validation;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -42,12 +40,7 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
 
         FetchClientConfig();
 
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Movies.AsNoTracking().FirstOrDefault(r => r.file_path == FilePath);
-        if (entry != null)
-        {
-            StoredDbEntryId = entry.Id;
-        }
+        StoredDbEntryId = GetStoredEntryId();
 
         if (StoredDbEntryId != -1)
         {
@@ -67,35 +60,27 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
 
         FillMediaInfo(FilePath);
     }
-    protected override bool DoStore()
+    protected override void PrepareForStore()
     {
-        // Prepare data
         m_DirectorsList.Capitalize();
         m_CastList.Capitalize();
-
-        // Store tables with no references
+    }
+    protected override bool StorePreEntryData()
+    {
         var bSuccess = StoreGenres();
         bSuccess = bSuccess && StoreCast();
         bSuccess = bSuccess && StoreDirectors();
-
-        bSuccess = bSuccess && StoreEntry();
-
-        if (!bSuccess)
-        {
-            return false;
-        }
-
-        if (StoredDbEntryId == -1)
-        {
-            return true;
-        }
-
-        // Store tables with references
+        return bSuccess;
+    }
+    protected override bool StoreMainEntry()
+    {
+        return StoreEntry();
+    }
+    protected override void StoreRelatedData()
+    {
         StoreMovieCast(StoredDbEntryId);
         StoreMovieDirectors(StoredDbEntryId);
         StoreEntryGenres(StoredDbEntryId);
-
-        return true;
     }
 
     protected override void DoAddListViewItemFromClipboard(ListView listView, ImageList imageList)
@@ -118,6 +103,11 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
     protected override Bitmap GetGenreImage(string name)
     {
         return Utilities.GetMovieGenreImage(name);
+    }
+    protected virtual int GetStoredEntryId()
+    {
+        using var ctx = new AriadnaEntities();
+        return ResolveStoredEntryId(ctx.Movies.AsNoTracking().Where(r => r.file_path == FilePath).Select(r => (int?)r.Id));
     }
     #endregion
 
@@ -182,104 +172,76 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
     }
     private bool StoreGenres()
     {
-        var bSuccess = true;
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-        foreach (ListViewItem item in m_GenresList.Items)
-        {
-            var genre = ctx.Genres.FirstOrDefault(r => r.name == item.Text);
-            if (genre == null)
+        return SaveMissingListEntries(
+            m_GenresList.Items,
+            (ctx, name) =>
             {
-                ctx.Genres.Add(new Genre { name = item.Text });
-                bNeedToSaveChanges = true;
-            }
-        }
+                if (ctx.Genres.FirstOrDefault(r => r.name == name) != null)
+                {
+                    return false;
+                }
 
-        if (!bNeedToSaveChanges)
-        {
-            return true;
-        }
-            
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(Resources.Oops, Resources.FailedToSaveGenres, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
-
-        return bSuccess;
+                ctx.Genres.Add(new Genre { name = name });
+                return true;
+            },
+            Resources.Oops,
+            Resources.FailedToSaveGenres);
     }
     private bool StoreCast()
     {
-        var bSuccess = true;
-        using var ctx = new AriadnaEntities();
-        foreach (ListViewItem item in m_CastList.Items)
-        {
-            var bAddEntry = false;
-            var actor = ctx.Actors.FirstOrDefault(r => r.name == item.Text);
-            if (actor == null)
+        return SaveNamedPhotoEntries(
+            m_CastList.Items,
+            m_CastPhotos,
+            (ctx, name, photo) =>
             {
-                bAddEntry = true;
-                actor = new Actor();
-            }
-            actor.name = item.Text;
-            actor.photo =m_CastPhotos.Images[item.Text].ToBytes();
+                var bAddEntry = false;
+                var actor = ctx.Actors.FirstOrDefault(r => r.name == name);
+                if (actor == null)
+                {
+                    bAddEntry = true;
+                    actor = new Actor();
+                }
 
-            if (bAddEntry)
-            {
-                ctx.Actors.Add(actor);
-            }
-        }
+                actor.name = name;
+                actor.photo = photo;
 
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(Resources.Oops, Resources.FailedToSaveCast, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
+                if (bAddEntry)
+                {
+                    ctx.Actors.Add(actor);
+                }
 
-        return bSuccess;
+                return true;
+            },
+            Resources.Oops,
+            Resources.FailedToSaveCast);
     }
     private bool StoreDirectors()
     {
-        var bSuccess = true;
-        using var ctx = new AriadnaEntities();
-        foreach (ListViewItem item in m_DirectorsList.Items)
-        {
-            var bAddEntry = false;
-            var director = ctx.Directors.FirstOrDefault(r => r.name == item.Text);
-            if (director == null)
+        return SaveNamedPhotoEntries(
+            m_DirectorsList.Items,
+            m_DirectorsPhotos,
+            (ctx, name, photo) =>
             {
-                bAddEntry = true;
-                director = new Director();
-            }
+                var bAddEntry = false;
+                var director = ctx.Directors.FirstOrDefault(r => r.name == name);
+                if (director == null)
+                {
+                    bAddEntry = true;
+                    director = new Director();
+                }
 
-            director.name = item.Text;
-            director.photo = m_DirectorsPhotos.Images[item.Text].ToBytes();
+                director.name = name;
+                director.photo = photo;
 
-            if (bAddEntry)
-            {
-                ctx.Directors.Add(director);
-            }
-        }
+                if (bAddEntry)
+                {
+                    ctx.Directors.Add(director);
+                }
 
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(Resources.Oops, Resources.FailedToSaveDirectors, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
-
-        return bSuccess;
+                return true;
+            },
+            Resources.Oops,
+            Resources.FailedToSaveDirectors);
     }
     private bool StoreEntry()
     {
@@ -289,7 +251,6 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
             return false;
         }
 
-        var bSuccess = true;
         using var ctx = new AriadnaEntities();
         Movie entry = null;
         if (StoredDbEntryId != -1)
@@ -317,21 +278,13 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
             ctx.Movies.Add(entry);
         }
 
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
+        var bSuccess = TrySaveChanges(ctx, title, Resources.FailedToSaveEntry);
 
         var path = entry.file_path;
 
         if (bSuccess)
         {
-            StoredDbEntryId = ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(x => new { x.Id }).FirstOrDefault()!.Id;
+            StoredDbEntryId = ResolveStoredEntryId(ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(r => (int?)r.Id));
             bSuccess = (StoredDbEntryId != -1);
         }
 
@@ -340,118 +293,75 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
             return false;
         }
 
-        try
-        {
-            m_PicPoster.Image.Save(Settings.Default.MoviePostersRootPath + StoredDbEntryId, ImageFormat.Png);
-        }
-        catch (Exception)
-        {
-            MessageBox.Show(Resources.FailedToSavePoster, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+        TrySavePng(m_PicPoster.Image, Settings.Default.MoviePostersRootPath + StoredDbEntryId, Resources.FailedToSaveEntry);
 
         return true;
     }
     private void StoreMovieCast(int movieId)
     {
-        if (m_CastList.Items.Count == 0)
-        {
-            return;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-
-        ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == movieId)));
-        ctx.SaveChanges();
-
-        foreach (ListViewItem item in m_CastList.Items)
-        {
-            var actor = ctx.Actors.FirstOrDefault(r => r.name == item.Text);
-            if (actor == null)
+        ReplaceListRelations(
+            m_CastList.Items,
+            ctx => ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => r.movieId == movieId)),
+            (ctx, name) =>
             {
-                continue;
-            }
+                var actor = ctx.Actors.FirstOrDefault(r => r.name == name);
+                if (actor == null)
+                {
+                    return false;
+                }
 
-            var movieCast = ctx.MovieCasts.FirstOrDefault(r => (r.movieId == movieId && r.actorId == actor.Id));
-            if (movieCast == null)
-            {
+                if (ctx.MovieCasts.FirstOrDefault(r => r.movieId == movieId && r.actorId == actor.Id) != null)
+                {
+                    return false;
+                }
+
                 ctx.MovieCasts.Add(new MovieCast { movieId = movieId, actorId = actor.Id });
-                bNeedToSaveChanges = true;
-            }
-        }
-
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
+                return true;
+            });
     }
     private void StoreMovieDirectors(int movieId)
     {
-        if (m_DirectorsList.Items.Count == 0)
-        {
-            return;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-
-        ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == movieId)));
-        ctx.SaveChanges();
-
-        foreach (ListViewItem item in m_DirectorsList.Items)
-        {
-            var director = ctx.Directors.FirstOrDefault(r => r.name == item.Text);
-            if (director == null)
+        ReplaceListRelations(
+            m_DirectorsList.Items,
+            ctx => ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => r.movieId == movieId)),
+            (ctx, name) =>
             {
-                continue;
-            }
+                var director = ctx.Directors.FirstOrDefault(r => r.name == name);
+                if (director == null)
+                {
+                    return false;
+                }
 
-            var movieDirector = ctx.MovieDirectors.FirstOrDefault(r => (r.movieId == movieId && r.directorId == director.Id));
-            if (movieDirector == null)
-            {
+                if (ctx.MovieDirectors.FirstOrDefault(r => r.movieId == movieId && r.directorId == director.Id) != null)
+                {
+                    return false;
+                }
+
                 ctx.MovieDirectors.Add(new MovieDirector { movieId = movieId, directorId = director.Id });
-                bNeedToSaveChanges = true;
-            }
-        }
-
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
+                return true;
+            });
     }
     private void StoreEntryGenres(int entryId)
     {
-        if (m_GenresList.Items.Count == 0)
-        {
-            return;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-
-        ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == entryId)));
-        ctx.SaveChanges();
-
-        foreach (ListViewItem item in m_GenresList.Items)
-        {
-            var genre = ctx.Genres.FirstOrDefault(r => r.name == item.Text);
-            if (genre == null)
+        ReplaceListRelations(
+            m_GenresList.Items,
+            ctx => ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => r.movieId == entryId)),
+            (ctx, name) =>
             {
-                continue;
-            }
+                var genre = ctx.Genres.FirstOrDefault(r => r.name == name);
+                if (genre == null)
+                {
+                    return false;
+                }
 
-            var entryGenre = ctx.MovieGenres.FirstOrDefault(r => (r.movieId == entryId && r.genreId == genre.Id));
-            if (entryGenre == null)
-            {
+                if (ctx.MovieGenres.FirstOrDefault(r => r.movieId == entryId && r.genreId == genre.Id) != null)
+                {
+                    return false;
+                }
+
                 ctx.MovieGenres.Add(new MovieGenre { movieId = entryId, genreId = genre.Id });
-                bNeedToSaveChanges = true;
-            }
-        }
-
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
+                return true;
+            });
     }
     private void FillFieldsFromFile()
     {
@@ -462,38 +372,28 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
             return;
         }
 
-        m_TxtYear.Text = (entry.year > 0) ? entry.year.ToString() : string.Empty;
-        m_TxtTitle.Text = entry.title;
-        m_TxtTitleOrig.Text = entry.title_original;
-        m_TxtPath.Text = entry.file_path;
-        m_TxtDescription.Text = Utilities.DecorateDescription(entry.description);
-        m_WantToSee.Checked = Convert.ToBoolean(entry.want_to_see);
+        LoadBaseEntryFields(entry.title, entry.title_original, entry.year, entry.file_path);
+        LoadDescribedEntryFields(entry.description, Convert.ToBoolean(entry.want_to_see));
 
-        var filename = Settings.Default.MoviePostersRootPath + entry.Id;
-        if (File.Exists(filename))
-        {
-            using var bmpTemp = new Bitmap(filename);
-            m_PicPoster.Image = new Bitmap(bmpTemp);
-        }
+        LoadPosterImage(Settings.Default.MoviePostersRootPath + entry.Id, m_PicPoster);
 
-        var castSet = ctx.MovieCasts.AsNoTracking().ToArray().Where(r => (r.movieId == entry.Id));
-        foreach (var cast in castSet)
-        {
-            AddNewListItem(m_CastList, m_CastPhotos,
-                cast.Actor.name, cast.Actor.photo.ToBitmap());
-        }
+        LoadNamedItems(
+            m_CastList,
+            m_CastPhotos,
+            ctx.MovieCasts.AsNoTracking().ToArray().Where(r => r.movieId == entry.Id),
+            cast => cast.Actor.name,
+            cast => cast.Actor.photo);
 
-        var directorsSet = ctx.MovieDirectors.AsNoTracking().ToArray().Where(r => (r.movieId == entry.Id));
-        foreach (var directors in directorsSet)
-        {
-            AddNewListItem(m_DirectorsList, m_DirectorsPhotos, directors.Director.name, directors.Director.photo.ToBitmap());
-        }
+        LoadNamedItems(
+            m_DirectorsList,
+            m_DirectorsPhotos,
+            ctx.MovieDirectors.AsNoTracking().ToArray().Where(r => r.movieId == entry.Id),
+            directors => directors.Director.name,
+            directors => directors.Director.photo);
 
-        var genresSet = ctx.MovieGenres.AsNoTracking().ToArray().Where(r => (r.movieId == entry.Id));
-        foreach (var genres in genresSet)
-        {
-            AddGenre(genres.Genre.name);
-        }
+        LoadGenres(
+            ctx.MovieGenres.AsNoTracking().ToArray().Where(r => r.movieId == entry.Id),
+            genres => genres.Genre.name);
     }
     private async void FetchPreviews(ListView listView, ImageList imageList)
     {

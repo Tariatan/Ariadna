@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data.Entity.Validation;
@@ -40,7 +40,11 @@ public class LibraryDbStrategy : AbstractDbStrategy
     public override List<EntryDto> QueryEntries(QueryParams values)
     {
         using var ctx = new AriadnaEntities();
-        IQueryable<Library> query = ctx.Libraries.AsNoTracking();
+        return QueryEntries(values, CreateQuerySource(ctx));
+    }
+    protected List<EntryDto> QueryEntries(QueryParams values, LibraryQuerySource source)
+    {
+        IQueryable<Library> query = source.Entries;
 
         // -- Search Name --
         if (!string.IsNullOrEmpty(values.Name))
@@ -53,20 +57,20 @@ public class LibraryDbStrategy : AbstractDbStrategy
         // -- AUTHOR NAME --
         if (!string.IsNullOrEmpty(values.Director))
         {
-            var entry = ctx.Authors.AsNoTracking().FirstOrDefault(r => r.name == values.Director);
-            if (entry != null)
+            var authorId = source.FindAuthorId(values.Director);
+            if (authorId.HasValue)
             {
-                query = query.Where(r => r.LibraryAuthors.Any(l => (l.authorId == entry.Id)));
+                query = query.Where(r => r.LibraryAuthors.Any(l => l.authorId == authorId.Value));
             }
         }
         // -- GENRE --
         var genre = values.Subgenre != Utilities.EmptyDots ? values.Subgenre : values.Genre;
         if (!string.IsNullOrEmpty(genre))
         {
-            var entry = ctx.GenreOfLibraries.AsNoTracking().FirstOrDefault(r => r.name == genre);
-            if (entry != null)
+            var genreId = source.FindGenreId(genre);
+            if (genreId.HasValue)
             {
-                query = query.Where(r => r.LibraryGenres.Any(l => (l.genreId == entry.Id)));
+                query = query.Where(r => r.LibraryGenres.Any(l => l.genreId == genreId.Value));
             }
         }
         // -- WISH LIST --
@@ -88,6 +92,15 @@ public class LibraryDbStrategy : AbstractDbStrategy
 
         return query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
     }
+    protected virtual LibraryQuerySource CreateQuerySource(AriadnaEntities ctx)
+    {
+        return new LibraryQuerySource
+        {
+            Entries = ctx.Libraries.AsNoTracking(),
+            FindAuthorId = name => ctx.Authors.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
+            FindGenreId = name => ctx.GenreOfLibraries.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
+        };
+    }
     public override EntryInfo GetEntryInfo(int id)
     {
         var details = new EntryInfo();
@@ -107,77 +120,13 @@ public class LibraryDbStrategy : AbstractDbStrategy
     }
     public override void RemoveEntry(int id)
     {
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Libraries.FirstOrDefault(r => r.Id == id);
-        if (entry != null)
-        {
-            ctx.LibraryAuthors.RemoveRange(ctx.LibraryAuthors.Where(r => (r.libraryId == id)));
-            ctx.LibraryGenres.RemoveRange(ctx.LibraryGenres.Where(r => (r.libraryId == id)));
-
-            ctx.Libraries.Remove(entry);
-
-            ctx.SaveChanges();
-        }
-
         var posterPath = Settings.Default.LibraryPostersRootPath + id;
-        if (!File.Exists(posterPath))
-        {
-            return;
-        }
-
-        try
-        {
-            File.Delete(posterPath);
-        }
-        catch (IOException ex)
-        {
-            MessageBox.Show(ex.Source, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+        EntryRemovalHelper.RemoveSingleFile(() => RemoveEntryFromDatabase(id), posterPath, FileExists, DeleteFile, ShowMessage);
     }
     public override bool FindNextEntryAutomatically()
     {
-        using var ctx = new AriadnaEntities();
-        var foundPath = string.Empty;
-        var found = false;
-        foreach (var baseDir in Directory.GetDirectories(Settings.Default.DefaultLibraryPath))
-        {
-            foreach (var subDir in Directory.GetDirectories(baseDir, "*", SearchOption.AllDirectories))
-            {
-                if (Path.GetDirectoryName(subDir)!.Any(char.IsLower)) continue;
-                if (Path.GetFileName(subDir).Any(char.IsLower))
-                {
-                    if (IsAlreadyInserted(subDir, ctx)) continue;
-
-                    foundPath = subDir;
-                    found = true;
-                    break;
-                }
-
-                foreach (var file in Directory.GetFiles(subDir))
-                {
-                    if (IsAlreadyInserted(file, ctx)) continue;
-
-                    foundPath = file;
-                    found = true;
-                    break;
-                }
-
-                if (found) break;
-            }
-
-            if (found) break;
-
-            foreach (var file in Directory.GetFiles(baseDir))
-            {
-                if (IsAlreadyInserted(file, ctx)) continue;
-
-                foundPath = file;
-                found = true;
-                break;
-            }
-        }
-
-        if (found is false)
+        var foundPath = FindNextEntryPathAutomatically();
+        if (string.IsNullOrEmpty(foundPath))
         {
             return false;
         }
@@ -186,7 +135,7 @@ public class LibraryDbStrategy : AbstractDbStrategy
 
         return true;
     }
-    private bool IsAlreadyInserted(string subDir, AriadnaEntities ctx)
+    protected virtual bool IsAlreadyInserted(string subDir, AriadnaEntities ctx)
     {
         if (ctx.Ignores.AsNoTracking().FirstOrDefault(r => r.path == subDir) is not null)
         {
@@ -246,7 +195,7 @@ public class LibraryDbStrategy : AbstractDbStrategy
 
         ShowDataDialog(path);
     }
-    private void ShowDataDialog(string path)
+    protected virtual void ShowDataDialog(string path)
     {
         var detailsForm = new LibraryDetailsForm(path, m_Logger);
         detailsForm.FormClosed += OnDetailsFormClosed;
@@ -260,12 +209,7 @@ public class LibraryDbStrategy : AbstractDbStrategy
             return;
         }
 
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = Settings.Default.TotalCommanderPath,
-            WorkingDirectory = Path.GetDirectoryName(Settings.Default.TotalCommanderPath)!,
-            Arguments = $"/O /L=\"{path}\"",
-        });
+        OpenDirectoryPath(path);
     }
     public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
     {
@@ -339,7 +283,7 @@ public class LibraryDbStrategy : AbstractDbStrategy
         var eventArgs = new EntryInsertedEventArgs(detailsForm.StoredDbEntryId);
         OnEntryInserted(eventArgs);
     }
-    private string FindStoredEntryPathById(int id)
+    protected virtual string FindStoredEntryPathById(int id)
     {
         if (id == -1)
         {
@@ -350,6 +294,76 @@ public class LibraryDbStrategy : AbstractDbStrategy
         var path = ctx.Libraries.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault()?.file_path;
         
         return !string.IsNullOrEmpty(path) ? path : string.Empty;
+    }
+    protected virtual void RemoveEntryFromDatabase(int id)
+    {
+        using var ctx = new AriadnaEntities();
+        var entry = ctx.Libraries.FirstOrDefault(r => r.Id == id);
+        if (entry == null)
+        {
+            return;
+        }
+
+        ctx.LibraryAuthors.RemoveRange(ctx.LibraryAuthors.Where(r => (r.libraryId == id)));
+        ctx.LibraryGenres.RemoveRange(ctx.LibraryGenres.Where(r => (r.libraryId == id)));
+        ctx.Libraries.Remove(entry);
+        ctx.SaveChanges();
+    }
+    protected virtual string FindNextEntryPathAutomatically()
+    {
+        using var ctx = new AriadnaEntities();
+        Func<string, bool> isAlreadyInserted = path => IsAlreadyInserted(path, ctx);
+        foreach (var baseDir in GetDirectories(Settings.Default.DefaultLibraryPath))
+        {
+            var foundPath = FindNextEntryPathInBaseDirectory(baseDir, isAlreadyInserted);
+            if (!string.IsNullOrEmpty(foundPath))
+            {
+                return foundPath;
+            }
+        }
+
+        return string.Empty;
+    }
+    protected virtual string FindNextEntryPathInBaseDirectory(string baseDir, Func<string, bool> isAlreadyInserted)
+    {
+        foreach (var subDir in GetDirectoriesRecursive(baseDir))
+        {
+            var foundPath = FindNextEntryPathInSubDirectory(subDir, isAlreadyInserted);
+            if (!string.IsNullOrEmpty(foundPath))
+            {
+                return foundPath;
+            }
+        }
+
+        return EntryDiscoveryHelper.FindFirstNotInserted(GetFiles(baseDir), isAlreadyInserted);
+    }
+    protected virtual string FindNextEntryPathInSubDirectory(string subDir, Func<string, bool> isAlreadyInserted)
+    {
+        if (Path.GetDirectoryName(subDir)!.Any(char.IsLower))
+        {
+            return string.Empty;
+        }
+
+        if (Path.GetFileName(subDir).Any(char.IsLower))
+        {
+            return isAlreadyInserted(subDir) ? string.Empty : subDir;
+        }
+
+        return EntryDiscoveryHelper.FindFirstNotInserted(GetFiles(subDir), isAlreadyInserted);
+    }
+    protected virtual string[] GetDirectories(string path) => Directory.GetDirectories(path);
+    protected virtual string[] GetDirectoriesRecursive(string path) => Directory.GetDirectories(path, "*", SearchOption.AllDirectories);
+    protected virtual string[] GetFiles(string path) => Directory.GetFiles(path);
+    protected virtual void OpenDirectoryPath(string path) => EntryExecutionHelper.OpenDirectoryInTotalCommander(path, Settings.Default.TotalCommanderPath, StartProcess);
+    protected virtual bool FileExists(string path) => File.Exists(path);
+    protected virtual void DeleteFile(string path) => File.Delete(path);
+    protected virtual void StartProcess(ProcessStartInfo startInfo) => Process.Start(startInfo);
+    protected virtual void ShowMessage(string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon) => MessageBox.Show(text, caption, buttons, icon);
+    protected class LibraryQuerySource
+    {
+        public required IQueryable<Library> Entries { get; init; }
+        public required Func<string, int?> FindAuthorId { get; init; }
+        public required Func<string, int?> FindGenreId { get; init; }
     }
     // ReSharper disable once UnusedMember.Local
     private void DeleteUnusedGenres()

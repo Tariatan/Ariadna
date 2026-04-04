@@ -143,28 +143,7 @@ public partial class MainPanel : Form
     private void QueryEntries()
     {
         HideFloatingPanel();
-
-        Cursor.Current = Cursors.WaitCursor;
-
-        var values = new AbstractDbStrategy.QueryParams
-        {
-            Name = m_ToolStrip_EntryName.Text,
-            Director = m_ToolStrip_DirectorName.Text,
-            Actor = m_ToolStrip_ActorName.Text,
-            Genre = m_ToolStrip_GenreName.Text,
-            Subgenre = m_ToolStrip_SubgenreName.Text,
-            IsWish = m_ToolStrip_WishlistBtn.Checked,
-            IsRecent = m_ToolStrip_RecentBtn.Checked,
-            IsNew = m_ToolStrip_NewBtn.Checked,
-            IsVr = m_ToolStrip_VRBtn.Checked,
-            IsNonVr = m_ToolStrip_nonVRBtn.Checked,
-            IsSeries = m_ToolStrip_SeriesBtn.Checked,
-            IsMovies = m_ToolStrip_MoviesBtn.Checked
-        };
-
-        UpdateImageList(m_DbStrategy.QueryEntries(values));
-
-        Cursor.Current = Cursors.Default;
+        RunWithWaitCursor(() => UpdateImageList(m_DbStrategy.QueryEntries(CreateQueryParams())));
     }
     private void SelectRandomEntry()
     {
@@ -180,9 +159,7 @@ public partial class MainPanel : Form
             return;
         }
 
-        m_ImageListView.Items.FocusedItem = selection;
-        selection.Selected = true;
-        m_ImageListView.EnsureVisible(selection.Index);
+        SelectListItem(selection, selection.Index);
         m_ImageListView.Focus();
     }
     private void FillQuickList(HashSet<string> firstChars)
@@ -226,8 +203,12 @@ public partial class MainPanel : Form
         var charBtn = sender as Button;
 
         var selection = m_ImageListView.Items.FirstOrDefault(x => x.Text.StartsWith(charBtn!.Text, true, null));
-        m_ImageListView.EnsureVisible(selection!.Index);
-        selection.Selected = true;
+        if (selection == null)
+        {
+            return;
+        }
+
+        SelectListItem(selection, selection.Index);
     }
     private void MainPanel_KeyUp(object sender, KeyEventArgs e)
     {
@@ -250,39 +231,25 @@ public partial class MainPanel : Form
 
         e.Handled = true;
 
-        if (FindNextEntryAutomatically() is false)
-        {
-            m_DbStrategy.FindNextEntryManually();
-        }
+        FindNextEntry();
     }
     private bool FindNextEntryAutomatically()
     {
-        Cursor.Current = Cursors.WaitCursor;
-        var bNotInsertedEntryFound = m_DbStrategy.FindNextEntryAutomatically();
-        Cursor.Current = Cursors.Default;
-
-        return bNotInsertedEntryFound;
+        return RunWithWaitCursor(m_DbStrategy.FindNextEntryAutomatically);
     }
     private void RemoveEntry(bool deleteFile = false)
     {
-        if (m_ImageListView.Items.FocusedItem == null)
-        {
-            return;
-        }
-
-        var id = ((string)m_ImageListView.Items.FocusedItem.VirtualItemKey).ToInt();
-        if (id == -1)
+        if (!TryGetFocusedEntryId(m_ImageListView, out var id))
         {
             return;
         }
 
         var index = m_ImageListView.Items.FirstOrDefault(x => (string)x.VirtualItemKey == id.ToString())?.Index;
-
-        var info = m_DbStrategy.GetEntryInfo(id);
+        var info = GetEntryInfo(id);
 
         var msg = info.Title + " / " + info.TitleOrig + '\n' + info.Path;
         var caption = deleteFile ? Resources.DeleteEntryAndFile : Resources.DeleteEntry;
-        var dialogResult = MessageBox.Show(msg, caption, MessageBoxButtons.YesNoCancel, deleteFile ? MessageBoxIcon.Warning : MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+        var dialogResult = ShowRemoveEntryConfirmation(msg, caption, deleteFile);
         if (dialogResult != DialogResult.Yes)
         {
             return;
@@ -290,63 +257,91 @@ public partial class MainPanel : Form
 
         m_DbStrategy.RemoveEntry(id);
 
-        QueryEntries();
-        //UpdateImageList(dbStrategy.GetEntries());
-
-        m_ToolStrip_EntryName.Text = string.Empty;
-
-        if (index is not null)
-        {
-            m_ImageListView.EnsureVisible(index.Value);
-        }
+        RefreshAfterEntryRemoval(index);
 
         if (!deleteFile)
         {
             return;
         }
 
-        if (File.Exists(info.Path))
+        if (FileExists(info.Path))
         {
-            // Delete file
-            File.SetAttributes(info.Path, FileAttributes.Normal);
-            File.Delete(info.Path);
+            DeleteFile(info.Path);
         }
-        // Checked if it is a directory
-        else if (Directory.Exists(info.Path))
+        else if (DirectoryExists(info.Path))
         {
             try
             {
-                var dir = new DirectoryInfo(info.Path);
-                dir.Attributes &= ~FileAttributes.ReadOnly;
-                dir.Delete(true);
+                DeleteDirectory(info.Path);
             }
             catch (IOException ex)
             {
-                MessageBox.Show(ex.Message);
+                ShowMessage(ex.Message);
             }
         }
         else
         {
-            MessageBox.Show(info.Path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ShowPathNotFoundMessage(info.Path);
         }
+    }
+    protected virtual DialogResult ShowRemoveEntryConfirmation(string message, string caption, bool deleteFile)
+    {
+        return MessageBox.Show(message, caption, MessageBoxButtons.YesNoCancel, deleteFile ? MessageBoxIcon.Warning : MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+    }
+    protected virtual void ShowMessage(string message)
+    {
+        MessageBox.Show(message);
+    }
+    protected virtual void ShowPathNotFoundMessage(string path)
+    {
+        MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+    protected virtual bool FileExists(string path)
+    {
+        return File.Exists(path);
+    }
+    protected virtual bool DirectoryExists(string path)
+    {
+        return Directory.Exists(path);
+    }
+    protected virtual void DeleteFile(string path)
+    {
+        var file = new FileInfo(path);
+        file.Attributes &= ~FileAttributes.ReadOnly;
+        file.Delete();
+    }
+    protected virtual void DeleteDirectory(string path)
+    {
+        var dir = new DirectoryInfo(path);
+        ClearReadOnlyAttributes(dir);
+        dir.Delete(true);
+    }
+    private static void ClearReadOnlyAttributes(DirectoryInfo directory)
+    {
+        foreach (var subDirectory in directory.GetDirectories("*", SearchOption.AllDirectories))
+        {
+            subDirectory.Attributes &= ~FileAttributes.ReadOnly;
+        }
+
+        foreach (var file in directory.GetFiles("*", SearchOption.AllDirectories))
+        {
+            file.Attributes &= ~FileAttributes.ReadOnly;
+        }
+
+        directory.Attributes &= ~FileAttributes.ReadOnly;
     }
     private void OnNewEntryInserted(object sender, AbstractDbStrategy.EntryInsertedEventArgs e)
     {
-        var selection = m_ImageListView.Items.FirstOrDefault(x => (string)x.VirtualItemKey == e.Id.ToString());
-
         QueryEntries();
-        //UpdateImageList(dbStrategy.GetEntries());
 
-
-        selection ??= m_ImageListView.Items.FirstOrDefault(x => (string)x.VirtualItemKey == e.Id.ToString());
+        var selection = m_ImageListView.Items.FirstOrDefault(x => (string)x.VirtualItemKey == e.Id.ToString());
 
         if (selection == null)
         {
             return;
         }
 
-        m_ImageListView.EnsureVisible(selection.Index == 0 ? 0 : selection.Index - 1);
-        selection.Selected = true;
+        SelectListItem(selection, selection.Index == 0 ? 0 : selection.Index - 1);
     }
     #region Image List View handlers
     private void ListView_ItemSelectionChanged(object sender, EventArgs e)
@@ -369,133 +364,84 @@ public partial class MainPanel : Form
             return;
         }
 
-        m_DbStrategy.ShowEntryDetails(((string)lv.Items.FocusedItem.VirtualItemKey).ToInt());
+        if (TryGetFocusedEntryId(lv, out var id))
+        {
+            m_DbStrategy.ShowEntryDetails(id);
+        }
     }
     private void ListView_MouseDoubleClick(object sender, MouseEventArgs e)
     {
         var lv = sender as ImageListView;
-        m_DbStrategy.ExecuteEntry(((string)lv!.Items.FocusedItem.VirtualItemKey).ToInt());
+        if (TryGetFocusedEntryId(lv!, out var id))
+        {
+            m_DbStrategy.ExecuteEntry(id);
+        }
     }
     #endregion
     #region ToolStrip Handlers
     private void ToolStrip_AddBtn_MouseUp(object sender, MouseEventArgs e)
     {
-        // Auto search on left click
-        if (e.Button == MouseButtons.Left)
-        {
-            if (FindNextEntryAutomatically())
-            {
-                return;
-            }
-        }
-
-        m_DbStrategy.FindNextEntryManually();
+        FindNextEntry(e.Button == MouseButtons.Left);
     }
     private void ToolStrip_CheckboxedFilter_Clicked(object sender, EventArgs e)
     {
         var checkboxedFilter = sender as ToolStripButton;
-        if (checkboxedFilter!.Checked)
-        {
-            checkboxedFilter.Image = Resources.icon_unchecked;
-            checkboxedFilter.Checked = false;
-        }
-        else
-        {
-            checkboxedFilter.Image = Resources.icon_checked;
-            checkboxedFilter.Checked = true;
-        }
+        SetToolStripButtonCheckedState(checkboxedFilter!, !checkboxedFilter!.Checked);
 
         QueryEntries();
     }
     private void ToolStrip_ToolStrip_VRBtn_Clicked(object sender, EventArgs e)
     {
-        m_ToolStrip_nonVRBtn.Checked = false;
-        m_ToolStrip_nonVRBtn.Image = Resources.icon_unchecked;
+        SetToolStripButtonCheckedState(m_ToolStrip_nonVRBtn, false);
 
         ToolStrip_CheckboxedFilter_Clicked(sender, e);
     }
     private void ToolStrip_ToolStrip_NonVRBtn_Clicked(object sender, EventArgs e)
     {
-        m_ToolStrip_VRBtn.Checked = false;
-        m_ToolStrip_VRBtn.Image = Resources.icon_unchecked;
+        SetToolStripButtonCheckedState(m_ToolStrip_VRBtn, false);
 
         ToolStrip_CheckboxedFilter_Clicked(sender, e);
     }
     private void ToolStrip_ToolStrip_SeriesBtn_Clicked(object sender, EventArgs e)
     {
-        m_ToolStrip_MoviesBtn.Checked = false;
-        m_ToolStrip_MoviesBtn.Image = Resources.icon_unchecked;
+        SetToolStripButtonCheckedState(m_ToolStrip_MoviesBtn, false);
 
         ToolStrip_CheckboxedFilter_Clicked(sender, e);
     }
     private void ToolStrip_ToolStrip_MoviesBtn_Clicked(object sender, EventArgs e)
     {
-        m_ToolStrip_SeriesBtn.Checked = false;
-        m_ToolStrip_SeriesBtn.Image = Resources.icon_unchecked;
+        SetToolStripButtonCheckedState(m_ToolStrip_SeriesBtn, false);
 
         ToolStrip_CheckboxedFilter_Clicked(sender, e);
     }
     private void ToolStrip_Genre_Clicked(object sender, EventArgs e)
     {
-        var values = m_DbStrategy.GetGenres();
-        ShowFloatingPanel(values, FloatingPanel.EPanelContentType.GENRES, false, false, Settings.Default.GenreImageWidth, Settings.Default.GenreImageHeight);
+        ShowGenrePanel(m_DbStrategy.GetGenres(), FloatingPanel.EPanelContentType.GENRES);
     }
     private void ToolStrip_Subgenre_Clicked(object sender, EventArgs e)
     {
-        var values = m_DbStrategy.GetSubgenres(m_ToolStrip_GenreName.Text);
-        ShowFloatingPanel(values, FloatingPanel.EPanelContentType.SUBGENRES, false, false, Settings.Default.GenreImageWidth, Settings.Default.GenreImageHeight);
+        ShowGenrePanel(m_DbStrategy.GetSubgenres(m_ToolStrip_GenreName.Text), FloatingPanel.EPanelContentType.SUBGENRES);
     }
     private void ToolStrip_ClearDirectorBtn_Clicked(object sender, EventArgs e)
     {
-        HideFloatingPanel();
-        if (m_ToolStrip_DirectorName.Text.Length > 0)
-        {
-            m_ToolStrip_DirectorName.Text = string.Empty;
-            QueryEntries();
-        }
+        ClearTextAndQuery(m_ToolStrip_DirectorName);
     }
     private void ToolStrip_ClearActorBtn_Clicked(object sender, EventArgs e)
     {
         //DeleteUnusedActors();
-
-        HideFloatingPanel();
-        if (m_ToolStrip_ActorName.Text.Length > 0)
-        {
-            m_ToolStrip_ActorName.Text = string.Empty;
-            QueryEntries();
-        }
+        ClearTextAndQuery(m_ToolStrip_ActorName);
     }
     private void ToolStrip_ClearTitleBtn_Clicked(object sender, EventArgs e)
     {
-        if (m_ToolStrip_EntryName.Text.Length > 0)
-        {
-            m_ToolStrip_EntryName.Text = string.Empty;
-            QueryEntries();
-        }
+        ClearTextAndQuery(m_ToolStrip_EntryName, hideFloatingPanel: false);
     }
     private void ToolStrip_ClearGenreBtn_Clicked(object sender, EventArgs e)
     {
-        DeleteUnusedGenres();
-
-        HideFloatingPanel();
-
-        if (!string.IsNullOrEmpty(m_ToolStrip_GenreName.Text) && (m_ToolStrip_GenreName.Text != Utilities.EmptyDots))
-        {
-
-            m_ToolStrip_GenreName.Text = Utilities.EmptyDots;
-            QueryEntries();
-        }
+        ClearTextAndQuery(m_ToolStrip_GenreName, Utilities.EmptyDots, DeleteUnusedGenres);
     }
     private void ToolStrip_ClearSubgenreBtn_Clicked(object sender, EventArgs e)
     {
-        HideFloatingPanel();
-
-        if (!string.IsNullOrEmpty(m_ToolStrip_SubgenreName.Text) && (m_ToolStrip_SubgenreName.Text != Utilities.EmptyDots))
-        {
-
-            m_ToolStrip_SubgenreName.Text = Utilities.EmptyDots;
-            QueryEntries();
-        }
+        ClearTextAndQuery(m_ToolStrip_SubgenreName, Utilities.EmptyDots);
     }
     private void OnGenreChanged(object sender, EventArgs e)
     {
@@ -556,24 +502,15 @@ public partial class MainPanel : Form
     }
     private void OnEntryNameTextChanged(object sender, EventArgs e)
     {
-        m_ImageListView.Items.FocusedItem = null;
-        m_TypeTimer.Stop();
-        m_TypeField = ETypeField.TITLE;
-        m_TypeTimer.Start();
+        StartTypeTimer(ETypeField.TITLE);
     }
     private void OnDirectorNameTextChanged(object sender, EventArgs e)
     {
-        m_ImageListView.Items.FocusedItem = null;
-        m_TypeTimer.Stop();
-        m_TypeField = ETypeField.DIRECTOR;
-        m_TypeTimer.Start();
+        StartTypeTimer(ETypeField.DIRECTOR);
     }
     private void OnActorNameTextChanged(object sender, EventArgs e)
     {
-        m_ImageListView.Items.FocusedItem = null;
-        m_TypeTimer.Stop();
-        m_TypeField = ETypeField.ACTOR;
-        m_TypeTimer.Start();
+        StartTypeTimer(ETypeField.ACTOR);
     }
     private void OnTypeTimer(object sender, EventArgs e)
     {
@@ -600,59 +537,17 @@ public partial class MainPanel : Form
     }
     private void OnDirectorTypeTimer()
     {
-        if (m_SuppressNameChangedEvent)
-        {
-            return;
-        }
-
-        if (m_ToolStrip_DirectorName.Text.Length == 0)
-        {
-            HideFloatingPanel();
-            return;
-        }
-
-        Cursor.Current = Cursors.WaitCursor;
-        {
-            var values = m_DbStrategy.GetDirectors(m_ToolStrip_DirectorName.Text.ToUpper(), MAX_SEARCH_FILTER_COUNT);
-            ShowFloatingPanel(values, FloatingPanel.EPanelContentType.DIRECTORS, false, false, Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
-        }
-        Cursor.Current = Cursors.Default;
-
-        m_ToolStrip_DirectorName.Focus();
+        ShowSearchResults(m_ToolStrip_DirectorName, m_DbStrategy.GetDirectors, FloatingPanel.EPanelContentType.DIRECTORS);
     }
     private void OnActorTypeTimer()
     {
-        if (m_SuppressNameChangedEvent)
-        {
-            return;
-        }
-
-        if (m_ToolStrip_ActorName.Text.Length == 0)
-        {
-            HideFloatingPanel();
-            return;
-        }
-
-        Cursor.Current = Cursors.WaitCursor;
-        {
-            var values = m_DbStrategy.GetActors(m_ToolStrip_ActorName.Text.ToUpper(), MAX_SEARCH_FILTER_COUNT);
-            ShowFloatingPanel(values, FloatingPanel.EPanelContentType.CAST, false, false, Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
-        }
-        Cursor.Current = Cursors.Default;
-
-        m_ToolStrip_ActorName.Focus();
+        ShowSearchResults(m_ToolStrip_ActorName, m_DbStrategy.GetActors, FloatingPanel.EPanelContentType.CAST);
     }
     #endregion
     #region Floating Panel operations
     private void ShowFloatingPanel(ImmutableSortedDictionary<string, Bitmap> values, FloatingPanel.EPanelContentType contentType, bool checkBox, bool multiSelect, int imageW, int imageH)
     {
-        var width = Size.Width - 12 * 2;
-        var height = imageH * 3 + 12;
-        var x = Location.X + 12;
-        var y = Location.Y + SystemInformation.CaptionHeight + m_ToolStrip.Size.Height + 8;
-
-        m_FloatingPanel.Location = new Point(x, y);
-        m_FloatingPanel.Size = new Size(width, height);
+        m_FloatingPanel.Bounds = GetFloatingPanelBounds(imageH);
 
         m_FloatingPanel.Deactivate += OnFloatingPanelClosed;
         m_FloatingPanel.ItemSelected += OnFloatingPanelItemSelected;
@@ -683,6 +578,47 @@ public partial class MainPanel : Form
             return;
         }
 
+        ApplyFloatingPanelSelectionResult(result);
+
+        RunWithSuppressedNameChangedEvents(QueryEntries);
+    }
+    private void OnFloatingPanelItemSelected(object sender, EventArgs e)
+    {
+        if (m_FloatingPanel.Visible)
+        {
+            m_ToolStrip_GenreName.Text = string.Join(" ", m_FloatingPanel.EntryNames);
+
+            QueryEntries();
+        }
+    }
+
+    private AbstractDbStrategy.QueryParams CreateQueryParams()
+    {
+        return new AbstractDbStrategy.QueryParams
+        {
+            Name = m_ToolStrip_EntryName.Text,
+            Director = m_ToolStrip_DirectorName.Text,
+            Actor = m_ToolStrip_ActorName.Text,
+            Genre = m_ToolStrip_GenreName.Text,
+            Subgenre = m_ToolStrip_SubgenreName.Text,
+            IsWish = m_ToolStrip_WishlistBtn.Checked,
+            IsRecent = m_ToolStrip_RecentBtn.Checked,
+            IsNew = m_ToolStrip_NewBtn.Checked,
+            IsVr = m_ToolStrip_VRBtn.Checked,
+            IsNonVr = m_ToolStrip_nonVRBtn.Checked,
+            IsSeries = m_ToolStrip_SeriesBtn.Checked,
+            IsMovies = m_ToolStrip_MoviesBtn.Checked
+        };
+    }
+
+    private static void SetToolStripButtonCheckedState(ToolStripButton button, bool isChecked)
+    {
+        button.Checked = isChecked;
+        button.Image = isChecked ? Resources.icon_checked : Resources.icon_unchecked;
+    }
+
+    private void ApplyFloatingPanelSelectionResult(string result)
+    {
         switch (m_FloatingPanel.PanelContentType)
         {
             case FloatingPanel.EPanelContentType.DIRECTORS:
@@ -698,18 +634,146 @@ public partial class MainPanel : Form
                 m_ToolStrip_SubgenreName.Text = result;
                 break;
         }
+    }
 
-        m_SuppressNameChangedEvent = true;
+    private void FindNextEntry(bool tryAutomaticFirst = true)
+    {
+        if (tryAutomaticFirst && FindNextEntryAutomatically())
+        {
+            return;
+        }
+
+        m_DbStrategy.FindNextEntryManually();
+    }
+
+    private EntryInfo GetEntryInfo(int id)
+    {
+        return m_DbStrategy.GetEntryInfo(id);
+    }
+
+    private void RefreshAfterEntryRemoval(int? index)
+    {
         QueryEntries();
+        m_ToolStrip_EntryName.Text = string.Empty;
+
+        if (index is not null)
+        {
+            m_ImageListView.EnsureVisible(index.Value);
+        }
+    }
+
+    private void StartTypeTimer(ETypeField typeField)
+    {
+        m_ImageListView.Items.FocusedItem = null;
+        m_TypeTimer.Stop();
+        m_TypeField = typeField;
+        m_TypeTimer.Start();
+    }
+
+    private void ShowSearchResults(ToolStripTextBox textBox, Func<string, int, ImmutableSortedDictionary<string, Bitmap>> valueProvider, FloatingPanel.EPanelContentType contentType)
+    {
+        if (m_SuppressNameChangedEvent)
+        {
+            return;
+        }
+
+        if (textBox.Text.Length == 0)
+        {
+            HideFloatingPanel();
+            return;
+        }
+
+        var values = RunWithWaitCursor(() => valueProvider(textBox.Text.ToUpper(), MAX_SEARCH_FILTER_COUNT));
+        ShowPortraitPanel(values, contentType);
+        textBox.Focus();
+    }
+
+    private void ShowGenrePanel(ImmutableSortedDictionary<string, Bitmap> values, FloatingPanel.EPanelContentType contentType)
+    {
+        ShowFloatingPanel(values, contentType, false, false, Settings.Default.GenreImageWidth, Settings.Default.GenreImageHeight);
+    }
+
+    private void ShowPortraitPanel(ImmutableSortedDictionary<string, Bitmap> values, FloatingPanel.EPanelContentType contentType)
+    {
+        ShowFloatingPanel(values, contentType, false, false, Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
+    }
+
+    private Rectangle GetFloatingPanelBounds(int imageHeight)
+    {
+        var width = Size.Width - 12 * 2;
+        var height = imageHeight * 3 + 12;
+        var x = Location.X + 12;
+        var y = Location.Y + SystemInformation.CaptionHeight + m_ToolStrip.Size.Height + 8;
+        return new Rectangle(x, y, width, height);
+    }
+
+    private void ClearTextAndQuery(ToolStripItem item, string emptyValue = "", Action beforeClear = null, bool hideFloatingPanel = true)
+    {
+        beforeClear?.Invoke();
+
+        if (hideFloatingPanel)
+        {
+            HideFloatingPanel();
+        }
+
+        if (string.IsNullOrEmpty(item.Text) || item.Text == emptyValue)
+        {
+            return;
+        }
+
+        item.Text = emptyValue;
+        QueryEntries();
+    }
+
+    private void RunWithSuppressedNameChangedEvents(Action action)
+    {
+        m_SuppressNameChangedEvent = true;
+        action();
         m_SuppressNameChangedEvent = false;
     }
-    private void OnFloatingPanelItemSelected(object sender, EventArgs e)
-    {
-        if (m_FloatingPanel.Visible)
-        {
-            m_ToolStrip_GenreName.Text = string.Join(" ", m_FloatingPanel.EntryNames);
 
-            QueryEntries();
+    private static bool TryGetFocusedEntryId(ImageListView listView, out int id)
+    {
+        id = -1;
+        if (listView.Items.FocusedItem == null)
+        {
+            return false;
+        }
+
+        id = ((string)listView.Items.FocusedItem.VirtualItemKey).ToInt();
+        return id != -1;
+    }
+
+    private void SelectListItem(ImageListViewItem item, int ensureVisibleIndex)
+    {
+        m_ImageListView.Items.FocusedItem = item;
+        item.Selected = true;
+        m_ImageListView.EnsureVisible(ensureVisibleIndex);
+    }
+
+    private static void RunWithWaitCursor(Action action)
+    {
+        Cursor.Current = Cursors.WaitCursor;
+        try
+        {
+            action();
+        }
+        finally
+        {
+            Cursor.Current = Cursors.Default;
+        }
+    }
+
+    private static T RunWithWaitCursor<T>(Func<T> func)
+    {
+        Cursor.Current = Cursors.WaitCursor;
+        try
+        {
+            return func();
+        }
+        finally
+        {
+            Cursor.Current = Cursors.Default;
         }
     }
     #endregion

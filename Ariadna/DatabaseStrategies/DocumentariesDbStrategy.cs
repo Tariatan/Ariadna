@@ -2,33 +2,23 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data.Entity.Validation;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
-using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
 using DbProvider;
-using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 
 namespace Ariadna.DatabaseStrategies;
 
-public class DocumentariesDbStrategy : AbstractDbStrategy
+public class DocumentariesDbStrategy : MediaDbStrategyBase
 {
-    private readonly ILogger m_Logger;
-    private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new();
-
-    public DocumentariesDbStrategy(ILogger logger)
+    public DocumentariesDbStrategy(ILogger logger) : base(logger, Settings.Default.DocumentaryPostersRootPath)
     {
-        m_Logger = logger;
-        m_PosterImageAdaptor.RootPath = Settings.Default.DocumentaryPostersRootPath;
     }
-
-    public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
 
     public override List<EntryDto> GetEntries()
     {
@@ -39,7 +29,11 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
     public override List<EntryDto> QueryEntries(QueryParams values)
     {
         using var ctx = new AriadnaEntities();
-        IQueryable<Documentary> query = ctx.Documentaries.AsNoTracking();
+        return QueryEntries(values, CreateQuerySource(ctx));
+    }
+    protected List<EntryDto> QueryEntries(QueryParams values, DocumentaryQuerySource source)
+    {
+        IQueryable<Documentary> query = source.Entries;
 
         // -- Search Name --
         if (!string.IsNullOrEmpty(values.Name))
@@ -52,10 +46,10 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         // -- GENRE --
         if (!string.IsNullOrEmpty(values.Genre))
         {
-            var entry = ctx.GenreOfDocumentaries.AsNoTracking().FirstOrDefault(r => r.name == values.Genre);
-            if (entry != null)
+            var genreId = source.FindGenreId(values.Genre);
+            if (genreId.HasValue)
             {
-                query = query.Where(r => r.DocumentaryGenres.Any(l => (l.genreId == entry.Id)));
+                query = query.Where(r => r.DocumentaryGenres.Any(l => l.genreId == genreId.Value));
             }
         }
         // -- WISH LIST --
@@ -77,6 +71,14 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
 
         return query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
     }
+    protected virtual DocumentaryQuerySource CreateQuerySource(AriadnaEntities ctx)
+    {
+        return new DocumentaryQuerySource
+        {
+            Entries = ctx.Documentaries.AsNoTracking(),
+            FindGenreId = name => ctx.GenreOfDocumentaries.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
+        };
+    }
     public override EntryInfo GetEntryInfo(int id)
     {
         var details = new EntryInfo();
@@ -96,42 +98,19 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
     }
     public override void RemoveEntry(int id)
     {
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Documentaries.FirstOrDefault(r => r.Id == id);
-        if (entry != null)
-        {
-            ctx.DocumentaryGenres.RemoveRange(ctx.DocumentaryGenres.Where(r => (r.documentaryId == id)));
-
-            ctx.Documentaries.Remove(entry);
-
-            ctx.SaveChanges();
-        }
-
         var posterPath = Settings.Default.DocumentaryPostersRootPath + id;
-        if (!File.Exists(posterPath))
-        {
-            return;
-        }
-
-        try
-        {
-            File.Delete(posterPath);
-        }
-        catch (IOException ex)
-        {
-            MessageBox.Show(ex.Source, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+        EntryRemovalHelper.RemoveSingleFile(() => RemoveEntryFromDatabase(id), posterPath, FileExists, DeleteFile, ShowMessage);
     }
     public override bool FindNextEntryAutomatically()
     {
-        foreach(var baseDir in Directory.GetDirectories(Settings.Default.DefaultDoocumentariesPath))
+        foreach(var baseDir in GetDirectories(Settings.Default.DefaultDoocumentariesPath))
         {
-            if (FindFirstNotInserted(Directory.GetDirectories(baseDir)))
+            if (TryOpenFirstNotInserted(GetDirectories(baseDir)))
             {
                 return true;
             }
 
-            if (FindFirstNotInserted(Directory.GetFiles(baseDir)))
+            if (TryOpenFirstNotInserted(GetFiles(baseDir)))
             {
                 return true;
             }
@@ -173,66 +152,11 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
     public override void UpdateSubgenre(MainPanel panel) {}
     public override string[] QuickListFilter() => ["}", "«"];
 
-    public override void ShowEntryDetails(int id)
+    protected override void ShowDataDialog(string path)
     {
-        var path = FindStoredEntryPathById(id);
-        if (string.IsNullOrEmpty(path))
-        {
-            return;
-        }
-
-        ShowDataDialog(path);
-    }
-    private void ShowDataDialog(string path)
-    {
-        var detailsForm = new DocumentaryDetailsForm(path, m_Logger);
+        var detailsForm = new DocumentaryDetailsForm(path, Logger);
         detailsForm.FormClosed += OnDetailsFormClosed;
         detailsForm.ShowDialog();
-    }
-    public override void ExecuteEntry(int id)
-    {
-        var path = FindStoredEntryPathById(id);
-        if (string.IsNullOrEmpty(path))
-        {
-            return;
-        }
-
-        // Check if it is a file first
-        if (File.Exists(path))
-        {
-            // Open with MPC
-            OpenWithMpc();
-
-            // Open with default player
-            //Process.Start(new ProcessStartInfo{FileName = path, UseShellExecute = true});
-        }
-        // Checked if it is a directory
-        else if (Directory.Exists(path))
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = Settings.Default.TotalCommanderPath,
-                WorkingDirectory = Path.GetDirectoryName(Settings.Default.TotalCommanderPath)!,
-                Arguments = $"/O /L=\"{path}\"",
-            });
-        }
-        else
-        {
-            MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        return;
-
-        void OpenWithMpc()
-        {
-            if (!File.Exists(Settings.Default.MediaPlayerPath))
-            {
-                return;
-            }
-
-            // Enclose the path in quotes as required by MPC
-            Process.Start(Settings.Default.MediaPlayerPath, "\"" + path + "\"");
-        }
     }
     public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit) => null;
     public override ImmutableSortedDictionary<string, Bitmap> GetActors(string name, int limit) => null;
@@ -270,32 +194,18 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
 
         panel.Icon = Resources.AriadnaDocumentaries;
     }
-    private bool FindFirstNotInserted(string[] paths)
+    protected virtual void RemoveEntryFromDatabase(int id)
     {
-        string foundPath = null;
         using var ctx = new AriadnaEntities();
-        foreach (var path in paths)
+        var entry = ctx.Documentaries.FirstOrDefault(r => r.Id == id);
+        if (entry == null)
         {
-            if (ctx.Ignores.AsNoTracking().FirstOrDefault(r => r.path == path) != null)
-            {
-                continue;
-            }
-
-            if (ctx.Documentaries.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() == null)
-            {
-                foundPath = path;
-                break;
-            }
+            return;
         }
 
-        if(string.IsNullOrEmpty(foundPath))
-        {
-            return false;
-        }
-
-        ShowDataDialog(foundPath);
-
-        return true;
+        ctx.DocumentaryGenres.RemoveRange(ctx.DocumentaryGenres.Where(r => (r.documentaryId == id)));
+        ctx.Documentaries.Remove(entry);
+        ctx.SaveChanges();
     }
     private void OnDetailsFormClosed(object sender, FormClosedEventArgs e)
     {
@@ -308,7 +218,7 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         var eventArgs = new EntryInsertedEventArgs(detailsForm.StoredDbEntryId);
         OnEntryInserted(eventArgs);
     }
-    private string FindStoredEntryPathById(int id)
+    protected override string FindStoredEntryPathById(int id)
     {
         if (id == -1)
         {
@@ -319,6 +229,14 @@ public class DocumentariesDbStrategy : AbstractDbStrategy
         var path = ctx.Documentaries.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault()?.file_path;
         
         return !string.IsNullOrEmpty(path) ? path : string.Empty;
+    }
+    protected override bool SupportsFileExecution => true;
+    protected override bool IsStoredPath(string path, AriadnaEntities ctx)
+        => ctx.Documentaries.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() is not null;
+    protected class DocumentaryQuerySource
+    {
+        public required IQueryable<Documentary> Entries { get; init; }
+        public required Func<string, int?> FindGenreId { get; init; }
     }
     // ReSharper disable once UnusedMember.Local
     private void DeleteUnusedGenres()

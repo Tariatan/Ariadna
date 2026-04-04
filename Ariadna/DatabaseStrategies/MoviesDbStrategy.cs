@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data.Entity.Validation;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -10,28 +9,19 @@ using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
 using Ariadna.Extension;
-using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
 using DbProvider;
-using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using TMDbLib.Client;
 using TMDbLib.Objects.Search;
 
 namespace Ariadna.DatabaseStrategies;
 
-public class MoviesDbStrategy : AbstractDbStrategy
+public class MoviesDbStrategy : MediaDbStrategyBase
 {
-    private readonly ILogger m_Logger;
-    private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new();
-
-    public MoviesDbStrategy(ILogger logger)
+    public MoviesDbStrategy(ILogger logger) : base(logger, Settings.Default.MoviePostersRootPath)
     {
-        m_Logger = logger;
-        m_PosterImageAdaptor.RootPath = Settings.Default.MoviePostersRootPath;
     }
-
-    public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
 
     public override List<EntryDto> GetEntries()
     {
@@ -43,7 +33,11 @@ public class MoviesDbStrategy : AbstractDbStrategy
     public override List<EntryDto> QueryEntries(QueryParams values)
     {
         using var ctx = new AriadnaEntities();
-        IQueryable<Movie> query = ctx.Movies.AsNoTracking();
+        return QueryEntries(values, CreateQuerySource(ctx));
+    }
+    protected List<EntryDto> QueryEntries(QueryParams values, MovieQuerySource source)
+    {
+        IQueryable<Movie> query = source.Entries;
 
         var alphabeticOrder = true;
 
@@ -58,28 +52,28 @@ public class MoviesDbStrategy : AbstractDbStrategy
         // -- DIRECTOR NAME --
         if (!string.IsNullOrEmpty(values.Director))
         {
-            var entry = ctx.Directors.AsNoTracking().FirstOrDefault(r => r.name == values.Director);
-            if (entry != null)
+            var directorId = source.FindDirectorId(values.Director);
+            if (directorId.HasValue)
             {
-                query = query.Where(r => r.MovieDirectors.Any(l => (l.directorId == entry.Id)));
+                query = query.Where(r => r.MovieDirectors.Any(l => l.directorId == directorId.Value));
             }
         }
         // -- ACTOR NAME --
         if (!string.IsNullOrEmpty(values.Actor))
         {
-            var entry = ctx.Actors.AsNoTracking().FirstOrDefault(r => r.name == values.Actor);
-            if (entry != null)
+            var actorId = source.FindActorId(values.Actor);
+            if (actorId.HasValue)
             {
-                query = query.Where(r => r.MovieCasts.Any(l => (l.actorId == entry.Id)));
+                query = query.Where(r => r.MovieCasts.Any(l => l.actorId == actorId.Value));
             }
         }
         // -- GENRE --
         if (!string.IsNullOrEmpty(values.Genre))
         {
-            var entry = ctx.Genres.AsNoTracking().FirstOrDefault(r => r.name == values.Genre);
-            if (entry != null)
+            var genreId = source.FindGenreId(values.Genre);
+            if (genreId.HasValue)
             {
-                query = query.Where(r => r.MovieGenres.Any(l => (l.genreId == entry.Id)));
+                query = query.Where(r => r.MovieGenres.Any(l => l.genreId == genreId.Value));
             }
         }
         // -- WISH LIST --
@@ -120,6 +114,16 @@ public class MoviesDbStrategy : AbstractDbStrategy
             query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList() :
             query.OrderByDescending(r => r.creation_time).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
     }
+    protected virtual MovieQuerySource CreateQuerySource(AriadnaEntities ctx)
+    {
+        return new MovieQuerySource
+        {
+            Entries = ctx.Movies.AsNoTracking(),
+            FindDirectorId = name => ctx.Directors.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
+            FindActorId = name => ctx.Actors.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
+            FindGenreId = name => ctx.Genres.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
+        };
+    }
     public override EntryInfo GetEntryInfo(int id)
     {
         var details = new EntryInfo();
@@ -139,46 +143,21 @@ public class MoviesDbStrategy : AbstractDbStrategy
     }
     public override void RemoveEntry(int id)
     {
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Movies.FirstOrDefault(r => r.Id == id);
-        if (entry != null)
-        {
-            ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == id)));
-            ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == id)));
-            ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == id)));
-
-            ctx.Movies.Remove(entry);
-
-            ctx.SaveChanges();
-        }
-
         var posterPath = Settings.Default.MoviePostersRootPath + id;
-        if (!File.Exists(posterPath))
-        {
-            return;
-        }
-
-        try
-        {
-            File.Delete(posterPath);
-        }
-        catch (IOException ex)
-        {
-            MessageBox.Show(ex.Source, ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+        EntryRemovalHelper.RemoveSingleFile(() => RemoveEntryFromDatabase(id), posterPath, FileExists, DeleteFile, ShowMessage);
     }
     public override bool FindNextEntryAutomatically()
     {
-        if (FindFirstNotInserted(Directory.GetFiles(Settings.Default.DefaultMoviesPath)))
+        if (TryOpenFirstNotInserted(GetFiles(Settings.Default.DefaultMoviesPath)))
         {
             return true;
         }
-        if (FindFirstNotInserted(Directory.GetFiles(Settings.Default.DefaultMoviesPathTMP2)))
+        if (TryOpenFirstNotInserted(GetFiles(Settings.Default.DefaultMoviesPathTMP2)))
         {
             return true;
         }
 
-        if (FindFirstNotInserted(Directory.GetDirectories(Settings.Default.DefaultSeriesPath)))
+        if (TryOpenFirstNotInserted(GetDirectories(Settings.Default.DefaultSeriesPath)))
         {
             return true;
         }
@@ -218,67 +197,6 @@ public class MoviesDbStrategy : AbstractDbStrategy
     }
     public override void UpdateSubgenre(MainPanel panel){}
     public override string[] QuickListFilter() => ["}", "«"];
-
-    public override void ShowEntryDetails(int id)
-    {
-        // UpdateEntryData();
-        // return;
-
-        var path = FindStoredEntryPathById(id);
-        if (string.IsNullOrEmpty(path))
-        {
-            return;
-        }
-
-        var detailsForm = new MovieDetailsForm(path, m_Logger);
-        detailsForm.FormClosed += OnDetailsFormClosed;
-        detailsForm.ShowDialog();
-    }
-    public override void ExecuteEntry(int id)
-    {
-        var path = FindStoredEntryPathById(id);
-        if (string.IsNullOrEmpty(path))
-        {
-            return;
-        }
-
-        // Check if it is a file first
-        if (File.Exists(path))
-        {
-            // Open with MPC
-            OpenWithMpc();
-
-            // Open with default player
-            //Process.Start(new ProcessStartInfo{FileName = path, UseShellExecute = true});
-        }
-        // Checked if it is a directory
-        else if (Directory.Exists(path))
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = Settings.Default.TotalCommanderPath,
-                WorkingDirectory = Path.GetDirectoryName(Settings.Default.TotalCommanderPath)!,
-                Arguments = $"/O /L=\"{path}\"",
-            });
-        }
-        else
-        {
-            MessageBox.Show(path, Resources.PathNotFound, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        return;
-
-        void OpenWithMpc()
-        {
-            if (!File.Exists(Settings.Default.MediaPlayerPath))
-            {
-                return;
-            }
-
-            // Enclose the path in quotes as required by MPC
-            Process.Start(Settings.Default.MediaPlayerPath, "\"" + path + "\"");
-        }
-    }
 
     public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
     {
@@ -322,31 +240,29 @@ public class MoviesDbStrategy : AbstractDbStrategy
         return values.ToImmutableSortedDictionary();
     }
     public override void FilterControls(MainPanel panel) {}
-    private bool FindFirstNotInserted(string[] paths)
+    protected virtual void RemoveEntryFromDatabase(int id)
     {
-        string foundPath = null;
         using var ctx = new AriadnaEntities();
-        foreach (var path in paths)
+        var entry = ctx.Movies.FirstOrDefault(r => r.Id == id);
+        if (entry == null)
         {
-            // Skip ignored or already stored
-            if (ctx.Ignores.AsNoTracking().FirstOrDefault(r => r.path == path) != null || 
-                ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() != null)
-            {
-                continue;
-            }
-                   
-            foundPath = path;
-            break;
+            return;
         }
 
-        if(string.IsNullOrEmpty(foundPath))
-        {
-            return false;
-        }
+        ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == id)));
+        ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == id)));
+        ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == id)));
 
-        FetchMovieFromImdb(foundPath);
-        return true;
+        ctx.Movies.Remove(entry);
+        ctx.SaveChanges();
     }
+    protected override void ShowDataDialog(string path)
+    {
+        var detailsForm = new MovieDetailsForm(path, Logger);
+        detailsForm.FormClosed += OnDetailsFormClosed;
+        detailsForm.ShowDialog();
+    }
+    protected override void OpenDiscoveredPath(string path) => FetchMovieFromImdb(path);
     private bool m_IsFetching;
     private async void FetchMovieFromImdb(string path)
     {
@@ -357,7 +273,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
 
         m_IsFetching = true;
         var client = new TMDbClient(Settings.Default.TmdbApiKey);
-        var detailsForm = new MovieDetailsForm(path, m_Logger)
+        var detailsForm = new MovieDetailsForm(path, Logger)
         {
             TmdbMovieIndex = -1,
             TmdbTvShowIndex = -1
@@ -435,7 +351,7 @@ public class MoviesDbStrategy : AbstractDbStrategy
         var eventArgs = new EntryInsertedEventArgs(detailsForm.StoredDbEntryId);
         OnEntryInserted(eventArgs);
     }
-    private string FindStoredEntryPathById(int id)
+    protected override string FindStoredEntryPathById(int id)
     {
         if (id == -1)
         {
@@ -450,6 +366,16 @@ public class MoviesDbStrategy : AbstractDbStrategy
         }
 
         return string.Empty;
+    }
+    protected override bool SupportsFileExecution => true;
+    protected override bool IsStoredPath(string path, AriadnaEntities ctx)
+        => ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() is not null;
+    protected class MovieQuerySource
+    {
+        public required IQueryable<Movie> Entries { get; init; }
+        public required Func<string, int?> FindDirectorId { get; init; }
+        public required Func<string, int?> FindActorId { get; init; }
+        public required Func<string, int?> FindGenreId { get; init; }
     }
     // ReSharper disable once UnusedMember.Local
     private void DeleteUnusedActors()
@@ -519,7 +445,5 @@ public class MoviesDbStrategy : AbstractDbStrategy
                 MessageBox.Show(entry.title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        return;
     }
 }

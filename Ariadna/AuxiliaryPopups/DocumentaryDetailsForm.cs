@@ -1,11 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Data.Entity.Validation;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
 using DbProvider;
@@ -33,13 +30,7 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
         var length = Utilities.GetVideoDuration(FilePath);
         m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
 
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Documentaries.AsNoTracking().FirstOrDefault(r => r.file_path == FilePath);
-
-        if (entry != null)
-        {
-            StoredDbEntryId = entry.Id;
-        }
+        StoredDbEntryId = GetStoredEntryId();
 
         if (StoredDbEntryId != -1)
         {
@@ -48,23 +39,17 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
 
         FillMediaInfo(FilePath);
     }
-    protected override bool DoStore()
+    protected override bool StorePreEntryData()
     {
-        var bSuccess = StoreGenres();
-        bSuccess = bSuccess && StoreEntry();
-
-        if (!bSuccess)
-        {
-            return false;
-        }
-        
-        if (StoredDbEntryId != -1)
-        {
-            // Store tables with references
-            StoreEntryGenres(StoredDbEntryId);
-        }
-
-        return true;
+        return StoreGenres();
+    }
+    protected override bool StoreMainEntry()
+    {
+        return StoreEntry();
+    }
+    protected override void StoreRelatedData()
+    {
+        StoreEntryGenres(StoredDbEntryId);
     }
     protected override List<string> GetGenres()
     {
@@ -78,39 +63,29 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
     {
         return Utilities.GetDocumentaryGenreImage(name);
     }
+    protected virtual int GetStoredEntryId()
+    {
+        using var ctx = new AriadnaEntities();
+        return ResolveStoredEntryId(ctx.Documentaries.AsNoTracking().Where(r => r.file_path == FilePath).Select(r => (int?)r.Id));
+    }
     #endregion
 
     private bool StoreGenres()
     {
-        var bSuccess = true;
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-        foreach (ListViewItem item in m_GenresList.Items)
-        {
-            var genre = ctx.GenreOfDocumentaries.FirstOrDefault(r => r.name == item.Text);
-            if (genre == null)
+        return SaveMissingListEntries(
+            m_GenresList.Items,
+            (ctx, name) =>
             {
-                ctx.GenreOfDocumentaries.Add(new GenreOfDocumentary { name = item.Text });
-                bNeedToSaveChanges = true;
-            }
-        }
+                if (ctx.GenreOfDocumentaries.FirstOrDefault(r => r.name == name) != null)
+                {
+                    return false;
+                }
 
-        if (!bNeedToSaveChanges)
-        {
-            return true;
-        }
-
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(Resources.Oops, Resources.FailedToSaveGenres, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
-
-        return bSuccess;
+                ctx.GenreOfDocumentaries.Add(new GenreOfDocumentary { name = name });
+                return true;
+            },
+            Resources.Oops,
+            Resources.FailedToSaveGenres);
     }
     private bool StoreEntry()
     {
@@ -120,7 +95,6 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
             return false;
         }
 
-        var bSuccess = true;
         using var ctx = new AriadnaEntities();
         Documentary entry = null;
         if (StoredDbEntryId != -1)
@@ -148,21 +122,13 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
             ctx.Documentaries.Add(entry);
         }
 
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
+        var bSuccess = TrySaveChanges(ctx, title, Resources.FailedToSaveEntry);
 
         var path = entry.file_path;
 
         if (bSuccess)
         {
-            StoredDbEntryId = ctx.Documentaries.AsNoTracking().Where(r => r.file_path == path).Select(x => new { x.Id }).FirstOrDefault()!.Id;
+            StoredDbEntryId = ResolveStoredEntryId(ctx.Documentaries.AsNoTracking().Where(r => r.file_path == path).Select(r => (int?)r.Id));
             bSuccess = (StoredDbEntryId != -1);
         }
 
@@ -171,50 +137,31 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
             return false;
         }
 
-        try
-        {
-            m_PicPoster.Image.Save(Settings.Default.DocumentaryPostersRootPath + StoredDbEntryId, ImageFormat.Png);
-        }
-        catch (Exception)
-        {
-            MessageBox.Show(Resources.FailedToSavePoster, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+        TrySavePng(m_PicPoster.Image, Settings.Default.DocumentaryPostersRootPath + StoredDbEntryId, Resources.FailedToSaveEntry);
 
         return true;
     }
     private void StoreEntryGenres(int entryId)
     {
-        if (m_GenresList.Items.Count == 0)
-        {
-            return;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-
-        ctx.DocumentaryGenres.RemoveRange(ctx.DocumentaryGenres.Where(r => (r.documentaryId == entryId)));
-        ctx.SaveChanges();
-
-        foreach (ListViewItem item in m_GenresList.Items)
-        {
-            var genre = ctx.GenreOfDocumentaries.FirstOrDefault(r => r.name == item.Text);
-            if (genre == null)
+        ReplaceListRelations(
+            m_GenresList.Items,
+            ctx => ctx.DocumentaryGenres.RemoveRange(ctx.DocumentaryGenres.Where(r => r.documentaryId == entryId)),
+            (ctx, name) =>
             {
-                continue;
-            }
+                var genre = ctx.GenreOfDocumentaries.FirstOrDefault(r => r.name == name);
+                if (genre == null)
+                {
+                    return false;
+                }
 
-            var entryGenre = ctx.DocumentaryGenres.FirstOrDefault(r => (r.documentaryId == entryId && r.genreId == genre.Id));
-            if (entryGenre == null)
-            {
+                if (ctx.DocumentaryGenres.FirstOrDefault(r => r.documentaryId == entryId && r.genreId == genre.Id) != null)
+                {
+                    return false;
+                }
+
                 ctx.DocumentaryGenres.Add(new DocumentaryGenre { documentaryId = entryId, genreId = genre.Id });
-                bNeedToSaveChanges = true;
-            }
-        }
-
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
+                return true;
+            });
     }
     private void FillFieldsFromFile()
     {
@@ -225,24 +172,13 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
             return;
         }
 
-        m_TxtYear.Text = (entry.year > 0) ? entry.year.ToString() : string.Empty;
-        m_TxtTitle.Text = entry.title;
-        m_TxtTitleOrig.Text = entry.title_original;
-        m_TxtPath.Text = entry.file_path;
-        m_TxtDescription.Text = Utilities.DecorateDescription(entry.description);
-        m_WantToSee.Checked = Convert.ToBoolean(entry.want_to_see);
+        LoadBaseEntryFields(entry.title, entry.title_original, entry.year, entry.file_path);
+        LoadDescribedEntryFields(entry.description, Convert.ToBoolean(entry.want_to_see));
 
-        var filename = Settings.Default.DocumentaryPostersRootPath + entry.Id;
-        if (File.Exists(filename))
-        {
-            using var bmpTemp = new Bitmap(filename);
-            m_PicPoster.Image = new Bitmap(bmpTemp);
-        }
+        LoadPosterImage(Settings.Default.DocumentaryPostersRootPath + entry.Id, m_PicPoster);
 
-        var genresSet = ctx.DocumentaryGenres.AsNoTracking().ToArray().Where(r => (r.documentaryId == entry.Id));
-        foreach (var genres in genresSet)
-        {
-            AddGenre(genres.GenreOfDocumentary.name);
-        }
+        LoadGenres(
+            ctx.DocumentaryGenres.AsNoTracking().ToArray().Where(r => r.documentaryId == entry.Id),
+            genres => genres.GenreOfDocumentary.name);
     }
 }

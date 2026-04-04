@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity.Validation;
 using System.Drawing;
@@ -9,7 +9,6 @@ using Ariadna.Extension;
 using Ariadna.Properties;
 using DbProvider;
 using Microsoft.Extensions.Logging;
-using static System.Drawing.Imaging.ImageFormat;
 
 namespace Ariadna.AuxiliaryPopups;
 
@@ -54,35 +53,24 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
         Icon = Resources.AriadnaGames;
         #endregion
 
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Games.AsNoTracking().FirstOrDefault(r => r.file_path == FilePath);
-        if (entry != null)
-        {
-            StoredDbEntryId = entry.Id;
-        }
+        StoredDbEntryId = GetStoredEntryId();
 
         if (StoredDbEntryId != -1)
         {
             FillFieldsFromFile();
         }
     }
-    protected override bool DoStore()
+    protected override bool StorePreEntryData()
     {
-        var bSuccess = StoreGenres();
-        bSuccess = bSuccess && StoreEntry();
-
-        if (!bSuccess)
-        {
-            return false;
-        }
-            
-        if (StoredDbEntryId != -1)
-        {
-            // Store tables with references
-            StoreEntryGenres(StoredDbEntryId);
-        }
-
-        return true;
+        return StoreGenres();
+    }
+    protected override bool StoreMainEntry()
+    {
+        return StoreEntry();
+    }
+    protected override void StoreRelatedData()
+    {
+        StoreEntryGenres(StoredDbEntryId);
     }
     protected override List<string> GetGenres()
     {
@@ -96,38 +84,29 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
     {
         return Utilities.GetGameGenreImage(name);
     }
+    protected virtual int GetStoredEntryId()
+    {
+        using var ctx = new AriadnaEntities();
+        return ResolveStoredEntryId(ctx.Games.AsNoTracking().Where(r => r.file_path == FilePath).Select(r => (int?)r.Id));
+    }
 
     #endregion
     private bool StoreGenres()
     {
-        var bSuccess = true;
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-        foreach (ListViewItem item in m_GenresList.Items)
-        {
-            if (ctx.GenreOfGames.FirstOrDefault(r => r.name == item.Text) == null)
+        return SaveMissingListEntries(
+            m_GenresList.Items,
+            (ctx, name) =>
             {
-                ctx.GenreOfGames.Add(new GenreOfGame { name = item.Text });
-                bNeedToSaveChanges = true;
-            }
-        }
+                if (ctx.GenreOfGames.FirstOrDefault(r => r.name == name) != null)
+                {
+                    return false;
+                }
 
-        if (!bNeedToSaveChanges)
-        {
-            return true;
-        }
-
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(Resources.Oops, Resources.FailedToSaveGenres, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
-
-        return bSuccess;
+                ctx.GenreOfGames.Add(new GenreOfGame { name = name });
+                return true;
+            },
+            Resources.Oops,
+            Resources.FailedToSaveGenres);
     }
     private bool StoreEntry()
     {
@@ -170,7 +149,7 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
         {
             ctx.SaveChanges();
         }
-        catch (DbEntityValidationException ex)
+        catch (Exception ex) when (ex is DbEntityValidationException)
         {
             MessageBox.Show(title + Resources.Colon + '\n' + ex.Message, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
             bSuccess = false;
@@ -180,7 +159,7 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
 
         if (bSuccess)
         {
-            StoredDbEntryId = ctx.Games.AsNoTracking().Where(r => r.file_path == path).Select(x => new { x.Id }).FirstOrDefault()!.Id;
+            StoredDbEntryId = ResolveStoredEntryId(ctx.Games.AsNoTracking().Where(r => r.file_path == path).Select(r => (int?)r.Id));
             bSuccess = (StoredDbEntryId != -1);
         }
 
@@ -189,57 +168,36 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
             return false;
         }
 
-        try
-        {
-            var name = Settings.Default.GamePostersRootPath + StoredDbEntryId;
-            m_PicPoster.Image.Save(name, Png);
-
-            m_Preview1.Image.Save(name + Settings.Default.PreviewSuffix + 1, Png);
-            m_Preview2.Image.Save(name + Settings.Default.PreviewSuffix + 2, Png);
-            m_Preview3.Image.Save(name + Settings.Default.PreviewSuffix + 3, Png);
-            m_Preview4.Image.Save(name + Settings.Default.PreviewSuffix + 4, Png);
-        }
-        catch (Exception)
-        {
-            MessageBox.Show(Resources.FailedToSavePoster, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
+        var name = Settings.Default.GamePostersRootPath + StoredDbEntryId;
+        bSuccess = TrySavePng(m_PicPoster.Image, name, Resources.FailedToSaveEntry);
+        bSuccess = bSuccess && TrySavePng(m_Preview1.Image, name + Settings.Default.PreviewSuffix + 1, Resources.FailedToSaveEntry);
+        bSuccess = bSuccess && TrySavePng(m_Preview2.Image, name + Settings.Default.PreviewSuffix + 2, Resources.FailedToSaveEntry);
+        bSuccess = bSuccess && TrySavePng(m_Preview3.Image, name + Settings.Default.PreviewSuffix + 3, Resources.FailedToSaveEntry);
+        bSuccess = bSuccess && TrySavePng(m_Preview4.Image, name + Settings.Default.PreviewSuffix + 4, Resources.FailedToSaveEntry);
 
         return bSuccess;
     }
     private void StoreEntryGenres(int entryId)
     {
-        if (m_GenresList.Items.Count == 0)
-        {
-            return;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-
-        ctx.GameGenres.RemoveRange(ctx.GameGenres.Where(r => (r.gameId == entryId)));
-        ctx.SaveChanges();
-
-        foreach (ListViewItem item in m_GenresList.Items)
-        {
-            var genre = ctx.GenreOfGames.FirstOrDefault(r => r.name == item.Text);
-            if (genre == null)
+        ReplaceListRelations(
+            m_GenresList.Items,
+            ctx => ctx.GameGenres.RemoveRange(ctx.GameGenres.Where(r => r.gameId == entryId)),
+            (ctx, name) =>
             {
-                continue;
-            }
+                var genre = ctx.GenreOfGames.FirstOrDefault(r => r.name == name);
+                if (genre == null)
+                {
+                    return false;
+                }
 
-            var entryGenre = ctx.GameGenres.FirstOrDefault(r => (r.gameId == entryId && r.genreId == genre.Id));
-            if (entryGenre == null)
-            {
+                if (ctx.GameGenres.FirstOrDefault(r => r.gameId == entryId && r.genreId == genre.Id) != null)
+                {
+                    return false;
+                }
+
                 ctx.GameGenres.Add(new GameGenre { gameId = entryId, genreId = genre.Id });
-                bNeedToSaveChanges = true;
-            }
-        }
-
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
+                return true;
+            });
     }
     private void FillFieldsFromFile()
     {
@@ -250,26 +208,17 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
             return;
         }
 
-        m_TxtYear.Text = (entry.year > 0) ? entry.year.ToString() : string.Empty;
-        m_TxtTitle.Text = entry.title;
-        m_TxtTitleOrig.Text = entry.title_original;
-        m_TxtPath.Text = entry.file_path;
+        LoadBaseEntryFields(entry.title, entry.title_original, entry.year, entry.file_path);
         m_WantToSee.Checked = Convert.ToBoolean(entry.want_to_play);
         m_VR.Checked = Convert.ToBoolean(entry.vr);
         m_TxtVersion.Text = entry.version;
 
-        var genresSet = ctx.GameGenres.AsNoTracking().ToArray().Where(r => (r.gameId == entry.Id));
-        foreach (var genres in genresSet)
-        {
-            AddGenre(genres.GenreOfGame.name);
-        }
+        LoadGenres(
+            ctx.GameGenres.AsNoTracking().ToArray().Where(r => r.gameId == entry.Id),
+            genres => genres.GenreOfGame.name);
 
         var filename = Settings.Default.GamePostersRootPath + entry.Id;
-        if (File.Exists(filename))
-        {
-            using var bmpTemp = new Bitmap(filename);
-            m_PicPoster.Image = new Bitmap(bmpTemp);
-        }
+        LoadPosterImage(filename, m_PicPoster);
 
         for (var i = 1u; i <= 4; ++i)
         {

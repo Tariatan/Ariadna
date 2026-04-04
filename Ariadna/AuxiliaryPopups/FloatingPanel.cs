@@ -29,15 +29,8 @@ public partial class FloatingPanel : Form
     }
     public void UpdateListView(ImmutableSortedDictionary<string, Bitmap> values, EPanelContentType contentType, bool checkBox = false, bool multiSelect = false, int imageW = 64, int imageH = 96)
     {
-        EntryNames.Clear();
-        FormCloseReason = Utilities.EFormCloseReason.NONE;
-        PanelContentType = contentType;
-
-        m_PanelImageView.Images.Clear();
-        m_PanelImageView.ImageSize = new Size(imageW, imageH);
-        m_PanelListView.Items.Clear();
-        m_PanelListView.CheckBoxes = checkBox;
-        m_PanelListView.MultiSelect = multiSelect;
+        ResetState(contentType);
+        ConfigureListView(checkBox, multiSelect, imageW, imageH);
 
         var empty = new Bitmap(Properties.Resources.No_Preview_Image_small);
         foreach (var value in values)
@@ -55,15 +48,14 @@ public partial class FloatingPanel : Form
     }
     private void OnListEntryDoubleClicked(object sender, MouseEventArgs e)
     {
-        EntryNames.Add(m_PanelListView.FocusedItem!.Text);
-
+        EntryNames.Add(GetFocusedEntryName());
         FormCloseReason = Utilities.EFormCloseReason.SUCCESS;
         Hide();
     }
 
     private void OnListItemChecked(object sender, ItemCheckedEventArgs e)
     {
-        if (!m_PanelListView.Focused)
+        if (!IsPanelListFocused())
         {
             return;
         }
@@ -77,6 +69,32 @@ public partial class FloatingPanel : Form
             EntryNames.Remove(e.Item.Text);
         }
 
-        ItemSelected!.Invoke(this, e);
+        ItemSelected?.Invoke(this, e);
+    }
+
+    protected virtual bool IsPanelListFocused()
+    {
+        return m_PanelListView.Focused;
+    }
+
+    private void ResetState(EPanelContentType contentType)
+    {
+        EntryNames.Clear();
+        FormCloseReason = Utilities.EFormCloseReason.NONE;
+        PanelContentType = contentType;
+    }
+
+    private void ConfigureListView(bool checkBox, bool multiSelect, int imageW, int imageH)
+    {
+        m_PanelImageView.Images.Clear();
+        m_PanelImageView.ImageSize = new Size(imageW, imageH);
+        m_PanelListView.Items.Clear();
+        m_PanelListView.CheckBoxes = checkBox;
+        m_PanelListView.MultiSelect = multiSelect;
+    }
+
+    private string GetFocusedEntryName()
+    {
+        return m_PanelListView.FocusedItem!.Text;
     }
 }

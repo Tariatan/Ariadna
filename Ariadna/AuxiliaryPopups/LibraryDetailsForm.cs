@@ -1,8 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Data.Entity.Validation;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -46,11 +44,8 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
         var length = Utilities.GetVideoDuration(FilePath);
         m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
 
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Libraries.AsNoTracking().FirstOrDefault(r => r.file_path == FilePath);
-
         #region Workaround
-        m_LblDirector.Text = nameof(ctx.Authors);
+        m_LblDirector.Text = nameof(AriadnaEntities.Authors);
         m_DirectorsList.Width = m_TxtDescription.Width;
         m_TxtDescription.Height += 100;
         m_DirectorsList.Top += 100;
@@ -60,11 +55,7 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
         #endregion
 
         m_LibraryGenre = GetGenreByPath(FilePath);
-
-        if (entry != null)
-        {
-            StoredDbEntryId = entry.Id;
-        }
+        StoredDbEntryId = GetStoredEntryId();
 
         if (StoredDbEntryId != -1)
         {
@@ -82,27 +73,22 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
         }
     }
 
-    protected override bool DoStore()
+    protected override bool StorePreEntryData()
     {
-        var bSuccess = StoreGenres();
-        bSuccess = bSuccess && StoreEntry();
-        bSuccess = bSuccess && StoreAuthors();
-
-        if (!bSuccess)
-        {
-            return false;
-        }
-
-        if (StoredDbEntryId == -1)
-        {
-            return true;
-        }
-
-        // Store tables with references
+        return StoreGenres();
+    }
+    protected override bool StoreMainEntry()
+    {
+        return StoreEntry();
+    }
+    protected override bool StorePostEntryData()
+    {
+        return StoreAuthors();
+    }
+    protected override void StoreRelatedData()
+    {
         StoreLibraryAuthors(StoredDbEntryId);
         StoreEntryGenres(StoredDbEntryId);
-
-        return true;
     }
     protected override List<string> GetGenres()
     {
@@ -142,13 +128,15 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
                 return Utilities.GetLibraryGenreImage(name);
         }
     }
+    protected virtual int GetStoredEntryId()
+    {
+        using var ctx = new AriadnaEntities();
+        return ResolveStoredEntryId(ctx.Libraries.AsNoTracking().Where(r => r.file_path == FilePath).Select(r => (int?)r.Id));
+    }
     #endregion
 
     private bool StoreGenres()
     {
-        var bSuccess = true;
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
         switch(m_LibraryGenre)
         {
             case LibraryGenre.LANGUAGES:
@@ -165,67 +153,48 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
                 break;
         }
 
-        foreach (ListViewItem item in m_GenresList.Items)
-        {
-            var genre = ctx.GenreOfLibraries.FirstOrDefault(r => r.name == item.Text);
-            if (genre == null)
+        return SaveMissingListEntries(
+            m_GenresList.Items,
+            (innerCtx, name) =>
             {
-                ctx.GenreOfLibraries.Add(new GenreOfLibrary { name = item.Text });
-                bNeedToSaveChanges = true;
-            }
-        }
+                if (innerCtx.GenreOfLibraries.FirstOrDefault(r => r.name == name) != null)
+                {
+                    return false;
+                }
 
-        if (!bNeedToSaveChanges)
-        {
-            return true;
-        }
-
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(Resources.Oops, Resources.FailedToSaveGenres, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
-
-        return bSuccess;
+                innerCtx.GenreOfLibraries.Add(new GenreOfLibrary { name = name });
+                return true;
+            },
+            Resources.Oops,
+            Resources.FailedToSaveGenres);
     }
     private bool StoreAuthors()
     {
-        var bSuccess = true;
-        using var ctx = new AriadnaEntities();
-        foreach (ListViewItem item in m_DirectorsList.Items)
-        {
-            var bAddEntry = false;
-            var author = ctx.Authors.FirstOrDefault(r => r.name == item.Text);
-            if (author == null)
+        return SaveNamedPhotoEntries(
+            m_DirectorsList.Items,
+            m_DirectorsPhotos,
+            (ctx, name, photo) =>
             {
-                bAddEntry = true;
-                author = new Author();
-            }
+                var bAddEntry = false;
+                var author = ctx.Authors.FirstOrDefault(r => r.name == name);
+                if (author == null)
+                {
+                    bAddEntry = true;
+                    author = new Author();
+                }
 
-            author.name = item.Text;
-            author.photo = m_DirectorsPhotos.Images[item.Text].ToBytes();
+                author.name = name;
+                author.photo = photo;
 
-            if (bAddEntry)
-            {
-                ctx.Authors.Add(author);
-            }
-        }
+                if (bAddEntry)
+                {
+                    ctx.Authors.Add(author);
+                }
 
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(Resources.Oops, Resources.FailedToSaveDirectors, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
-
-        return bSuccess;
+                return true;
+            },
+            Resources.Oops,
+            Resources.FailedToSaveDirectors);
     }
     private bool StoreEntry()
     {
@@ -235,7 +204,6 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
             return false;
         }
 
-        var bSuccess = true;
         using var ctx = new AriadnaEntities();
         Library entry = null;
         if (StoredDbEntryId != -1)
@@ -263,21 +231,13 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
             ctx.Libraries.Add(entry);
         }
 
-        try
-        {
-            ctx.SaveChanges();
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            bSuccess = false;
-        }
+        var bSuccess = TrySaveChanges(ctx, title, Resources.FailedToSaveEntry);
 
         var path = entry.file_path;
 
         if (bSuccess)
         {
-            StoredDbEntryId = ctx.Libraries.AsNoTracking().Where(r => r.file_path == path).Select(x => new { x.Id }).FirstOrDefault()!.Id;
+            StoredDbEntryId = ResolveStoredEntryId(ctx.Libraries.AsNoTracking().Where(r => r.file_path == path).Select(r => (int?)r.Id));
             bSuccess = (StoredDbEntryId != -1);
         }
 
@@ -286,84 +246,53 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
             return false;
         }
 
-        try
-        {
-            m_PicPoster.Image.Save(Settings.Default.LibraryPostersRootPath + StoredDbEntryId, ImageFormat.Png);
-        }
-        catch (Exception)
-        {
-            MessageBox.Show(Resources.FailedToSavePoster, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+        TrySavePng(m_PicPoster.Image, Settings.Default.LibraryPostersRootPath + StoredDbEntryId, Resources.FailedToSaveEntry);
 
         return true;
     }
     private void StoreEntryGenres(int entryId)
     {
-        if (m_GenresList.Items.Count == 0)
-        {
-            return;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-
-        ctx.LibraryGenres.RemoveRange(ctx.LibraryGenres.Where(r => (r.libraryId == entryId)));
-        ctx.SaveChanges();
-
-        foreach (ListViewItem item in m_GenresList.Items)
-        {
-            var genre = ctx.GenreOfLibraries.FirstOrDefault(r => r.name == item.Text);
-            if (genre == null)
+        ReplaceListRelations(
+            m_GenresList.Items,
+            ctx => ctx.LibraryGenres.RemoveRange(ctx.LibraryGenres.Where(r => r.libraryId == entryId)),
+            (ctx, name) =>
             {
-                continue;
-            }
+                var genre = ctx.GenreOfLibraries.FirstOrDefault(r => r.name == name);
+                if (genre == null)
+                {
+                    return false;
+                }
 
-            var entryGenre = ctx.LibraryGenres.FirstOrDefault(r => (r.libraryId == entryId && r.genreId == genre.Id));
-            if (entryGenre == null)
-            {
+                if (ctx.LibraryGenres.FirstOrDefault(r => r.libraryId == entryId && r.genreId == genre.Id) != null)
+                {
+                    return false;
+                }
+
                 ctx.LibraryGenres.Add(new DbProvider.LibraryGenre { libraryId = entryId, genreId = genre.Id });
-                bNeedToSaveChanges = true;
-            }
-        }
-
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
+                return true;
+            });
     }
     private void StoreLibraryAuthors(int libraryId)
     {
-        if (m_DirectorsList.Items.Count == 0)
-        {
-            return;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-
-        ctx.LibraryAuthors.RemoveRange(ctx.LibraryAuthors.Where(r => (r.libraryId == libraryId)));
-        ctx.SaveChanges();
-
-        foreach (ListViewItem item in m_DirectorsList.Items)
-        {
-            var author = ctx.Authors.FirstOrDefault(r => r.name == item.Text);
-            if (author == null)
+        ReplaceListRelations(
+            m_DirectorsList.Items,
+            ctx => ctx.LibraryAuthors.RemoveRange(ctx.LibraryAuthors.Where(r => r.libraryId == libraryId)),
+            (ctx, name) =>
             {
-                continue;
-            }
+                var author = ctx.Authors.FirstOrDefault(r => r.name == name);
+                if (author == null)
+                {
+                    return false;
+                }
 
-            var libraryAuthor = ctx.LibraryAuthors.FirstOrDefault(r => (r.libraryId == libraryId && r.authorId == author.Id));
-            if (libraryAuthor == null)
-            {
+                if (ctx.LibraryAuthors.FirstOrDefault(r => r.libraryId == libraryId && r.authorId == author.Id) != null)
+                {
+                    return false;
+                }
+
                 ctx.LibraryAuthors.Add(new LibraryAuthor { libraryId = libraryId, authorId = author.Id });
-                bNeedToSaveChanges = true;
-            }
-        }
-
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
+                return true;
+            });
     }
     private void FillFieldsFromFile()
     {
@@ -374,31 +303,21 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
             return;
         }
 
-        m_TxtYear.Text = (entry.year > 0) ? entry.year.ToString() : string.Empty;
-        m_TxtTitle.Text = entry.title;
-        m_TxtTitleOrig.Text = entry.title_original;
-        m_TxtPath.Text = entry.file_path;
-        m_TxtDescription.Text = Utilities.DecorateDescription(entry.description);
-        m_WantToSee.Checked = Convert.ToBoolean(entry.want_to_see);
+        LoadBaseEntryFields(entry.title, entry.title_original, entry.year, entry.file_path);
+        LoadDescribedEntryFields(entry.description, Convert.ToBoolean(entry.want_to_see));
 
-        var filename = Settings.Default.LibraryPostersRootPath + entry.Id;
-        if (File.Exists(filename))
-        {
-            using var bmpTemp = new Bitmap(filename);
-            m_PicPoster.Image = new Bitmap(bmpTemp);
-        }
+        LoadPosterImage(Settings.Default.LibraryPostersRootPath + entry.Id, m_PicPoster);
 
-        var directorsSet = ctx.LibraryAuthors.AsNoTracking().ToArray().Where(r => (r.libraryId == entry.Id));
-        foreach (var directors in directorsSet)
-        {
-            AddNewListItem(m_DirectorsList, m_DirectorsPhotos, directors.Author.name, directors.Author.photo.ToBitmap());
-        }
+        LoadNamedItems(
+            m_DirectorsList,
+            m_DirectorsPhotos,
+            ctx.LibraryAuthors.AsNoTracking().ToArray().Where(r => r.libraryId == entry.Id),
+            directors => directors.Author.name,
+            directors => directors.Author.photo);
 
-        var genresSet = ctx.LibraryGenres.AsNoTracking().ToArray().Where(r => (r.libraryId == entry.Id));
-        foreach (var genres in genresSet)
-        {
-            AddGenre(genres.GenreOfLibrary.name);
-        }
+        LoadGenres(
+            ctx.LibraryGenres.AsNoTracking().ToArray().Where(r => r.libraryId == entry.Id),
+            genres => genres.GenreOfLibrary.name);
     }
 
     private LibraryGenre GetGenreByPath(string path)

@@ -25,7 +25,7 @@
     <Compile Update="AuxiliaryPopups\FloatingPanel.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="AuxiliaryPopups\GameDetailsForm .cs">
+    <Compile Update="AuxiliaryPopups\GameDetailsForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="AuxiliaryPopups\LibraryDetailsForm.cs">

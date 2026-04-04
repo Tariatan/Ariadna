@@ -2,9 +2,8 @@
 
 ## Editing Rules
 
-- Preserve each file's existing EOF newline style.
-- If a file has no trailing newline, do not add one.
-- Do not append a blank line at the end of a file unless it already exists intentionally.
+- Never add an empty line at the end of a file.
+- If a file ends with an empty line, remove that empty line.
 
 ## Unit Tests
 
@@ -14,6 +13,7 @@
 - Name unit test methods `[MethodUnderTest]_[Precondition]_[ExpectedOutcome]`.
 - Structure unit tests as `Arrange - Act - Assert` and include `// Arrange`, `// Act`, and `// Assert` comments.
 - Prefer `[TestInitialize]` for complicated test setup. Use the test class constructor only for simple setup.
+- Before broader refactoring, prefer characterization tests that cover existing workflow behavior over low-value tests for trivial methods.
 
 ## Code Reviews
 

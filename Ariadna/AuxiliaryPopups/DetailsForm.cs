@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data.Entity.Validation;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -103,7 +104,32 @@ public partial class DetailsForm : Form
     }
     #region VIRTUAL FUNCTIONS
     protected virtual void DoLoad() { }
-    protected virtual bool DoStore() { return false; }
+    protected virtual void PrepareForStore() { }
+    protected virtual bool StorePreEntryData() { return true; }
+    protected virtual bool StoreMainEntry() { return false; }
+    protected virtual bool StorePostEntryData() { return true; }
+    protected virtual bool ShouldStoreRelatedData() { return StoredDbEntryId != -1; }
+    protected virtual void StoreRelatedData() { }
+    protected virtual bool DoStore()
+    {
+        PrepareForStore();
+
+        var bSuccess = StorePreEntryData();
+        bSuccess = bSuccess && StoreMainEntry();
+        bSuccess = bSuccess && StorePostEntryData();
+
+        if (!bSuccess)
+        {
+            return false;
+        }
+
+        if (ShouldStoreRelatedData())
+        {
+            StoreRelatedData();
+        }
+
+        return true;
+    }
     protected virtual void DoAddListViewItemFromClipboard(ListView listView, ImageList imageList) { }
     protected virtual List<string> GetGenres() { return []; }
     protected virtual string GetGenreBySynonym(string name) { return string.Empty; }
@@ -596,5 +622,123 @@ public partial class DetailsForm : Form
 
         imageList.Images.Add(name, image);
         listView.Items.Add(new ListViewItem(name, imageList.Images.IndexOfKey(name)));
+    }
+    protected bool TrySaveChanges(AriadnaEntities ctx, string text, string caption)
+    {
+        try
+        {
+            ctx.SaveChanges();
+            return true;
+        }
+        catch (DbEntityValidationException)
+        {
+            MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
+    }
+    protected int ResolveStoredEntryId(IQueryable<int?> idQuery)
+    {
+        return idQuery.FirstOrDefault() ?? -1;
+    }
+    protected bool SaveMissingListEntries(ListView.ListViewItemCollection items, Func<AriadnaEntities, string, bool> addMissingEntry, string text, string caption)
+    {
+        using var ctx = new AriadnaEntities();
+        var bNeedToSaveChanges = false;
+
+        foreach (ListViewItem item in items)
+        {
+            bNeedToSaveChanges = addMissingEntry(ctx, item.Text) || bNeedToSaveChanges;
+        }
+
+        if (!bNeedToSaveChanges)
+        {
+            return true;
+        }
+
+        return TrySaveChanges(ctx, text, caption);
+    }
+    protected bool SaveNamedPhotoEntries(ListView.ListViewItemCollection items, ImageList imageList, Func<AriadnaEntities, string, byte[], bool> upsertEntry, string text, string caption)
+    {
+        using var ctx = new AriadnaEntities();
+
+        foreach (ListViewItem item in items)
+        {
+            var photo = imageList.Images[item.Text]?.ToBytes();
+            upsertEntry(ctx, item.Text, photo);
+        }
+
+        return TrySaveChanges(ctx, text, caption);
+    }
+    protected void ReplaceListRelations(ListView.ListViewItemCollection items, Action<AriadnaEntities> removeExistingRelations, Func<AriadnaEntities, string, bool> addRelationIfMissing)
+    {
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        using var ctx = new AriadnaEntities();
+        var bNeedToSaveChanges = false;
+
+        removeExistingRelations(ctx);
+        ctx.SaveChanges();
+
+        foreach (ListViewItem item in items)
+        {
+            bNeedToSaveChanges = addRelationIfMissing(ctx, item.Text) || bNeedToSaveChanges;
+        }
+
+        if (bNeedToSaveChanges)
+        {
+            ctx.SaveChanges();
+        }
+    }
+    protected void LoadPosterImage(string path, PictureBox pictureBox)
+    {
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        using var bmpTemp = new Bitmap(path);
+        pictureBox.Image = new Bitmap(bmpTemp);
+    }
+    protected void LoadBaseEntryFields(string title, string originalTitle, int year, string path)
+    {
+        m_TxtYear.Text = (year > 0) ? year.ToString() : string.Empty;
+        m_TxtTitle.Text = title;
+        m_TxtTitleOrig.Text = originalTitle;
+        m_TxtPath.Text = path;
+    }
+    protected void LoadDescribedEntryFields(string description, bool wantToSee)
+    {
+        m_TxtDescription.Text = Utilities.DecorateDescription(description);
+        m_WantToSee.Checked = wantToSee;
+    }
+    protected void LoadGenres<T>(IEnumerable<T> relations, Func<T, string> getGenreName)
+    {
+        foreach (var relation in relations)
+        {
+            AddGenre(getGenreName(relation));
+        }
+    }
+    protected void LoadNamedItems<T>(ListView listView, ImageList imageList, IEnumerable<T> relations, Func<T, string> getName, Func<T, byte[]> getPhoto)
+    {
+        foreach (var relation in relations)
+        {
+            AddNewListItem(listView, imageList, getName(relation), getPhoto(relation).ToBitmap());
+        }
+    }
+    protected bool TrySavePng(Image image, string path, string caption)
+    {
+        try
+        {
+            image.Save(path, System.Drawing.Imaging.ImageFormat.Png);
+            return true;
+        }
+        catch (Exception)
+        {
+            MessageBox.Show(Resources.FailedToSavePoster, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
     }
 }
