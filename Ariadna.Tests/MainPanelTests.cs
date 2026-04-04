@@ -318,7 +318,9 @@ public class MainPanelTests
             InvokeMainPanelMethod(testee, "OnQuickListClicked", quickListButton, EventArgs.Empty);
 
             // Assert
-            Assert.IsTrue(GetImageListView(testee).Items.Cast<ImageListViewItem>().Any(item => item.Text == "Blade Runner" && item.Selected));
+            var selectedItems = GetImageListView(testee).Items.Cast<ImageListViewItem>().Where(item => item.Selected).ToArray();
+            Assert.AreEqual(1, selectedItems.Length);
+            Assert.AreEqual("Blade Runner", selectedItems[0].Text);
         });
     }
 

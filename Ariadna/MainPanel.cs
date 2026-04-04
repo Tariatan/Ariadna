@@ -746,6 +746,14 @@ public partial class MainPanel : Form
 
     private void SelectListItem(ImageListViewItem item, int ensureVisibleIndex)
     {
+        foreach (var currentItem in m_ImageListView.Items.Cast<ImageListViewItem>())
+        {
+            if (currentItem != item && currentItem.Selected)
+            {
+                currentItem.Selected = false;
+            }
+        }
+
         m_ImageListView.Items.FocusedItem = item;
         item.Selected = true;
         m_ImageListView.EnsureVisible(ensureVisibleIndex);
