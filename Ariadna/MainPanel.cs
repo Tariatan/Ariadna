@@ -656,10 +656,19 @@ public partial class MainPanel : Form
         QueryEntries();
         m_ToolStrip_EntryName.Text = string.Empty;
 
-        if (index is not null)
+        if (index is null || m_ImageListView.Items.Count == 0)
         {
-            m_ImageListView.EnsureVisible(index.Value);
+            return;
         }
+
+        var selectionIndex = index.Value > 0 ? index.Value - 1 : 0;
+        if (selectionIndex >= m_ImageListView.Items.Count)
+        {
+            selectionIndex = m_ImageListView.Items.Count - 1;
+        }
+
+        var selection = m_ImageListView.Items[selectionIndex];
+        SelectListItem(selection, selectionIndex);
     }
 
     private void StartTypeTimer(ETypeField typeField)

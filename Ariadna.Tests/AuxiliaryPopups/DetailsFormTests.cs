@@ -1,5 +1,8 @@
 using System.Drawing;
 using System.Runtime.ExceptionServices;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Ariadna.Properties;
@@ -161,27 +164,165 @@ public class DetailsFormTests
         RunInSta(() =>
         {
             // Arrange
-            var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(path);
-            try
-            {
-                File.WriteAllBytes(Path.Combine(path, "a.bin"), new byte[1024 * 1024]);
-                File.WriteAllBytes(Path.Combine(path, "b.bin"), new byte[512 * 1024]);
-                using var testee = new TestDetailsForm(path);
+            using var testee = new TestAsyncVolumeDetailsForm(@"A:\Media\Some Folder");
 
-                // Act
-                testee.Show();
+            // Act
+            testee.Show();
+            Application.DoEvents();
+            testee.ReportProgress(1024 * 1024);
+            Application.DoEvents();
+            testee.CompleteVolumeCalculation(1536 * 1024);
+            WaitUntil(() => testee.VolumeTextBox.ForeColor != Color.Yellow);
 
-                // Assert
-                Assert.AreEqual("1 Mb", testee.VolumeTextBox.Text);
-            }
-            finally
-            {
-                if (Directory.Exists(path))
-                {
-                    Directory.Delete(path, true);
-                }
-            }
+            // Assert
+            Assert.AreEqual("1 Mb", testee.VolumeTextBox.Text);
+            Assert.AreEqual(Color.Yellow, testee.ProgressColors[0]);
+            Assert.AreEqual(testee.DefaultVolumeForeColor, testee.VolumeTextBox.ForeColor);
+        });
+    }
+
+    [TestMethod]
+    public void OnLoad_DirectoryExists_StartsAsyncVolumeCalculationWithProgressState()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new TestAsyncVolumeDetailsForm(@"A:\Media\Series");
+
+            // Act
+            testee.Show();
+            Application.DoEvents();
+
+            // Assert
+            Assert.AreEqual("0 Mb", testee.VolumeTextBox.Text);
+            Assert.AreEqual(Color.Yellow, testee.VolumeTextBox.ForeColor);
+            Assert.IsTrue(testee.DirectoryCalculationStarted);
+        });
+    }
+
+    [TestMethod]
+    public void OnFormClosed_DirectoryVolumeCalculationRunning_CancelsCalculation()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new TestAsyncVolumeDetailsForm(@"A:\Media\Series");
+            testee.Show();
+            Application.DoEvents();
+
+            // Act
+            testee.Close();
+            Application.DoEvents();
+
+            // Assert
+            Assert.IsTrue(testee.CapturedCancellationToken.IsCancellationRequested);
+        });
+    }
+
+    [TestMethod]
+    public void OnLoad_DirectoryVolumeCalculationCompletes_StaleProgressUpdateDoesNotRestoreYellowColor()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new TestAsyncVolumeDetailsForm(@"A:\Media\Series");
+            testee.Show();
+            Application.DoEvents();
+
+            // Act
+            Task.Run(() => testee.ReportProgress(1024 * 1024)).Wait();
+            testee.CompleteVolumeCalculation(2 * 1024 * 1024);
+            WaitUntil(() => testee.VolumeTextBox.ForeColor != Color.Yellow);
+            Application.DoEvents();
+
+            // Assert
+            Assert.AreEqual("2 Mb", testee.VolumeTextBox.Text);
+            Assert.AreEqual(testee.DefaultVolumeForeColor, testee.VolumeTextBox.ForeColor);
+        });
+    }
+
+    [TestMethod]
+    public void OnLoad_DirectoryVolumeCalculationFails_KeepsYellowTextAndFormResponsive()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new TestAsyncVolumeDetailsForm(@"A:\Media\Series");
+
+            // Act
+            testee.Show();
+            Application.DoEvents();
+            testee.FailVolumeCalculation(new IOException("Volume failed"));
+            Application.DoEvents();
+
+            // Assert
+            Assert.AreEqual("0 Mb", testee.VolumeTextBox.Text);
+            Assert.AreEqual(Color.Yellow, testee.VolumeTextBox.ForeColor);
+            Assert.IsFalse(testee.IsDisposed);
+        });
+    }
+
+    [TestMethod]
+    public void OnLoad_MediaInfoLoadCompletes_UpdatesDimensionBitrateAndFlags()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new TestAsyncMediaInfoDetailsForm(@"A:\Media\Movie");
+            testee.Show();
+            Application.DoEvents();
+
+            // Act
+            testee.CompleteMediaInfoLoad(new DetailsForm.MediaInfoSnapshot(1920, 1080, 8_000_000, ["English", "Russian"]));
+            WaitUntil(() => testee.DimensionTextBox.Text.Length > 0);
+
+            // Assert
+            Assert.AreEqual("1920x1080", testee.DimensionTextBox.Text);
+            Assert.AreEqual("8 Mbps", testee.BitrateTextBox.Text);
+            Assert.IsNotNull(testee.Flag1.Image);
+            Assert.IsNotNull(testee.Flag2.Image);
+        });
+    }
+
+    [TestMethod]
+    public void OnLoad_MediaInfoLoadFails_LeavesFieldsEmptyAndFormResponsive()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new TestAsyncMediaInfoDetailsForm(@"A:\Media\Movie");
+            testee.Show();
+            Application.DoEvents();
+
+            // Act
+            testee.FailMediaInfoLoad(new IOException("Media info failed"));
+            Application.DoEvents();
+
+            // Assert
+            Assert.AreEqual(string.Empty, testee.DimensionTextBox.Text);
+            Assert.AreEqual(string.Empty, testee.BitrateTextBox.Text);
+            Assert.IsNull(testee.Flag1.Image);
+            Assert.IsNull(testee.Flag2.Image);
+            Assert.IsFalse(testee.IsDisposed);
+        });
+    }
+
+    [TestMethod]
+    public void OnFormClosed_MediaInfoLoadingRunning_CancelsCalculation()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new TestAsyncMediaInfoDetailsForm(@"A:\Media\Movie");
+            testee.Show();
+            Application.DoEvents();
+
+            // Act
+            testee.Close();
+            Application.DoEvents();
+
+            // Assert
+            Assert.IsTrue(testee.CapturedCancellationToken.IsCancellationRequested);
         });
     }
 
@@ -356,6 +497,21 @@ public class DetailsFormTests
         }
     }
 
+    private static void WaitUntil(Func<bool> condition)
+    {
+        var timeoutAt = DateTime.UtcNow.AddSeconds(2);
+        while (!condition())
+        {
+            if (DateTime.UtcNow >= timeoutAt)
+            {
+                Assert.Fail("Condition was not met before timeout.");
+            }
+
+            Application.DoEvents();
+            Thread.Sleep(10);
+        }
+    }
+
     private sealed class TestDetailsForm(string filePath) : DetailsForm(filePath, NullLogger.Instance)
     {
         public Button InsertButton => m_BtnInsert;
@@ -432,6 +588,95 @@ public class DetailsFormTests
         protected override void DoAddListViewItemFromClipboard(ListView listView, ImageList imageList)
         {
             LastClipboardTargetListView = listView;
+        }
+    }
+
+    private sealed class TestAsyncVolumeDetailsForm : DetailsForm
+    {
+        private readonly TaskCompletionSource<long> m_VolumeCalculationCompletion = new();
+        private Action<long> m_ReportProgress = _ => { };
+        private readonly Color m_DefaultVolumeForeColor;
+
+        public TextBox VolumeTextBox => m_TxtVolume;
+
+        public TestAsyncVolumeDetailsForm(string filePath) : base(filePath, NullLogger.Instance)
+        {
+            m_DefaultVolumeForeColor = m_TxtVolume.ForeColor;
+        }
+
+        public bool DirectoryCalculationStarted { get; private set; }
+        public CancellationToken CapturedCancellationToken { get; private set; }
+        public List<Color> ProgressColors { get; } = [];
+        public Color DefaultVolumeForeColor => m_DefaultVolumeForeColor;
+
+        protected override bool FileExists(string path)
+        {
+            return false;
+        }
+
+        protected override bool DirectoryExists(string path)
+        {
+            return true;
+        }
+
+        protected override Task<long> CalculateDirectoryVolumeAsync(string path, CancellationToken cancellationToken, Action<long> reportProgress)
+        {
+            DirectoryCalculationStarted = true;
+            CapturedCancellationToken = cancellationToken;
+            m_ReportProgress = reportProgress;
+            return m_VolumeCalculationCompletion.Task;
+        }
+
+        public void ReportProgress(long volume)
+        {
+            m_ReportProgress(volume);
+            ProgressColors.Add(m_TxtVolume.ForeColor);
+        }
+
+        public void CompleteVolumeCalculation(long volume)
+        {
+            m_VolumeCalculationCompletion.SetResult(volume);
+        }
+
+        public void FailVolumeCalculation(Exception ex)
+        {
+            m_VolumeCalculationCompletion.SetException(ex);
+        }
+    }
+
+    private sealed class TestAsyncMediaInfoDetailsForm : DetailsForm
+    {
+        private readonly TaskCompletionSource<DetailsForm.MediaInfoSnapshot> m_MediaInfoCompletion = new();
+
+        public TestAsyncMediaInfoDetailsForm(string filePath) : base(filePath, NullLogger.Instance)
+        {
+        }
+
+        public TextBox DimensionTextBox => m_TxtDimension;
+        public TextBox BitrateTextBox => m_TxtBitrate;
+        public PictureBox Flag1 => m_PicFlag1;
+        public PictureBox Flag2 => m_PicFlag2;
+        public CancellationToken CapturedCancellationToken { get; private set; }
+
+        protected override void DoLoad()
+        {
+            FillMediaInfo(FilePath);
+        }
+
+        protected override Task<MediaInfoSnapshot> LoadMediaInfoAsync(string path, CancellationToken cancellationToken)
+        {
+            CapturedCancellationToken = cancellationToken;
+            return m_MediaInfoCompletion.Task;
+        }
+
+        public void CompleteMediaInfoLoad(DetailsForm.MediaInfoSnapshot snapshot)
+        {
+            m_MediaInfoCompletion.SetResult(snapshot);
+        }
+
+        public void FailMediaInfoLoad(Exception ex)
+        {
+            m_MediaInfoCompletion.SetException(ex);
         }
     }
 

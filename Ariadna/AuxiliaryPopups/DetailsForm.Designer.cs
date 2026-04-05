@@ -564,7 +564,8 @@ namespace Ariadna.AuxiliaryPopups
             // m_TxtVolume
             // 
             m_TxtVolume.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            m_TxtVolume.Enabled = false;
+            m_TxtVolume.Enabled = true;
+            m_TxtVolume.ReadOnly = true;
             m_TxtVolume.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 204);
             m_TxtVolume.Location = new System.Drawing.Point(336, 627);
             m_TxtVolume.Margin = new System.Windows.Forms.Padding(5, 3, 5, 3);
@@ -746,6 +747,7 @@ namespace Ariadna.AuxiliaryPopups
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "Insert entry";
             Load += OnLoad;
+            FormClosed += OnFormClosed;
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
             ((System.ComponentModel.ISupportInitialize)m_Preview4).EndInit();

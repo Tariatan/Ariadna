@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -380,19 +381,31 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         LoadNamedItems(
             m_CastList,
             m_CastPhotos,
-            ctx.MovieCasts.AsNoTracking().ToArray().Where(r => r.movieId == entry.Id),
+            ctx.MovieCasts
+                .AsNoTracking()
+                .Include(r => r.Actor)
+                .Where(r => r.movieId == entry.Id)
+                .ToArray(),
             cast => cast.Actor.name,
             cast => cast.Actor.photo);
 
         LoadNamedItems(
             m_DirectorsList,
             m_DirectorsPhotos,
-            ctx.MovieDirectors.AsNoTracking().ToArray().Where(r => r.movieId == entry.Id),
+            ctx.MovieDirectors
+                .AsNoTracking()
+                .Include(r => r.Director)
+                .Where(r => r.movieId == entry.Id)
+                .ToArray(),
             directors => directors.Director.name,
             directors => directors.Director.photo);
 
         LoadGenres(
-            ctx.MovieGenres.AsNoTracking().ToArray().Where(r => r.movieId == entry.Id),
+            ctx.MovieGenres
+                .AsNoTracking()
+                .Include(r => r.Genre)
+                .Where(r => r.movieId == entry.Id)
+                .ToArray(),
             genres => genres.Genre.name);
     }
     private async void FetchPreviews(ListView listView, ImageList imageList)

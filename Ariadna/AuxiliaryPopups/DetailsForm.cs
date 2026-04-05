@@ -5,6 +5,8 @@ using System.Data.Entity.Validation;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
@@ -32,8 +34,16 @@ public partial class DetailsForm : Form
     #region Private Fields
     private bool m_IsInUpdateMode;
     private bool m_IsShiftPressed;
+    private CancellationTokenSource m_VolumeCalculationCancellation;
+    private CancellationTokenSource m_MediaInfoLoadingCancellation;
+    private readonly Color m_VolumeDefaultForeColor;
+    private long m_VolumeUpdateSequence;
+    private long m_LastAppliedVolumeUpdateSequence;
+    private long m_MediaInfoUpdateSequence;
+    private long m_LastAppliedMediaInfoUpdateSequence;
 
     private const int MAX_GENRE_COUNT_ALLOWED = 5;
+    private const int VOLUME_PROGRESS_UPDATE_INTERVAL_MS = 200;
     #endregion
 
     public DetailsForm(string filePath, ILogger logger)
@@ -43,6 +53,7 @@ public partial class DetailsForm : Form
         StoredDbEntryId = -1;
         InitializeComponent();
         ApplyTheme();
+        m_VolumeDefaultForeColor = m_TxtVolume.ForeColor;
 
         m_GenresList.Sorting = SortOrder.Ascending;
     }
@@ -149,7 +160,7 @@ public partial class DetailsForm : Form
         m_TxtTitle.Text = FilePath[(FilePath.LastIndexOf('\\') + 1)..];
         m_TxtPath.Text = FilePath;
 
-        m_TxtVolume.Text = CalculateVolume(FilePath);
+        StartVolumeCalculation(FilePath);
 
         m_IsShiftPressed = false;
 
@@ -160,37 +171,212 @@ public partial class DetailsForm : Form
         UpdateInsertButtonText();
         m_AddGenreBtn.Visible = (m_GenresList.Items.Count < MAX_GENRE_COUNT_ALLOWED);
     }
-    private string CalculateVolume(string path)
+    private async void StartVolumeCalculation(string path)
     {
-        long volume = 0;
-        // Check if it is a file first
-        if (File.Exists(path))
+        CancelVolumeCalculation();
+
+        // Check if it is a single file first
+        if (FileExists(path))
         {
-            var fi = new FileInfo(path);
-            volume = fi.Length;
-        }
-        // Checked if it is a directory
-        else if (Directory.Exists(path))
-        {
-            Cursor.Current = Cursors.WaitCursor;
-            volume = GetDirSize(path);
-            Cursor.Current = Cursors.Default;
+            SetVolume(GetFileSize(path), false);
+            return;
         }
 
+        if (!DirectoryExists(path))
+        {
+            SetVolume(0, false);
+            return;
+        }
+
+        var cancellation = new CancellationTokenSource();
+        m_VolumeCalculationCancellation = cancellation;
+        SetVolume(0, true);
+
+        // Try calculating directory volume otherwise
+        try
+        {
+            var volume = await CalculateDirectoryVolumeAsync(
+                path,
+                cancellation.Token,
+                bytes => UpdateVolumeOnUiThread(bytes, true, cancellation.Token, Interlocked.Increment(ref m_VolumeUpdateSequence)));
+
+            UpdateVolumeOnUiThread(volume, false, cancellation.Token, Interlocked.Increment(ref m_VolumeUpdateSequence));
+        }
+        catch (OperationCanceledException)
+        {
+            // ignored
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+        finally
+        {
+            if (ReferenceEquals(m_VolumeCalculationCancellation, cancellation))
+            {
+                m_VolumeCalculationCancellation.Dispose();
+                m_VolumeCalculationCancellation = null;
+            }
+        }
+    }
+    private void CancelVolumeCalculation()
+    {
+        if (m_VolumeCalculationCancellation == null)
+        {
+            return;
+        }
+
+        m_VolumeCalculationCancellation.Cancel();
+        m_VolumeCalculationCancellation.Dispose();
+        m_VolumeCalculationCancellation = null;
+    }
+    private void UpdateVolumeOnUiThread(long volume, bool isInProgress, CancellationToken token, long updateSequence)
+    {
+        if (token.IsCancellationRequested || IsDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(() => UpdateVolumeOnUiThread(volume, isInProgress, token, updateSequence));
+                return;
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        if (token.IsCancellationRequested || IsDisposed)
+        {
+            return;
+        }
+
+        if (updateSequence < Interlocked.Read(ref m_LastAppliedVolumeUpdateSequence))
+        {
+            return;
+        }
+
+        Interlocked.Exchange(ref m_LastAppliedVolumeUpdateSequence, updateSequence);
+        SetVolume(volume, isInProgress);
+    }
+    private void SetVolume(long volume, bool isInProgress)
+    {
+        m_TxtVolume.Text = FormatVolume(volume);
+        m_TxtVolume.ForeColor = isInProgress ? Color.Yellow : m_VolumeDefaultForeColor;
+    }
+    private static string FormatVolume(long volume)
+    {
         volume /= 1024 * 1024;
         var v = volume.ToString();
-        if(v.Length > 3)
+        if (v.Length > 3)
         {
             v = v.Insert(v.Length - 3, " ");
         }
-        v += " Mb";
 
-        return v;
+        return v + " Mb";
     }
-    private long GetDirSize(string path)
+    protected virtual bool FileExists(string path)
     {
-        return Directory.EnumerateFiles(path).Sum(x => new FileInfo(x).Length)
-               + Directory.EnumerateDirectories(path).Sum(GetDirSize);
+        return File.Exists(path);
+    }
+    protected virtual bool DirectoryExists(string path)
+    {
+        return Directory.Exists(path);
+    }
+    protected virtual long GetFileSize(string path)
+    {
+        return new FileInfo(path).Length;
+    }
+    protected virtual Task<long> CalculateDirectoryVolumeAsync(string path, CancellationToken cancellationToken, Action<long> reportProgress)
+    {
+        return Task.Run(() => CalculateDirectoryVolume(path, cancellationToken, reportProgress), cancellationToken);
+    }
+    private long CalculateDirectoryVolume(string path, CancellationToken cancellationToken, Action<long> reportProgress)
+    {
+        var directories = new Stack<string>();
+        directories.Push(path);
+
+        long totalSize = 0;
+        var lastProgressUpdate = Environment.TickCount64;
+
+        while (directories.Count > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var currentPath = directories.Pop();
+            foreach (var filePath in EnumerateFilesSafe(currentPath))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    totalSize += GetFileSize(filePath);
+                }
+                catch (IOException)
+                {
+                    continue;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    continue;
+                }
+
+                if ((Environment.TickCount64 - lastProgressUpdate) < VOLUME_PROGRESS_UPDATE_INTERVAL_MS)
+                {
+                    continue;
+                }
+
+                reportProgress(totalSize);
+                lastProgressUpdate = Environment.TickCount64;
+            }
+
+            foreach (var directoryPath in EnumerateDirectoriesSafe(currentPath))
+            {
+                directories.Push(directoryPath);
+            }
+        }
+
+        reportProgress(totalSize);
+        return totalSize;
+    }
+    protected virtual IEnumerable<string> EnumerateFilesSafe(string path)
+    {
+        try
+        {
+            return Directory.EnumerateFiles(path).ToArray();
+        }
+        catch (IOException)
+        {
+            return [];
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
+    protected virtual IEnumerable<string> EnumerateDirectoriesSafe(string path)
+    {
+        try
+        {
+            return Directory.EnumerateDirectories(path).ToArray();
+        }
+        catch (IOException)
+        {
+            return [];
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
+    private void OnFormClosed(object sender, FormClosedEventArgs e)
+    {
+        CancelVolumeCalculation();
+        CancelMediaInfoLoading();
     }
     private void UpdateInsertButtonText()
     {
@@ -532,60 +718,166 @@ public partial class DetailsForm : Form
             m_PreviewFull.Image = new Bitmap(pic.Image);
         }
     }
+    public sealed record MediaInfoSnapshot(int Width, int Height, int VideoRate, IReadOnlyList<string> Languages);
     protected void FillMediaInfo(string path)
     {
-        if (Directory.Exists(path))
+        StartMediaInfoLoading(path);
+    }
+    private async void StartMediaInfoLoading(string path)
+    {
+        CancelMediaInfoLoading();
+        ClearMediaInfo();
+
+        var cancellation = new CancellationTokenSource();
+        m_MediaInfoLoadingCancellation = cancellation;
+
+        try
         {
-            // Try to get the first file to retrieve media info
-            var firstFile = Directory.EnumerateFiles(path).FirstOrDefault();
-
-            // Otherwise go into the first folder and get the first file
-            if (string.IsNullOrEmpty(firstFile))
-            {
-                var firstSubDir = Directory.GetDirectories(path).FirstOrDefault();
-                if (string.IsNullOrEmpty(firstSubDir) is false)
-                {
-                    firstFile = Directory.EnumerateFiles(firstSubDir!).FirstOrDefault();
-                }
-            }
-
-            path = firstFile;
+            var snapshot = await LoadMediaInfoAsync(path, cancellation.Token);
+            UpdateMediaInfoOnUiThread(snapshot, cancellation.Token, Interlocked.Increment(ref m_MediaInfoUpdateSequence));
         }
-
-        if (string.IsNullOrEmpty(path))
+        catch (OperationCanceledException)
+        {
+            // ignored
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+        finally
+        {
+            if (ReferenceEquals(m_MediaInfoLoadingCancellation, cancellation))
+            {
+                m_MediaInfoLoadingCancellation.Dispose();
+                m_MediaInfoLoadingCancellation = null;
+            }
+        }
+    }
+    private void CancelMediaInfoLoading()
+    {
+        if (m_MediaInfoLoadingCancellation == null)
         {
             return;
         }
 
-        var info = new MediaInfoWrapper(path, m_Logger);
-        m_TxtDimension.Text = info.Width.ToString() + 'x' + info.Height;
-        m_TxtBitrate.Text = (info.VideoRate / 1000000).ToString() + ' ' + Resources.Mbps;
+        m_MediaInfoLoadingCancellation.Cancel();
+        m_MediaInfoLoadingCancellation.Dispose();
+        m_MediaInfoLoadingCancellation = null;
+    }
+    protected virtual Task<MediaInfoSnapshot> LoadMediaInfoAsync(string path, CancellationToken cancellationToken)
+    {
+        return Task.Run(() => LoadMediaInfo(path, cancellationToken), cancellationToken);
+    }
+    private MediaInfoSnapshot LoadMediaInfo(string path, CancellationToken cancellationToken)
+    {
+        path = ResolveMediaInfoPath(path);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (string.IsNullOrEmpty(path))
+        {
+            return null;
+        }
 
-        var audios = info.AudioStreams;
-        var flags = new List<PictureBox> { m_PicFlag1, m_PicFlag2, m_PicFlag3, m_PicFlag4 };
-        foreach (var flag in flags)
+        var info = new MediaInfoWrapper(path, m_Logger);
+        cancellationToken.ThrowIfCancellationRequested();
+        return new MediaInfoSnapshot(
+            info.Width,
+            info.Height,
+            info.VideoRate,
+            info.AudioStreams.Select(stream => stream.Language).ToArray());
+    }
+    private string ResolveMediaInfoPath(string path)
+    {
+        if (!DirectoryExists(path))
+        {
+            return path;
+        }
+
+        var firstFile = EnumerateFilesSafe(path).FirstOrDefault();
+        if (string.IsNullOrEmpty(firstFile))
+        {
+            var firstSubDir = EnumerateDirectoriesSafe(path).FirstOrDefault();
+            if (string.IsNullOrEmpty(firstSubDir) is false)
+            {
+                firstFile = EnumerateFilesSafe(firstSubDir!).FirstOrDefault();
+            }
+        }
+
+        return firstFile;
+    }
+    private void UpdateMediaInfoOnUiThread(MediaInfoSnapshot snapshot, CancellationToken token, long updateSequence)
+    {
+        if (token.IsCancellationRequested || IsDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(() => UpdateMediaInfoOnUiThread(snapshot, token, updateSequence));
+                return;
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        if (token.IsCancellationRequested || IsDisposed)
+        {
+            return;
+        }
+
+        if (updateSequence < Interlocked.Read(ref m_LastAppliedMediaInfoUpdateSequence))
+        {
+            return;
+        }
+
+        Interlocked.Exchange(ref m_LastAppliedMediaInfoUpdateSequence, updateSequence);
+        ApplyMediaInfo(snapshot);
+    }
+    private void ClearMediaInfo()
+    {
+        m_TxtDimension.Text = string.Empty;
+        m_TxtBitrate.Text = string.Empty;
+
+        foreach (var flag in GetAudioFlags())
         {
             flag.Image = null;
         }
-
-        var index = 0;
-        foreach (var stream in audios)
+    }
+    private void ApplyMediaInfo(MediaInfoSnapshot snapshot)
+    {
+        ClearMediaInfo();
+        if (snapshot == null)
         {
-            // Limit number of audio tracks
-            if (index >= flags.Count)
-            {
-                break;
-            }
-
-            flags[index++].Image = stream.Language switch
-            {
-                "Ukrainian" => Resources.ua_flag,
-                "Russian" => Resources.ru_flag,
-                "English" => Resources.en_flag,
-                "French" => Resources.fr_flag,
-                _ => flags[index++].Image
-            };
+            return;
         }
+
+        m_TxtDimension.Text = snapshot.Width.ToString() + 'x' + snapshot.Height;
+        m_TxtBitrate.Text = (snapshot.VideoRate / 1000000).ToString() + ' ' + Resources.Mbps;
+
+        var flags = GetAudioFlags();
+        for (var i = 0; i < Math.Min(flags.Count, snapshot.Languages.Count); i++)
+        {
+            flags[i].Image = GetFlagImage(snapshot.Languages[i]);
+        }
+    }
+    private List<PictureBox> GetAudioFlags()
+    {
+        return [m_PicFlag1, m_PicFlag2, m_PicFlag3, m_PicFlag4];
+    }
+    private static Bitmap GetFlagImage(string language)
+    {
+        return language switch
+        {
+            "Ukrainian" => Resources.ua_flag,
+            "Russian" => Resources.ru_flag,
+            "English" => Resources.en_flag,
+            "French" => Resources.fr_flag,
+            _ => Resources.unknown
+        };
     }
     protected void AddNewListItem(ListView listView, ImageList imageList, string name, Bitmap image = null)
     {

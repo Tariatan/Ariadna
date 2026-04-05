@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.Entity.Validation;
 using System.Drawing;
 using System.IO;
@@ -214,7 +215,11 @@ public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(file
         m_TxtVersion.Text = entry.version;
 
         LoadGenres(
-            ctx.GameGenres.AsNoTracking().ToArray().Where(r => r.gameId == entry.Id),
+            ctx.GameGenres
+                .AsNoTracking()
+                .Include(r => r.GenreOfGame)
+                .Where(r => r.gameId == entry.Id)
+                .ToArray(),
             genres => genres.GenreOfGame.name);
 
         var filename = Settings.Default.GamePostersRootPath + entry.Id;

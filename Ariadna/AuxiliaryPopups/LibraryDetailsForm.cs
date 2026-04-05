@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -311,12 +312,20 @@ public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(f
         LoadNamedItems(
             m_DirectorsList,
             m_DirectorsPhotos,
-            ctx.LibraryAuthors.AsNoTracking().ToArray().Where(r => r.libraryId == entry.Id),
+            ctx.LibraryAuthors
+                .AsNoTracking()
+                .Include(r => r.Author)
+                .Where(r => r.libraryId == entry.Id)
+                .ToArray(),
             directors => directors.Author.name,
             directors => directors.Author.photo);
 
         LoadGenres(
-            ctx.LibraryGenres.AsNoTracking().ToArray().Where(r => r.libraryId == entry.Id),
+            ctx.LibraryGenres
+                .AsNoTracking()
+                .Include(r => r.GenreOfLibrary)
+                .Where(r => r.libraryId == entry.Id)
+                .ToArray(),
             genres => genres.GenreOfLibrary.name);
     }
 

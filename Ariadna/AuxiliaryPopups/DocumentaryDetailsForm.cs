@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -178,7 +179,11 @@ public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsFo
         LoadPosterImage(Settings.Default.DocumentaryPostersRootPath + entry.Id, m_PicPoster);
 
         LoadGenres(
-            ctx.DocumentaryGenres.AsNoTracking().ToArray().Where(r => r.documentaryId == entry.Id),
+            ctx.DocumentaryGenres
+                .AsNoTracking()
+                .Include(r => r.GenreOfDocumentary)
+                .Where(r => r.documentaryId == entry.Id)
+                .ToArray(),
             genres => genres.GenreOfDocumentary.name);
     }
 }

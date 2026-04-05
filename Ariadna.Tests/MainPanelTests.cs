@@ -478,6 +478,73 @@ public class MainPanelTests
     }
 
     [TestMethod]
+    public void RemoveEntry_WhenPreviousEntryExists_SelectsPreviousEntryAfterRefresh()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            var strategy = new TestMainPanelDbStrategy
+            {
+                Entries =
+                [
+                    new EntryDto { Id = 1, Title = "Alien", Path = @"A:\Media\Alien.mkv" },
+                    new EntryDto { Id = 2, Title = "Blade Runner", Path = @"A:\Media\BladeRunner.mkv" },
+                    new EntryDto { Id = 3, Title = "Terminator", Path = @"A:\Media\Terminator.mkv" },
+                ],
+                EntryInfo = new EntryInfo { Title = "Blade Runner", TitleOrig = "Blade Runner", Path = @"A:\Media\BladeRunner.mkv" },
+            };
+            using var testee = CreatePanel(strategy);
+            testee.Show();
+            var listView = GetImageListView(testee);
+            listView.Items.FocusedItem = listView.Items[1];
+            listView.Items[1].Selected = true;
+            testee.RemoveEntryConfirmationResult = DialogResult.Yes;
+            strategy.ResetTracking();
+
+            // Act
+            InvokeMainPanelMethod(testee, "RemoveEntry", false);
+
+            // Assert
+            Assert.AreEqual(1, strategy.RemoveEntryCallCount);
+            Assert.AreEqual("Alien", listView.Items.FocusedItem.Text);
+            Assert.AreEqual("Alien", listView.Items.Cast<ImageListViewItem>().Single(item => item.Selected).Text);
+        });
+    }
+
+    [TestMethod]
+    public void RemoveEntry_WhenPreviousEntryDoesNotExist_SelectsNextEntryAfterRefresh()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            var strategy = new TestMainPanelDbStrategy
+            {
+                Entries =
+                [
+                    new EntryDto { Id = 1, Title = "Alien", Path = @"A:\Media\Alien.mkv" },
+                    new EntryDto { Id = 2, Title = "Blade Runner", Path = @"A:\Media\BladeRunner.mkv" },
+                ],
+                EntryInfo = new EntryInfo { Title = "Alien", TitleOrig = "Alien", Path = @"A:\Media\Alien.mkv" },
+            };
+            using var testee = CreatePanel(strategy);
+            testee.Show();
+            var listView = GetImageListView(testee);
+            listView.Items.FocusedItem = listView.Items[0];
+            listView.Items[0].Selected = true;
+            testee.RemoveEntryConfirmationResult = DialogResult.Yes;
+            strategy.ResetTracking();
+
+            // Act
+            InvokeMainPanelMethod(testee, "RemoveEntry", false);
+
+            // Assert
+            Assert.AreEqual(1, strategy.RemoveEntryCallCount);
+            Assert.AreEqual("Blade Runner", listView.Items.FocusedItem.Text);
+            Assert.AreEqual("Blade Runner", listView.Items.Cast<ImageListViewItem>().Single(item => item.Selected).Text);
+        });
+    }
+
+    [TestMethod]
     public void RemoveEntry_WhenFileExistsAndDeleteFileRequested_DeletesFile()
     {
         RunInSta(() =>
@@ -755,6 +822,7 @@ public class MainPanelTests
         {
             RemoveEntryCallCount++;
             LastRemovedEntryId = id;
+            Entries = Entries.Where(entry => entry.Id != id).ToList();
         }
         public override bool FindNextEntryAutomatically()
         {
