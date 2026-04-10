@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -16,8 +17,14 @@ public partial class FloatingPanel : Form
         SUBGENRES,
     }
 
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public EPanelContentType PanelContentType { get; set; }
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Utilities.EFormCloseReason FormCloseReason { get; set; }
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public List<string> EntryNames { get; set; }
 
     public event EventHandler ItemSelected;

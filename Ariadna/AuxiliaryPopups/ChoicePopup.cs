@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using Ariadna.Data;
@@ -8,6 +9,8 @@ namespace Ariadna.AuxiliaryPopups;
 
 public partial class ChoicePopup : Form
 {
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public int Index { get; set; }
     public ChoicePopup(string path, List<MovieChoiceDto> results)
     {

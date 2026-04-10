@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Data.Entity.Validation;
 using System.Drawing;
 using System.IO;
@@ -22,8 +23,14 @@ public partial class DetailsForm : Form
     private readonly ILogger m_Logger;
 
     #region Public Fields
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Utilities.EFormCloseReason FormCloseReason { get; set; }
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string FilePath { get; set; }
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public int StoredDbEntryId { get; set; }
     #endregion
 

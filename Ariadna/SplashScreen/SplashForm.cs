@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+using System.ComponentModel;
+using System.Windows.Forms;
 
 namespace Ariadna.SplashScreen;
 
@@ -6,6 +7,8 @@ public partial class SplashForm : Form
 {
     private string m_StatusInfo = string.Empty;
 
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string StatusInfo
     {
         set

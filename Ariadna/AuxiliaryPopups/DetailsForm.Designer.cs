@@ -40,7 +40,7 @@ namespace Ariadna.AuxiliaryPopups
             m_TxtLength = new System.Windows.Forms.TextBox();
             m_TxtDescription = new System.Windows.Forms.TextBox();
             m_WantToSee = new System.Windows.Forms.CheckBox();
-            m_DirectorsPhotos = new System.Windows.Forms.ImageList(components);
+            m_DirectorsPhotos = new System.Windows.Forms.ImageList();
             m_LblGenre = new System.Windows.Forms.Label();
             m_LblTitle = new System.Windows.Forms.Label();
             m_LblTitleOrig = new System.Windows.Forms.Label();
@@ -48,9 +48,9 @@ namespace Ariadna.AuxiliaryPopups
             m_DirectorsList = new System.Windows.Forms.ListView();
             m_LblDirector = new System.Windows.Forms.Label();
             m_CastList = new System.Windows.Forms.ListView();
-            m_CastPhotos = new System.Windows.Forms.ImageList(components);
+            m_CastPhotos = new System.Windows.Forms.ImageList();
             m_GenresList = new System.Windows.Forms.ListView();
-            m_GenresImages = new System.Windows.Forms.ImageList(components);
+            m_GenresImages = new System.Windows.Forms.ImageList();
             m_AddGenreBtn = new System.Windows.Forms.Label();
             m_GenrePaste = new System.Windows.Forms.Label();
             m_DescriptionPaste = new System.Windows.Forms.Label();
@@ -72,7 +72,7 @@ namespace Ariadna.AuxiliaryPopups
             m_TxtVolume = new System.Windows.Forms.TextBox();
             m_TxtDimension = new System.Windows.Forms.TextBox();
             m_TxtBitrate = new System.Windows.Forms.TextBox();
-            m_LangImages = new System.Windows.Forms.ImageList(components);
+            m_LangImages = new System.Windows.Forms.ImageList();
             m_PicFlag1 = new System.Windows.Forms.PictureBox();
             m_PicFlag2 = new System.Windows.Forms.PictureBox();
             m_PicFlag3 = new System.Windows.Forms.PictureBox();

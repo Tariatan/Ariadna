@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Entity;
 using System.Drawing;
 using System.IO;
@@ -20,7 +21,11 @@ namespace Ariadna.AuxiliaryPopups;
 public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(filePath, logger)
 {
     #region Public Fields
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public int TmdbMovieIndex { get; set; }
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public int TmdbTvShowIndex { get; set; }
     #endregion
 

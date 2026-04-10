@@ -32,7 +32,7 @@ namespace Ariadna.AuxiliaryPopups
         {
             this.components = new System.ComponentModel.Container();
             this.m_PanelListView = new System.Windows.Forms.ListView();
-            this.m_PanelImageView = new System.Windows.Forms.ImageList(this.components);
+            this.m_PanelImageView = new System.Windows.Forms.ImageList();
             this.SuspendLayout();
             // 
             // m_PanelListView

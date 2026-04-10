@@ -15,6 +15,7 @@ namespace Ariadna
         [STAThread]
         private static void Main()
         {
+            AppContext.SetSwitch("System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization", true);
             using var factory = LoggerFactory.Create(builder => builder.AddConsole());
             var logger = factory.CreateLogger("Ariadna");
 
