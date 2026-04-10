@@ -48,6 +48,17 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Update="ImageListView\ImageListViewResources.resx">
+      <LogicalName>Manina.Windows.Forms.ImageListViewResources.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="ImageListView\ImageListViewResources.de.resx">
+      <LogicalName>Manina.Windows.Forms.ImageListViewResources.de.resources</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="ImageListView\ImageListViewResources.tr.resx">
+      <LogicalName>Manina.Windows.Forms.ImageListViewResources.tr.resources</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
@@ -91,12 +102,11 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EntityFramework" Version="6.5.1" />
-    <PackageReference Include="ImageListView" Version="13.8.2" />
     <PackageReference Include="MediaInfo.Wrapper.Core" Version="26.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
     <PackageReference Include="Microsoft.WindowsAPICodePack-Shell" Version="1.1.0.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
-    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="9.0.0" />
+    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="10.0.5" />
     <PackageReference Include="TMDbLib" Version="3.0.0" />
   </ItemGroup>
   <ItemGroup>
