@@ -1,4 +1,5 @@
 using System.Runtime.ExceptionServices;
+using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -26,6 +27,54 @@ public class EntryDetailsFormBehaviorTests
             // Assert
             Assert.AreEqual("Terminator", testee.TitleText);
             Assert.AreEqual("Insert entry", testee.InsertButtonText);
+        });
+    }
+
+    [TestMethod]
+    public void MovieDetailsForm_LoadWithTmdbConfigRetry_RetriesOnceAndLoadsFields()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new TestMovieDetailsForm(@"A:\Movies\Terminator.mkv")
+            {
+                TmdbMovieIndex = 1,
+                TmdbTvShowIndex = -1,
+                EnsureTmdbConfigFailureCount = 1,
+            };
+
+            // Act
+            testee.Show();
+            WaitUntil(() => testee.EnsureTmdbConfigCallCount == 2 && testee.FillMovieFieldsCallCount == 1);
+
+            // Assert
+            Assert.AreEqual(2, testee.EnsureTmdbConfigCallCount);
+            Assert.AreEqual(1, testee.FillMovieFieldsCallCount);
+            Assert.AreEqual("Loaded from TMDb", testee.OriginalTitleText);
+        });
+    }
+
+    [TestMethod]
+    public void MovieDetailsForm_LoadWithTmdbConfigFailingTwice_SkipsInfoFetching()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new TestMovieDetailsForm(@"A:\Movies\Terminator.mkv")
+            {
+                TmdbMovieIndex = 1,
+                TmdbTvShowIndex = -1,
+                EnsureTmdbConfigFailureCount = 2,
+            };
+
+            // Act
+            testee.Show();
+            WaitUntil(() => testee.EnsureTmdbConfigCallCount == 2);
+
+            // Assert
+            Assert.AreEqual(2, testee.EnsureTmdbConfigCallCount);
+            Assert.AreEqual(0, testee.FillMovieFieldsCallCount);
+            Assert.AreEqual(string.Empty, testee.OriginalTitleText);
         });
     }
 
@@ -166,6 +215,21 @@ public class EntryDetailsFormBehaviorTests
         }
     }
 
+    private static void WaitUntil(Func<bool> condition)
+    {
+        var timeout = DateTime.UtcNow.AddSeconds(2);
+        while (!condition())
+        {
+            if (DateTime.UtcNow >= timeout)
+            {
+                Assert.Fail("Condition was not met within the expected time.");
+            }
+
+            Application.DoEvents();
+            Thread.Sleep(10);
+        }
+    }
+
     private sealed class TestDocumentaryDetailsForm(string filePath) : DocumentaryDetailsForm(filePath, NullLogger.Instance)
     {
         public string TitleText => m_TxtTitle.Text;
@@ -182,12 +246,35 @@ public class EntryDetailsFormBehaviorTests
 
     private sealed class TestMovieDetailsForm(string filePath) : MovieDetailsForm(filePath, NullLogger.Instance)
     {
+        public int EnsureTmdbConfigFailureCount { get; set; }
+        public int EnsureTmdbConfigCallCount { get; private set; }
+        public int FillMovieFieldsCallCount { get; private set; }
         public string TitleText => m_TxtTitle.Text;
+        public string OriginalTitleText => m_TxtTitleOrig.Text;
         public string InsertButtonText => m_BtnInsert.Text;
 
         protected override int GetStoredEntryId()
         {
             return -1;
+        }
+
+        protected override Task EnsureTmdbConfigAsync()
+        {
+            EnsureTmdbConfigCallCount++;
+            if (EnsureTmdbConfigFailureCount > 0)
+            {
+                EnsureTmdbConfigFailureCount--;
+                throw new InvalidOperationException("Simulated TMDb config failure.");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        protected override Task FillMovieFieldsFromImdbAsync()
+        {
+            FillMovieFieldsCallCount++;
+            m_TxtTitleOrig.Text = "Loaded from TMDb";
+            return Task.CompletedTask;
         }
     }
 

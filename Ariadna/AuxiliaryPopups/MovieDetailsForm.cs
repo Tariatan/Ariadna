@@ -44,8 +44,6 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         var length = Utilities.GetVideoDuration(FilePath);
         m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
 
-        FetchClientConfig();
-
         StoredDbEntryId = GetStoredEntryId();
 
         if (StoredDbEntryId != -1)
@@ -56,11 +54,11 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         {
             if (TmdbMovieIndex != -1)
             {
-                FillMovieFieldsFromImdb();
+                StartTmdbInfoLoad(FillMovieFieldsFromImdbAsync);
             }
             else if (TmdbTvShowIndex != -1)
             {
-                FillTvShowFieldsFromImdb();
+                StartTmdbInfoLoad(FillTvShowFieldsFromImdbAsync);
             }
         }
 
@@ -115,11 +113,20 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
         using var ctx = new AriadnaEntities();
         return ResolveStoredEntryId(ctx.Movies.AsNoTracking().Where(r => r.file_path == FilePath).Select(r => (int?)r.Id));
     }
+    protected virtual Task EnsureTmdbConfigAsync()
+    {
+        return FetchConfig(m_TmDbClient);
+    }
     #endregion
 
-    private async void FetchClientConfig()
+    private async void StartTmdbInfoLoad(Func<Task> loadEntryDetailsAsync)
     {
-        await FetchConfig(m_TmDbClient);
+        if (!await TryExecuteTmdbActionAsync(EnsureTmdbConfigAsync))
+        {
+            return;
+        }
+
+        await TryExecuteTmdbActionAsync(loadEntryDetailsAsync);
     }
     private static async Task FetchConfig(TMDbClient client)
     {
@@ -137,19 +144,36 @@ public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(fil
             await File.WriteAllTextAsync(configJson.FullName, json, Encoding.UTF8);
         }
     }
-    private async void FillMovieFieldsFromImdb()
+    private async Task<bool> TryExecuteTmdbActionAsync(Func<Task> action)
+    {
+        for (var attempt = 1; attempt <= 2; attempt++)
+        {
+            try
+            {
+                await action();
+                return true;
+            }
+            catch (Exception)
+            {
+                // do nothing
+            }
+        }
+
+        return false;
+    }
+    protected virtual async Task FillMovieFieldsFromImdbAsync()
     {
         var entry = await m_TmDbClient.GetMovieAsync(TmdbMovieIndex, Settings.Default.ImdbLanguage);
         var year = entry.ReleaseDate != null ? entry.ReleaseDate.Value.Year.ToString() : "0";
-        FillFields(entry.PosterPath, entry.OriginalTitle, entry.Overview, year, entry.Genres);
+        await FillFieldsAsync(entry.PosterPath, entry.OriginalTitle, entry.Overview, year, entry.Genres);
     }
-    private async void FillTvShowFieldsFromImdb()
+    protected virtual async Task FillTvShowFieldsFromImdbAsync()
     {
         var entry = await m_TmDbClient.GetTvShowAsync(TmdbTvShowIndex, TvShowMethods.Undefined, Settings.Default.ImdbLanguage);
         var year = (entry.FirstAirDate != null) ? entry.FirstAirDate.Value.Year.ToString() : "0";
-        FillFields(entry.PosterPath, entry.OriginalName, entry.Overview, year, entry.Genres);
+        await FillFieldsAsync(entry.PosterPath, entry.OriginalName, entry.Overview, year, entry.Genres);
     }
-    private async void FillFields(string posterPath, string origTitle, string overview, string year, List<TMDbLib.Objects.General.Genre> genres)
+    protected virtual async Task FillFieldsAsync(string posterPath, string origTitle, string overview, string year, List<TMDbLib.Objects.General.Genre> genres)
     {
         if (posterPath != null)
         {
