@@ -106,7 +106,7 @@ namespace Manina.Windows.Forms
 
         // Layout variables
         internal HScrollBar hScrollBar;
-        internal VScrollBar vScrollBar;
+        internal AriadnaVScrollBar vScrollBar;
         internal ImageListViewLayoutManager layoutManager;
         private bool disposed;
 
@@ -1029,7 +1029,7 @@ namespace Manina.Windows.Forms
 
             // Child controls
             hScrollBar = new HScrollBar();
-            vScrollBar = new VScrollBar();
+            vScrollBar = new AriadnaVScrollBar();
             hScrollBar.Visible = false;
             vScrollBar.Visible = false;
             hScrollBar.Scroll += hScrollBar_Scroll;
