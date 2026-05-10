@@ -91,12 +91,9 @@ namespace Ariadna
             m_ImageListView.Location = new System.Drawing.Point(0, 33);
             m_ImageListView.MultiSelect = false;
             m_ImageListView.Name = "m_ImageListView";
-            m_ImageListView.PersistentCacheDirectory = "";
-            m_ImageListView.PersistentCacheSize = 100L;
             m_ImageListView.Size = new System.Drawing.Size(1583, 624);
             m_ImageListView.TabIndex = 1;
             m_ImageListView.ThumbnailSize = new System.Drawing.Size(214, 321);
-            m_ImageListView.UseWIC = true;
             m_ImageListView.SelectionChanged += ListView_ItemSelectionChanged;
             m_ImageListView.Click += OnListViewClick;
             m_ImageListView.KeyDown += OnListViewKeyDown;

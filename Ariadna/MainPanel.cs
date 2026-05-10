@@ -30,7 +30,7 @@ public partial class MainPanel : Form
     private readonly FloatingPanel m_FloatingPanel = new();
 
     private readonly Timer m_TypeTimer = new();
-    private enum ETypeField { NONE = 0, TITLE, DIRECTOR, ACTOR }
+    private enum ETypeField { None = 0, Title, Director, Actor }
     private ETypeField m_TypeField;
     private const int TYPE_TIMEOUT_MS = 200;
 
@@ -52,7 +52,7 @@ public partial class MainPanel : Form
         UpdateImageList(m_DbStrategy.GetEntries());
 
         // Type timer
-        m_TypeField = ETypeField.NONE;
+        m_TypeField = ETypeField.None;
         m_TypeTimer.Tick += OnTypeTimer;
         m_TypeTimer.Interval = TYPE_TIMEOUT_MS;
     }
@@ -353,7 +353,7 @@ public partial class MainPanel : Form
         HideFloatingPanel();
 
         // Show Entry details on Mouse Right Click
-        if (e.Button == MouseButtons.Left)
+        if (e.Button != MouseButtons.Right)
         {
             return;
         }
@@ -502,35 +502,35 @@ public partial class MainPanel : Form
     }
     private void OnEntryNameTextChanged(object sender, EventArgs e)
     {
-        StartTypeTimer(ETypeField.TITLE);
+        StartTypeTimer(ETypeField.Title);
     }
     private void OnDirectorNameTextChanged(object sender, EventArgs e)
     {
-        StartTypeTimer(ETypeField.DIRECTOR);
+        StartTypeTimer(ETypeField.Director);
     }
     private void OnActorNameTextChanged(object sender, EventArgs e)
     {
-        StartTypeTimer(ETypeField.ACTOR);
+        StartTypeTimer(ETypeField.Actor);
     }
     private void OnTypeTimer(object sender, EventArgs e)
     {
         m_TypeTimer.Stop();
         var type = m_TypeField;
-        m_TypeField = ETypeField.NONE;
+        m_TypeField = ETypeField.None;
 
         switch (type)
         {
-            case ETypeField.TITLE:
+            case ETypeField.Title:
                 QueryEntries();
                 break;
-            case ETypeField.DIRECTOR:
+            case ETypeField.Director:
                 OnDirectorTypeTimer();
                 break;
-            case ETypeField.ACTOR:
+            case ETypeField.Actor:
                 OnActorTypeTimer();
                 break;
 
-            case ETypeField.NONE:
+            case ETypeField.None:
             default:
                 break;
         }
