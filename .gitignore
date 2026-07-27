@@ -1,4 +1,5 @@
 .vs
+.idea/
 .dotnet/
 Ariadna/bin/
 Ariadna/obj/
@@ -7,3 +8,5 @@ Ariadna.Tests/obj/
 DbProvider/bin/
 DbProvider/obj/
 packages
+
+*.DotSettings.user
