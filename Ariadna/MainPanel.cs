@@ -90,12 +90,12 @@ public partial class MainPanel : Form
     private void MainPanel_Load(object sender, EventArgs e)
     {
         // Restore position and size
-        if (Settings.Default.FormSize != Size.Empty)
+        if (Settings.Default.FormSize != Size.Empty && Settings.Default.FormSize.Width > 800 && Settings.Default.FormSize.Height > 600)
         {
             Size = Settings.Default.FormSize;
         }
 
-        if (Settings.Default.FormLocation != Point.Empty)
+        if (Settings.Default.FormLocation != Point.Empty && Settings.Default.FormLocation.X > -2000 && Settings.Default.FormLocation.Y >= 0)
         {
             Location = Settings.Default.FormLocation;
         }
