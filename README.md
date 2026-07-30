@@ -8,6 +8,10 @@ A Windows desktop app for managing a personal media library — movies, document
 
 ---
 
+![Ariadna poster grid](docs/view.png)
+
+---
+
 Launch with one argument to pick your collection:
 
 ```
