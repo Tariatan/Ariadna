@@ -12,6 +12,10 @@ See [docs/PLAN.md](docs/PLAN.md) for remaining/upcoming tasks.
 
 ---
 
+![Ariadna poster grid](docs/view.png)
+
+---
+
 Launch with one argument to pick your collection:
 
 ```
