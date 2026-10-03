@@ -7,7 +7,7 @@ section explicitly labels a proposal or an unverified target.
 
 Ariadna is a personal media library management desktop application for Windows.
 It lets the owner browse, search, and organize movies, documentaries, games, and
-books in a poster grid. Each independently launched window manages one collection.
+books in a poster grid. One application instance hosts four permanent catalog tabs.
 
 This is the primary reference for developers and agents implementing or reviewing
 Ariadna. It owns product behavior, architecture, and technical decisions; consult
@@ -48,7 +48,7 @@ dependency.
 | TDD | Technical Design Description |
 | EF6 | Entity Framework 6 |
 | EDMX / T4 | Database-first model and entity/context generation templates |
-| Collection mode | One of movies, documentaries, games, or library, selected at launch |
+| Collection mode | One of movies, documentaries, games, or library, selected by tab |
 | Catalog assets | External posters/game previews and database-resident person photos |
 | Matched recovery | Database, external images, and relevant configuration captured consistently |
 
@@ -57,7 +57,7 @@ dependency.
 | Decision / current constraint | Reason and consequence |
 |---|---|
 | Windows WinForms desktop | Existing local media workflow; preserve native interactions and file/tool integration |
-| One mode per process | Strategy and theme are selected before UI construction; independent modes can run simultaneously |
+| One instance with four permanent tabs | Each retained catalog control owns its strategy, filters, grid state, and palette; subsequent launches activate the existing window |
 | Category-specific strategies and detail forms | Collection fields, filters, discovery, and launch behavior differ; retain these differences |
 | Direct SQLite commands in Ariadna.Storage | Explicit mapping, focused queries, complete-entry transactions, no server or ORM |
 | External posters keyed by catalog ID | IDs connect rows to extensionless PNG image files; changing IDs or filenames breaks lookup |
@@ -66,22 +66,26 @@ dependency.
 
 ## Overview
 
-The owner selects a collection at launch. `Program` constructs its theme and
-strategy, initializes the theme, then opens `MainPanel`. Strategies retrieve
-filtered entries and coordinate discovery, details, and execution. Detail forms
-save catalog data and related images; thumbnail workers render cached posters.
+`Program` runs `CatalogApplication`, which enforces one instance through the
+WinForms application model and opens `MainWindow`. The shell hosts Movies,
+Documentaries, Games, and Library as permanent tabs. It creates each `MainPanel`
+user control, strategy, and palette on first selection and retains the view for
+the window lifetime. Strategies retrieve filtered entries and coordinate
+discovery, details, and execution. Detail forms save catalog data and related
+images; thumbnail workers render cached posters.
 
 ### Context Map
 
 ```mermaid
 flowchart LR
-    Desktop[Program / MainPanel] --> Strategies[Collection strategies]
+    Desktop[CatalogApplication / MainWindow] --> Views[Four retained MainPanel controls]
+    Views --> Strategies[Collection strategies]
     Strategies --> Forms[Detail forms]
     Strategies --> Store[Ariadna.Storage]
     Forms --> Store
     Store --> DB[(SQLite catalog)]
     Store --> Assets[External posters and previews]
-    Desktop --> Grid[ImageListView / thumbnail workers]
+    Views --> Grid[ImageListView / thumbnail workers]
     Grid --> Assets
     Strategies --> TMDb[TMDb]
     Strategies --> Tools[MediaInfo / player / file manager]
@@ -123,7 +127,8 @@ differences are recorded in the operations guide.
 - **Entry detail forms** — add, view, and edit full metadata for each entry including poster, genre tags, director/actor photos, and file path
 - **File integration** — open video files in MPC-HC or browse directories in Total Commander directly from the UI
 - **Ignore list** — shift-click to permanently skip a file during automatic discovery
-- **Theming** — static theme system applied before UI construction; each category has a distinct palette
+- **Permanent catalog tabs** — one instance, independent retained view state, and Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+1 through Ctrl+4 navigation
+- **Theming** — instance palettes keep each catalog grid, picker, and detail form independent
 
 ---
 
@@ -192,7 +197,7 @@ the schema and matched database/image recovery format are unchanged.
 
 ## Running
 
-The application accepts a single command-line argument to select the media category:
+The application accepts an optional command-line argument to select a catalog tab:
 
 ```
 Ariadna.exe movies          # Movies & TV series (default)
@@ -201,7 +206,16 @@ Ariadna.exe games           # PC / VR games
 Ariadna.exe library         # Books & documents
 ```
 
-Running without an argument defaults to the **movies** mode. Each invocation is an independent window — you can run all four simultaneously.
+The first launch without an argument opens **Movies**. A subsequent launch
+activates the existing window; a named argument selects its tab, while no
+argument preserves the active tab. A minimized window is restored. If a modal
+editor is open, a requested switch waits until it closes.
+
+The four tabs cannot be closed. Ctrl+Tab and Ctrl+Shift+Tab cycle with wrapping;
+Ctrl+1 through Ctrl+4 select Movies, Documentaries, Games, and Library. Filters,
+selection, scroll position, and palette persist when switching tabs. A pending
+title search is applied before hiding its tab; transient pickers close. Closing
+the main window disposes every loaded catalog view and its thumbnail resources.
 
 ---
 
@@ -220,8 +234,8 @@ AbstractDbStrategy (abstract contract)
 LibraryDbStrategy            — books (implements AbstractDbStrategy directly)
 ```
 
-`Program.cs` selects a strategy and theme pair based on the command-line argument,
-then passes the strategy to `MainPanel`. The main collection operations use
+`MainWindow` creates a strategy and theme pair for each tab, then passes both
+to its `MainPanel` user control. The main collection operations use
 `AbstractDbStrategy`. Strategies and detail forms call focused `CatalogStore`
 operations; SQL and mapping belong to the storage project.
 
@@ -259,12 +273,27 @@ decisions are unchanged; other filesystem access failures still propagate.
 
 ### Theming
 
-`Theme` is an abstract class holding static color fields used throughout the UI.
+`Theme` is an abstract instance palette created by `Theme.Create(CatalogKind)`.
 Each concrete theme (`ThemeMovies`, `ThemeGames`, `ThemeDocumentaries`,
-`ThemeLibrary`) overrides the instance method `Init()` to populate these fields.
-`Program` initializes the selected theme before constructing windows. Different
-collection palettes run in separate processes rather than separate themes in
-one shared process.
+`ThemeLibrary`) initializes its own colors. Catalog controls and grid renderers
+retain their palette; scrollbars and floating pickers receive those colors.
+Independent detail forms explicitly apply their collection palette. Switching
+tabs cannot change colors in an already loaded view. The shared splash screen
+uses a fixed branding color.
+
+### Display scaling
+
+The existing layouts and embedded poster grid use pixel-based sizes. Runtime
+startup explicitly uses `HighDpiMode.DpiUnaware`, preserving Windows bitmap
+scaling and the pre-tab-refactor UI size on high-DPI displays. The application
+model otherwise defaults to SystemAware, which changes those existing metrics.
+`ApplicationHighDpiMode` records the same policy in the desktop project; the
+custom application model explicitly sets its runtime property before startup.
+
+`ForceDesignerDpiUnaware` runs WinForms designers at a 96-DPI baseline even when
+Visual Studio is on a 150% display. This prevents monitor-dependent layout
+serialization and does not itself configure runtime scaling. Native per-monitor
+DPI rendering would require a separate conversion of custom pixel-based controls.
 
 ### Entry Detail Forms
 
@@ -325,8 +354,10 @@ The `Ariadna/ImageListView/` directory contains an embedded fork of the open-sou
 ```
 Ariadna.slnx
 ├── Ariadna/                        # Main WinForms application (net10.0-windows)
-│   ├── Program.cs                  # Entry point — selects strategy + theme by CLI arg
-│   ├── MainPanel.cs/.Designer.cs   # Main application window
+│   ├── Program.cs                  # Entry point — starts the single-instance application model
+│   ├── CatalogApplication.cs       # Startup, splash, subsequent launch activation
+│   ├── MainWindow.cs/.Designer.cs  # Four-tab shell, navigation, window geometry
+│   ├── MainPanel.cs/.Designer.cs   # Retained collection user control
 │   ├── Utilities.cs                # Genre dictionaries, image helpers, video duration
 │   ├── App.config                  # Connection string and all application settings
 │   ├── AuxiliaryPopups/            # Independent detail forms, composed editors/services, picker/choice dialogs
@@ -337,7 +368,7 @@ Ariadna.slnx
 │   ├── ImageListView/              # Embedded fork of Manina ImageListView (~30 files)
 │   ├── Properties/                 # App settings, resources
 │   ├── Resources/                  # PNG/BMP/ICO assets, 100+ genre icons
-│   ├── SplashScreen/               # SplashForm and Splasher helper
+│   ├── SplashScreen/               # SplashForm managed by the application model
 │   └── Themes/                     # Theme base + ThemeMovies/Games/Documentaries/Library
 ├── Ariadna.Storage/                # Focused SQLite operations, schema, image recovery
 ├── Ariadna.Storage.Tests/          # Real SQLite integration tests
@@ -347,7 +378,7 @@ Ariadna.slnx
     ├── AuxiliaryPopups/
     ├── DatabaseStrategies/
     ├── ImageListHelpers/
-    └── MainPanelTests.cs / UtilitiesTests.cs
+    └── MainWindowTests.cs / MainPanelTests.cs / UtilitiesTests.cs
 ```
 
 ---
@@ -391,13 +422,14 @@ scenarios against disposable catalog/image copies.
 
 | Workflow | Expected behavior / verification |
 |---|---|
-| Launch | No argument opens movies; each named mode selects its strategy/theme; four processes can coexist |
+| Launch | First launch opens the requested tab or Movies; second launch activates the same process, restores a minimized window, and defers switching during modal editing |
+| Tab navigation | Four permanent tabs retain their filters, selection, scroll position, controls, and colors; mouse selection and Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+1 through Ctrl+4 work |
 | Browse and filter | Poster grid and alphabetical navigation work; title, people, genre/subgenre, and applicable flags retain collection-specific results and ordering |
 | Details and edits | Open an existing entry, edit metadata/images/relationships, save, reopen, and confirm persisted values; cancel retains saved data |
 | Discovery and ignore | Manual/automatic discovery retain collection-specific paths/exclusions; ignore prevents later rediscovery |
 | Execute and remove | Configured player/file manager receives the expected path; cancellation prevents deletion; optional filesystem removal respects the chosen action |
 | Form lifecycle | Closing a form during directory/MediaInfo work cancels it without stale UI updates; images are released for replacement |
-| SQLite migration | Compare every converted value/ID/hash, real-provider searches and failures, concurrent windows, and matched restore before production cutover |
+| SQLite migration | Compare every converted value/ID/hash, real-provider searches and failures, concurrent storage writers, and matched restore before production cutover |
 
 ## Non-Functional Considerations
 

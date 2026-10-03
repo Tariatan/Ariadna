@@ -52,6 +52,9 @@
     <Compile Update="AuxiliaryPopups\VideoInfoControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="CatalogTabControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="ImageListView\AriadnaVScrollBar.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -98,6 +101,9 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="MainPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="SplashScreen\SplashForm.cs">

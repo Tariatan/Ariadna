@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
 using Ariadna.Storage;
+using Ariadna.Themes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -26,7 +27,7 @@ public partial class LibraryDetailsForm : Form, IEntryDetailsDialog
         initialPath = filePath;
         InitializeComponent();
         session = new EntryEditorSession(components, this, saveButton, CatalogKind.Library, logger, SaveEntry, genres.DismissPicker);
-        DetailTheme.Apply(this);
+        DetailTheme.Apply(this, Theme.Create(CatalogKind.Library));
         fileSize.Configure(logger);
         authors.Configure(PersonRole.Author);
         ConfigureLibraryGenres(filePath);

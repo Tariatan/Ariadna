@@ -4,7 +4,7 @@ namespace Ariadna.Themes;
 
 internal class ThemeMovies : Theme
 {
-    public override void Init()
+    public ThemeMovies()
     {
         SplashScreenForeColor = Color.DarkMagenta;
 

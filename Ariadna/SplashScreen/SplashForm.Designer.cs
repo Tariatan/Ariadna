@@ -1,5 +1,4 @@
-﻿using Ariadna.Themes;
-
+﻿
 namespace Ariadna.SplashScreen
 {
     partial class SplashForm
@@ -41,7 +40,7 @@ namespace Ariadna.SplashScreen
             // 
             this.m_StatusInfoLbl.BackColor = System.Drawing.Color.Black;
             this.m_StatusInfoLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.m_StatusInfoLbl.ForeColor = Theme.SplashScreenForeColor;
+            this.m_StatusInfoLbl.ForeColor = System.Drawing.Color.DarkMagenta;
             this.m_StatusInfoLbl.Location = new System.Drawing.Point(12, 373);
             this.m_StatusInfoLbl.Name = "m_StatusInfoLbl";
             this.m_StatusInfoLbl.Size = new System.Drawing.Size(153, 23);
@@ -64,7 +63,7 @@ namespace Ariadna.SplashScreen
             // 
             this.m_Label.BackColor = System.Drawing.Color.Black;
             this.m_Label.Font = new System.Drawing.Font("Bauhaus 93", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.m_Label.ForeColor = Theme.SplashScreenForeColor;
+            this.m_Label.ForeColor = System.Drawing.Color.DarkMagenta;
             this.m_Label.Location = new System.Drawing.Point(40, 40);
             this.m_Label.Name = "m_Label";
             this.m_Label.Size = new System.Drawing.Size(176, 41);

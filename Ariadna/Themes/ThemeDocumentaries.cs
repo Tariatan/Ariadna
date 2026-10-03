@@ -4,7 +4,7 @@ namespace Ariadna.Themes;
 
 internal class ThemeDocumentaries : Theme
 {
-    public override void Init()
+    public ThemeDocumentaries()
     {
         SplashScreenForeColor = Color.SteelBlue;
 

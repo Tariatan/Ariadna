@@ -124,7 +124,6 @@ public class GamesDbStrategy : MediaDbStrategyBase
         panel.m_ToolStrip_nonVRSprtr.Visible = true;
         panel.m_ToolStrip_nonVRLbl.Visible = true;
         panel.m_ToolStrip_nonVRBtn.Visible = true;
-        panel.Icon = Resources.AriadnaGames;
     }
     protected virtual bool RemoveEntryFromDatabase(int id) => Store.Delete(CatalogKind.Game, id);
     protected override void ShowDataDialog(string path)

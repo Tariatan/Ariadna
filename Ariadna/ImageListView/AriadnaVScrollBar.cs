@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using Ariadna.Themes;
 
 namespace Manina.Windows.Forms;
 
@@ -126,7 +125,7 @@ internal sealed class AriadnaVScrollBar : Control
     {
         base.OnPaint(e);
 
-        var trackColor = Theme.MainBackColor;
+        var trackColor = BackColor;
         e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
         e.Graphics.Clear(trackColor);
 

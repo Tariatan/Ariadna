@@ -127,7 +127,6 @@ public sealed class EntryDetailsDialogTests
         {
             // Arrange
             AppContext.SetSwitch("System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization", true);
-            new ThemeMovies().Init();
             var store = CatalogServices.CreateStore();
             foreach (var title in (string[])["Чудо", "Other"])
             {
@@ -142,7 +141,10 @@ public sealed class EntryDetailsDialogTests
                 CatalogKind.Library => new LibraryDbStrategy(logger),
                 _ => throw new ArgumentOutOfRangeException(nameof(kind)),
             };
-            using var panel = new MainPanel(strategy);
+            using var panel = new MainPanel(strategy, Theme.Create(kind));
+            using var host = new Form();
+            host.Controls.Add(panel);
+            host.Show();
             panel.Show();
             Application.DoEvents();
             var grid = (ImageListView)typeof(MainPanel).GetField("m_ImageListView", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(panel)!;

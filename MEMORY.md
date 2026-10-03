@@ -4,9 +4,10 @@ Last updated: 2026-10-03. Scope: this repository only.
 
 ## Durable context
 
-- Personal Windows catalog with four independently launched modes: movies/series,
-  documentaries, games, and library. Keep simultaneous processes and each mode's
-  fields, genres, palette, and paths working.
+- Personal Windows catalog with one application instance and four permanent tabs:
+  movies/series, documentaries, games, and library. Preserve each tab's fields,
+  genres, palette, paths, filters, selection, and scroll position. Legacy arguments
+  select a tab initially or activate that tab in the existing window.
 - Current implementation: .NET 10 WinForms and direct SQLite through
   Ariadna.Storage. Legacy EF6/LocalDB and DbProvider were removed. Only the separate
   migration utility uses a SQL client for legacy export. Dependencies are locked;
@@ -73,6 +74,41 @@ Last updated: 2026-10-03. Scope: this repository only.
   by this direct repair.
   The published app opened its native poster grid with a synthetic catalog and
   removed a deliberately read-only empty recovery directory during startup.
+
+- 2026-10-03: Ariadna 4.0.0 replaces separate catalog processes with one instance
+  and four permanent tabs (user-approved). MainWindow owns the shell, geometry,
+  icons, and Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+1 through Ctrl+4. Each lazy-created
+  MainPanel user control retains its strategy, filters, selection, scroll, and
+  instance palette. Closing disposes loaded views, timers, pickers, and listeners.
+- WindowsFormsApplicationBase handles single-instance startup and splash lifetime.
+  Legacy arguments select an initial tab or request that tab in the running app.
+  Repeated launches without arguments preserve the active tab and restore a
+  minimized window. Modal editors defer switching; the latest request wins.
+- Locked restore, Debug/Release solution builds with zero warnings/errors,
+  179 desktop + 42 storage + 5 migration tests, and self-contained win-x64 publish
+  passed. Real SQLite/shown-form tests cover retained tab state and all four saves.
+- Native Windows checks of the published app used disposable synthetic data:
+  four palettes/filter sets and poster grids; mouse and keyboard tab selection;
+  retained Movies title search and Games scroll; subsequent Library/Games launch
+  requests with only the original process remaining; movie-modal deferral and
+  minimized-window restoration without changing Games. Storage/Migration versions,
+  database schema, and asset formats are unchanged; no personal catalog was used.
+- Every-control, live TMDb/external-tool, and clean-machine acceptance remain open.
+  The earlier concurrent-four-process smoke check is historical .NET 10 evidence,
+  not the current launch behavior.
+
+- 2026-10-03: Ariadna 4.0.1 fixes the reported smaller UI after tab refactoring.
+  WindowsFormsApplicationBase defaults to SystemAware; CatalogApplication now
+  explicitly selects DpiUnaware to preserve Windows scaling of existing pixel
+  layouts and the custom poster grid. ApplicationHighDpiMode matches that policy;
+  ForceDesignerDpiUnaware keeps designer layout serialization at 96 DPI.
+- Locked restore, zero-warning/error Debug/Release builds, 226 tests, and
+  self-contained win-x64 publishing passed. Native inspection at 150% scaling
+  verified all four synthetic catalog grids/filter sets, keyboard tab switching,
+  and the game editor with its poster/previews/save button visible. MSBuild
+  evaluation confirms both DPI properties. Reopening the existing Visual Studio
+  designer remains a user step; automation stopped there after detecting user
+  input. No personal catalog data or storage/migration implementation changed.
 
 ## Resume here
 

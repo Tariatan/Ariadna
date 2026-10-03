@@ -1,31 +1,40 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
+using Ariadna.Storage;
 
 namespace Ariadna.Themes;
 
 public abstract class Theme
 {
-    public static Color SplashScreenForeColor;
+    public Color SplashScreenForeColor { get; protected set; }
 
-    public static Color MainBackColor;
-    public static Color MainForeColor;
-    public static Color ControlsBackColor;
+    public Color MainBackColor { get; protected set; }
+    public Color MainForeColor { get; protected set; }
+    public Color ControlsBackColor { get; protected set; }
 
-    public static Color DetailsFormBackColor;
-    public static Color DetailsFormForeColor;
-    public static Color DetailsFormForeColorDimmed;
-    public static Color DetailsFormConfirmBtnBackColor;
-    public static Color DetailsFormHighlightForeColor;
+    public Color DetailsFormBackColor { get; protected set; }
+    public Color DetailsFormForeColor { get; protected set; }
+    public Color DetailsFormForeColorDimmed { get; protected set; }
+    public Color DetailsFormConfirmBtnBackColor { get; protected set; }
+    public Color DetailsFormHighlightForeColor { get; protected set; }
 
-    public static Color ListViewForeColor;
-    public static Color ListViewGradFromColor;
-    public static Color ListViewGradToColor;
-    public static Color ListViewItemBgFromColor;
-    public static Color ListViewItemBgToColor;
-    public static Color ListViewItemBorderTickColor;
-    public static Color ListViewItemBorderTuckColor;
+    public Color ListViewForeColor { get; protected set; }
+    public Color ListViewGradFromColor { get; protected set; }
+    public Color ListViewGradToColor { get; protected set; }
+    public Color ListViewItemBgFromColor { get; protected set; }
+    public Color ListViewItemBgToColor { get; protected set; }
+    public Color ListViewItemBorderTickColor { get; protected set; }
+    public Color ListViewItemBorderTuckColor { get; protected set; }
 
-    public static Color FloatingPanelBackColor;
-    public static Color FloatingPanelForeColor;
+    public Color FloatingPanelBackColor { get; protected set; }
+    public Color FloatingPanelForeColor { get; protected set; }
 
-    public abstract void Init();
+    public static Theme Create(CatalogKind kind) => kind switch
+    {
+        CatalogKind.Movie => new ThemeMovies(),
+        CatalogKind.Documentary => new ThemeDocumentaries(),
+        CatalogKind.Game => new ThemeGames(),
+        CatalogKind.Library => new ThemeLibrary(),
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
 }

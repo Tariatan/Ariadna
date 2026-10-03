@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Ariadna.Themes;
 
 namespace Ariadna.AuxiliaryPopups;
 
@@ -35,6 +36,13 @@ public partial class FloatingPanel : Form
         InitializeComponent();
         EntryNames = [];
     }
+    internal void ApplyTheme(Theme theme)
+    {
+        BackColor = theme.FloatingPanelBackColor;
+        m_PanelListView.BackColor = theme.FloatingPanelBackColor;
+        m_PanelListView.ForeColor = theme.FloatingPanelForeColor;
+    }
+
     public void UpdateListView(ImmutableSortedDictionary<string, Bitmap> values, EPanelContentType contentType, bool checkBox = false, bool multiSelect = false, int imageW = 64, int imageH = 96)
     {
         ResetState(contentType);

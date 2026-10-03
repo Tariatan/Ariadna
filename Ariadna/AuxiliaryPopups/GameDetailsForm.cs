@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
 using Ariadna.Storage;
+using Ariadna.Themes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -26,7 +27,7 @@ public partial class GameDetailsForm : Form, IEntryDetailsDialog
         initialPath = filePath;
         InitializeComponent();
         session = new EntryEditorSession(components, this, saveButton, CatalogKind.Game, logger, SaveEntry, genres.DismissPicker);
-        DetailTheme.Apply(this);
+        DetailTheme.Apply(this, Theme.Create(CatalogKind.Game));
         fileSize.Configure(logger);
         genres.Configure(Utilities.GameGenres.Keys.ToArray(), Utilities.GetGameGenreBySynonym, Utilities.GetGameGenreImage);
     }

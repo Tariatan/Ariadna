@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
 using Ariadna.Storage;
+using Ariadna.Themes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -41,7 +42,7 @@ public partial class MovieDetailsForm : Form, IEntryDetailsDialog
         initialPath = filePath;
         InitializeComponent();
         session = new EntryEditorSession(components, this, saveButton, CatalogKind.Movie, logger, SaveEntry, genres.DismissPicker);
-        DetailTheme.Apply(this);
+        DetailTheme.Apply(this, Theme.Create(CatalogKind.Movie));
         fileSize.Configure(logger);
         videoInfo.Configure(logger);
         this.metadataService = metadataService;

@@ -150,7 +150,7 @@ public class MainPanelTests
             testee.Show();
             var floatingPanel = GetFloatingPanel(testee);
             floatingPanel.EntryNames.AddRange(["Sci-Fi", "Thriller"]);
-            floatingPanel.Show(testee);
+            floatingPanel.Show(testee.FindForm());
             strategy.ResetTracking();
 
             // Act
@@ -872,6 +872,31 @@ public class MainPanelTests
 
     private sealed class TestMainPanel(AbstractDbStrategy strategy) : MainPanel(strategy)
     {
+        private Form? host;
+
+        public new void Show()
+        {
+            if (host == null)
+            {
+                host = new Form { ClientSize = Size };
+                Dock = DockStyle.Fill;
+                host.Controls.Add(this);
+            }
+            host.Show();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && host != null)
+            {
+                var window = host;
+                host = null;
+                window.Controls.Remove(this);
+                window.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
         public DialogResult RemoveEntryConfirmationResult { get; set; } = DialogResult.Yes;
         public bool UseRealFileSystem { get; set; }
         public HashSet<string> ExistingFilePaths { get; } = [];

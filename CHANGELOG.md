@@ -13,6 +13,25 @@ Versioning rule:
 
 ## Ariadna
 
+### [4.0.1] - 2026-10-03
+
+#### Fixed
+
+- Restored the existing Windows-scaled UI size on high-DPI displays. The single-instance application model now explicitly uses DpiUnaware rather than silently changing to its SystemAware default, which shrank pixel-based posters and controls.
+- Set ForceDesignerDpiUnaware so editing forms at 150% display scaling retains their 96-DPI layout metrics. The designer setting is separate from runtime DPI configuration.
+
+### [4.0.0] - 2026-10-03
+
+#### Changed
+
+- Replaced independently launched catalog processes with one application instance containing four permanent tabs: Movies, Documentaries, Games, and Library. Each tab retains its filters, selection, scroll position, and collection-specific controls.
+- Existing collection arguments select the initial tab or activate that tab in the running window. Launching without an argument opens Movies initially and preserves the active tab on subsequent launches. Requests made during modal editing wait until the dialog closes.
+- Replaced global mutable theme colors with per-catalog palettes for grids, scrollbars, pickers, and independent detail forms. The main window owns geometry and catalog icons; retained catalog controls release their timers, pickers, and subscriptions on shutdown.
+
+#### Added
+
+- Browser-style keyboard navigation: Ctrl+Tab / Ctrl+Shift+Tab to cycle, and Ctrl+1 through Ctrl+4 to select a catalog. Tabs load when first selected and remain available for the window lifetime.
+
 ### [3.0.0] - 2026-10-03
 
 #### Changed

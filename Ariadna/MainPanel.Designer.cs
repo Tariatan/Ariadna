@@ -9,20 +9,6 @@ namespace Ariadna
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-                m_ListViewRenderer.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
         #region Windows Form Designer generated code
 
         /// <summary>
@@ -442,20 +428,14 @@ namespace Ariadna
             // MainPanel
             // 
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
-            ClientSize = new System.Drawing.Size(1676, 657);
+            Size = new System.Drawing.Size(1676, 657);
             Controls.Add(m_ImageListView);
             Controls.Add(m_ToolStrip);
             Controls.Add(m_QuickListFlow);
-            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
-            KeyPreview = true;
             Name = "MainPanel";
-            StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             Text = "Ariadna";
-            FormClosing += OnFormClosing;
             Load += MainPanel_Load;
             Click += OnFormClicked;
-            KeyDown += MainPanel_KeyUp;
-            KeyPress += MainPanel_KeyPress;
             MouseClick += OnFormClicked;
             Move += OnPanelMoved;
             Resize += OnPanelResized;
@@ -515,4 +495,3 @@ namespace Ariadna
         public System.Windows.Forms.ToolStripButton m_ToolStrip_ClearSubgenreBtn;
     }
 }
-

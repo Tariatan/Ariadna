@@ -181,7 +181,6 @@ public class LibraryDbStrategy : AbstractDbStrategy
         // ReSharper disable once LocalizableElement
         panel.m_ToolStrip_DirectorLbl.Text = "Authors";
 
-        panel.Icon = Resources.AriadnaLibrary;
     }
     private void OnDetailsFormClosed(object sender, FormClosedEventArgs e)
     {

@@ -1,6 +1,4 @@
-﻿using Ariadna.Themes;
-
-namespace Ariadna.AuxiliaryPopups
+﻿namespace Ariadna.AuxiliaryPopups
 {
     partial class FloatingPanel
     {
@@ -38,9 +36,9 @@ namespace Ariadna.AuxiliaryPopups
             // m_PanelListView
             // 
             this.m_PanelListView.Alignment = System.Windows.Forms.ListViewAlignment.Default;
-            this.m_PanelListView.BackColor = Theme.FloatingPanelBackColor;
+            this.m_PanelListView.BackColor = System.Drawing.Color.DarkMagenta;
             this.m_PanelListView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.m_PanelListView.ForeColor = Theme.FloatingPanelForeColor;
+            this.m_PanelListView.ForeColor = System.Drawing.Color.White;
             this.m_PanelListView.HideSelection = false;
             this.m_PanelListView.LargeImageList = this.m_PanelImageView;
             this.m_PanelListView.Location = new System.Drawing.Point(0, 0);
@@ -62,7 +60,7 @@ namespace Ariadna.AuxiliaryPopups
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = Theme.FloatingPanelBackColor;
+            this.BackColor = System.Drawing.Color.DarkMagenta;
             this.ClientSize = new System.Drawing.Size(904, 160);
             this.ControlBox = false;
             this.Controls.Add(this.m_PanelListView);

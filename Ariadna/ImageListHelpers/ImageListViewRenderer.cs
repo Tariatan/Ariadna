@@ -10,7 +10,8 @@ internal class ImageListViewAriadnaRenderer : ImageListView.ImageListViewRendere
     private const int PAD_W = 20;
     private const int PAD_TOP = 12;
     private const int PAD_BTM = 6;
-    private readonly Brush m_TextBrush = new SolidBrush(Theme.ListViewForeColor);
+    private readonly Theme theme;
+    private readonly Brush m_TextBrush;
     private readonly StringFormat m_StringFormat = new()
     {
         Alignment = StringAlignment.Center,
@@ -25,8 +26,10 @@ internal class ImageListViewAriadnaRenderer : ImageListView.ImageListViewRendere
     private int m_BlinkCount = BLINK_COUNT;
     private const int BLINK_INTERVAL_MS = 70;
 
-    public ImageListViewAriadnaRenderer()
+    public ImageListViewAriadnaRenderer(Theme theme)
     {
+        this.theme = theme;
+        m_TextBrush = new SolidBrush(theme.ListViewForeColor);
         m_BlinkTimer.Tick += Blink;
         m_BlinkTimer.Interval = BLINK_INTERVAL_MS;
     }
@@ -41,7 +44,7 @@ internal class ImageListViewAriadnaRenderer : ImageListView.ImageListViewRendere
     }
     public override void DrawBackground(Graphics g, Rectangle bounds)
     {
-        using var brush = new LinearGradientBrush(bounds, Theme.ListViewGradFromColor, Theme.ListViewGradToColor, LinearGradientMode.Vertical);
+        using var brush = new LinearGradientBrush(bounds, theme.ListViewGradFromColor, theme.ListViewGradToColor, LinearGradientMode.Vertical);
         g.FillRectangle(brush, bounds);
     }
     public override Size MeasureItem(View view)
@@ -89,8 +92,8 @@ internal class ImageListViewAriadnaRenderer : ImageListView.ImageListViewRendere
             return;
         }
 
-        var from = Color.FromArgb(isSelected ? 110 : 65, Theme.ListViewItemBgFromColor);
-        var to = Theme.ListViewItemBgToColor;
+        var from = Color.FromArgb(isSelected ? 110 : 65, theme.ListViewItemBgFromColor);
+        var to = theme.ListViewItemBgToColor;
 
         using Brush brush = new LinearGradientBrush(new Point(pos.X - PAD_W, pos.Y - PAD_TOP), new Point(pos.X - PAD_W, pos.Y + pos.Height + PAD_TOP + PAD_BTM), from, to);
         g.FillRectangle(brush, pos.X - PAD_W, pos.Y - PAD_TOP, pos.Width + 2 * PAD_W, pos.Height + PAD_TOP + PAD_BTM);
@@ -105,7 +108,7 @@ internal class ImageListViewAriadnaRenderer : ImageListView.ImageListViewRendere
             return;
         }
 
-        using var brush = new SolidBrush((m_BlinkState == EBlinkState.TICK) ? Theme.ListViewItemBorderTickColor : Theme.ListViewItemBorderTuckColor);
+        using var brush = new SolidBrush((m_BlinkState == EBlinkState.TICK) ? theme.ListViewItemBorderTickColor : theme.ListViewItemBorderTuckColor);
         using var pen = new Pen(brush);
         g.DrawRectangle(pen, pos.X + 1, pos.Y + 1, pos.Width - 2, pos.Height - 2);
     }

@@ -66,6 +66,46 @@ backup/restore, migration evidence, and verification limits.
   harness displayed its status bar and Escape closed it. Verified on 2026-10-03;
   exhaustive control/integration and clean-machine checks remain open below.
 
+## Single-instance catalog tabs
+
+- [x] Implement the approved four permanent tabs in one application instance:
+  Movies, Documentaries, Games, and Library. Load each view on first selection;
+  retain its strategy, filters, selection, scroll position, and palette.
+- [x] Move window geometry, catalog icons, and browser-style shortcuts into
+  MainWindow. Keep MainPanel as a reusable collection control. Replace global
+  mutable theme colors with palettes owned by the view, picker, and detail form.
+- [x] Preserve legacy launch arguments as initial/existing-window tab selection.
+  No argument preserves an existing active tab; restore minimized windows;
+  defer requested switches during modal editing and honor the latest request.
+- [x] Add real SQLite/shown-form regressions for lazy loading, retained tab state,
+  pending searches and pickers, navigation, activation, modal deferral, all four
+  collection saves, and shutdown cleanup. Retain existing characterization tests.
+- [x] Native Windows checks of the self-contained app on disposable synthetic
+  data: inspect all four tab palettes/filters and poster grids; switch by mouse
+  and Ctrl+1/2/3, Ctrl+Tab/Ctrl+Shift+Tab; retain the Movies title search and Games
+  scroll position; forward Library/Games launch arguments into the same process;
+  defer a Games request until the movie editor closes; restore a minimized window
+  without changing its active tab. Verified on 2026-10-03.
+- [x] Locked restore, Debug/Release solution builds with zero warnings/errors,
+  179 desktop + 42 storage + 5 migration tests, and self-contained win-x64
+  publishing passed on 2026-10-03. Ariadna version is 4.0.0; Storage 2.0.1 and
+  Migration 2.0.0 are unchanged. No catalog schema or asset-format change.
+
+## High-DPI size regression
+
+- [x] Restore the pre-refactor Windows-scaled UI in Ariadna 4.0.1 by explicitly
+  selecting DpiUnaware in the single-instance startup model. Its SystemAware
+  default had changed the size of the existing pixel-based catalog controls.
+- [x] Set matching ApplicationHighDpiMode and ForceDesignerDpiUnaware project
+  properties. MSBuild evaluation confirms both settings. Already-open designers
+  need reopening; the current Visual Studio designer was not reloaded during
+  verification because user interaction was detected in that window.
+- [x] Locked restore, Debug/Release builds with zero warnings/errors, all 226
+  tests, and self-contained win-x64 publishing passed on 2026-10-03. Native
+  Windows inspection at the user's 150% scale used disposable synthetic data:
+  all four grids/filter sets and keyboard tab switching, plus the game editor
+  with poster, previews, and save button visible. No personal catalog was used.
+
 ## Remaining acceptance and future work
 
 - [x] Fix read-only image recovery directories blocking startup or subsequent

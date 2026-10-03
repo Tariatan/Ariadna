@@ -4,7 +4,7 @@ namespace Ariadna.Themes;
 
 internal class ThemeLibrary : Theme
 {
-    public override void Init()
+    public ThemeLibrary()
     {
         SplashScreenForeColor = Color.Olive;
 

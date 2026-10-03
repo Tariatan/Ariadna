@@ -19,6 +19,9 @@ public class StrategyUiBehaviorTests
         {
             // Arrange
             using var panel = CreatePanel();
+            using var host = new System.Windows.Forms.Form();
+            host.Controls.Add(panel);
+            host.Show();
             var testee = new DocumentariesDbStrategy(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
             panel.Show();
 
@@ -38,7 +41,6 @@ public class StrategyUiBehaviorTests
             Assert.IsFalse(panel.m_ToolStrip_MoviesLbl.Visible);
             Assert.IsFalse(panel.m_ToolStrip_MoviesBtn.Visible);
             Assert.IsFalse(panel.m_ToolStrip_MoviesSprtr.Visible);
-            Assert.IsNotNull(panel.Icon);
         });
     }
 
@@ -49,6 +51,9 @@ public class StrategyUiBehaviorTests
         {
             // Arrange
             using var panel = CreatePanel();
+            using var host = new System.Windows.Forms.Form();
+            host.Controls.Add(panel);
+            host.Show();
             var testee = new GamesDbStrategy(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
             panel.Show();
 
@@ -74,7 +79,6 @@ public class StrategyUiBehaviorTests
             Assert.IsTrue(panel.m_ToolStrip_nonVRLbl.Visible);
             Assert.IsTrue(panel.m_ToolStrip_nonVRBtn.Visible);
             Assert.IsTrue(panel.m_ToolStrip_nonVRSprtr.Visible);
-            Assert.IsNotNull(panel.Icon);
         });
     }
 
@@ -85,6 +89,9 @@ public class StrategyUiBehaviorTests
         {
             // Arrange
             using var panel = CreatePanel();
+            using var host = new System.Windows.Forms.Form();
+            host.Controls.Add(panel);
+            host.Show();
             var testee = new LibraryDbStrategy(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
             panel.Show();
 
@@ -105,7 +112,6 @@ public class StrategyUiBehaviorTests
             Assert.IsFalse(panel.m_ToolStrip_SubgenreName.Visible);
             Assert.IsFalse(panel.m_ToolStrip_ClearSubgenreBtn.Visible);
             Assert.AreEqual("Authors", panel.m_ToolStrip_DirectorLbl.Text);
-            Assert.IsNotNull(panel.Icon);
         });
     }
 
@@ -116,6 +122,9 @@ public class StrategyUiBehaviorTests
         {
             // Arrange
             using var panel = CreatePanel();
+            using var host = new System.Windows.Forms.Form();
+            host.Controls.Add(panel);
+            host.Show();
             var testee = new LibraryDbStrategy(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
             panel.Show();
             panel.m_ToolStrip_GenreName.Text = "Programming";
@@ -140,6 +149,9 @@ public class StrategyUiBehaviorTests
         {
             // Arrange
             using var panel = CreatePanel();
+            using var host = new System.Windows.Forms.Form();
+            host.Controls.Add(panel);
+            host.Show();
             var testee = new LibraryDbStrategy(Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance);
             panel.Show();
             panel.m_ToolStrip_GenreName.Text = Utilities.EmptyDots;

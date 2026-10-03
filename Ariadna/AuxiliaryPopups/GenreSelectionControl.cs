@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
+using Ariadna.Themes;
 
 namespace Ariadna.AuxiliaryPopups;
 
@@ -40,6 +41,8 @@ public sealed class GenreSelectionControl : UserControl
     private IReadOnlyCollection<string> available = [];
     private Func<string, string> normalize = name => name;
     private Func<string, Bitmap> imageFor = _ => Resources.No_Image;
+
+    internal void ApplyPickerTheme(Theme theme) => picker.ApplyTheme(theme);
 
     public event EventHandler? GenresChanged;
 
@@ -132,7 +135,6 @@ public sealed class GenreSelectionControl : UserControl
         var choices = available.Where(name => !selected.Contains(name)).ToImmutableSortedDictionary(name => name, imageFor);
         picker.UpdateListView(choices, FloatingPanel.EPanelContentType.GENRES, imageW: Settings.Default.GenreImageWidth, imageH: Settings.Default.GenreImageHeight);
         picker.Bounds = new Rectangle(PointToScreen(new Point(0, Height)), new Size(Width, Settings.Default.GenreImageHeight * 7 - 10));
-        picker.BackColor = BackColor;
         picker.Show(FindForm());
     }
 

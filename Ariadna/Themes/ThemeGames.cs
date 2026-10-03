@@ -4,7 +4,7 @@ namespace Ariadna.Themes;
 
 internal class ThemeGames : Theme
 {
-    public override void Init()
+    public ThemeGames()
     {
         SplashScreenForeColor = Color.FromArgb(182, 57, 35);
 

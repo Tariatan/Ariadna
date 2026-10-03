@@ -123,7 +123,6 @@ public class DocumentariesDbStrategy : MediaDbStrategyBase
         panel.m_ToolStrip_MoviesLbl.Visible = false;
         panel.m_ToolStrip_MoviesSprtr.Visible = false;
 
-        panel.Icon = Resources.AriadnaDocumentaries;
     }
     protected virtual void RemoveEntryFromDatabase(int id) { Store.Delete(CatalogKind.Documentary, id); }
     private void OnDetailsFormClosed(object sender, FormClosedEventArgs e)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -11,20 +12,26 @@ using Ariadna.DatabaseStrategies;
 using Ariadna.Extension;
 using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
-using Ariadna.SplashScreen;
 using Ariadna.Themes;
+using Ariadna.Storage;
 using Manina.Windows.Forms;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Ariadna;
 
-public partial class MainPanel : Form
+public partial class MainPanel : UserControl
 {
     #region Private Fields
     private bool m_SuppressNameChangedEvent;
 
     private readonly AbstractDbStrategy m_DbStrategy;
 
-    private readonly ImageListViewAriadnaRenderer m_ListViewRenderer = new();
+    private readonly ImageListViewAriadnaRenderer m_ListViewRenderer;
+    private readonly Theme theme;
+    private bool loaded;
+    private bool resourcesDisposed;
+    private bool suppressFloatingSelection;
+    private Control lastFocusedControl;
 
     private readonly FloatingPanel m_FloatingPanel = new();
 
@@ -37,88 +44,140 @@ public partial class MainPanel : Form
 
     #endregion
 
-    public MainPanel(AbstractDbStrategy strategy)
+    public MainPanel() : this(new MoviesDbStrategy(NullLogger.Instance)) { }
+
+    public MainPanel(AbstractDbStrategy strategy) : this(strategy, Theme.Create(CatalogKind.Movie)) { }
+
+    public MainPanel(AbstractDbStrategy strategy, Theme theme)
     {
+        this.theme = theme;
+        m_DbStrategy = strategy;
+        m_ListViewRenderer = new ImageListViewAriadnaRenderer(theme);
         InitializeComponent();
         ApplyTheme();
 
-        m_DbStrategy = strategy;
         m_DbStrategy.FilterControls(this);
         m_DbStrategy.EntryInserted += OnNewEntryInserted;
 
         m_ImageListView.SetRenderer(m_ListViewRenderer);
 
-        UpdateImageList(m_DbStrategy.GetEntries());
+        if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
+        {
+            UpdateImageList(m_DbStrategy.GetEntries());
+        }
 
         // Type timer
         m_TypeField = ETypeField.None;
         m_TypeTimer.Tick += OnTypeTimer;
         m_TypeTimer.Interval = TYPE_TIMEOUT_MS;
+        m_FloatingPanel.ApplyTheme(theme);
+        m_FloatingPanel.Deactivate += OnFloatingPanelClosed;
+        m_FloatingPanel.ItemSelected += OnFloatingPanelItemSelected;
     }
     private void ApplyTheme()
     {
-        m_ToolStrip.BackColor = Theme.MainBackColor;
-        m_ToolStrip_AddBtn.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_NameLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_EntryName.BackColor = Theme.ControlsBackColor;
-        m_ToolStrip_EntryName.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_WishlistLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_RecentLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_NewLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_VrLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_nonVRLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_DirectorLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_DirectorName.BackColor = Theme.ControlsBackColor;
-        m_ToolStrip_DirectorName.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_ActorLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_ActorName.BackColor = Theme.ControlsBackColor;
-        m_ToolStrip_ActorName.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_GenreNameLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_GenreName.BackColor = Theme.ControlsBackColor;
-        m_ToolStrip_GenreName.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_SubgenreNameLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_SubgenreName.BackColor = Theme.ControlsBackColor;
-        m_ToolStrip_SubgenreName.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_EntriesCountLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_EntriesCount.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_SeriesLbl.ForeColor = Theme.MainForeColor;
-        m_ToolStrip_MoviesLbl.ForeColor = Theme.MainForeColor;
-        m_QuickListFlow.BackColor = Theme.MainBackColor;
-        BackColor = Theme.MainBackColor;
+        m_ToolStrip.BackColor = theme.MainBackColor;
+        m_ToolStrip_AddBtn.ForeColor = theme.MainForeColor;
+        m_ToolStrip_NameLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_EntryName.BackColor = theme.ControlsBackColor;
+        m_ToolStrip_EntryName.ForeColor = theme.MainForeColor;
+        m_ToolStrip_WishlistLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_RecentLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_NewLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_VrLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_nonVRLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_DirectorLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_DirectorName.BackColor = theme.ControlsBackColor;
+        m_ToolStrip_DirectorName.ForeColor = theme.MainForeColor;
+        m_ToolStrip_ActorLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_ActorName.BackColor = theme.ControlsBackColor;
+        m_ToolStrip_ActorName.ForeColor = theme.MainForeColor;
+        m_ToolStrip_GenreNameLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_GenreName.BackColor = theme.ControlsBackColor;
+        m_ToolStrip_GenreName.ForeColor = theme.MainForeColor;
+        m_ToolStrip_SubgenreNameLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_SubgenreName.BackColor = theme.ControlsBackColor;
+        m_ToolStrip_SubgenreName.ForeColor = theme.MainForeColor;
+        m_ToolStrip_EntriesCountLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_EntriesCount.ForeColor = theme.MainForeColor;
+        m_ToolStrip_SeriesLbl.ForeColor = theme.MainForeColor;
+        m_ToolStrip_MoviesLbl.ForeColor = theme.MainForeColor;
+        m_QuickListFlow.BackColor = theme.MainBackColor;
+        BackColor = theme.MainBackColor;
+        m_ImageListView.vScrollBar.BackColor = theme.MainBackColor;
     }
     private void MainPanel_Load(object sender, EventArgs e)
     {
-        // Restore position and size
-        if (Settings.Default.FormSize != Size.Empty && Settings.Default.FormSize.Width > 800 && Settings.Default.FormSize.Height > 600)
+        if (loaded || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
         {
-            Size = Settings.Default.FormSize;
+            return;
         }
-
-        if (Settings.Default.FormLocation != Point.Empty && Settings.Default.FormLocation.X > -2000 && Settings.Default.FormLocation.Y >= 0)
-        {
-            Location = Settings.Default.FormLocation;
-        }
-
-        // Bring MainPanel to front
-        Activate();
-
-        Splasher.Close();
-
-        m_ToolStrip_EntryName.Focus();
-
-        // Show Recent entries at startup
-//        m_ToolStrip_RecentBtn.Checked = true;
-//        m_ToolStrip_RecentBtn.Image = Resources.icon_checked;
+        loaded = true;
         QueryEntries();
         SelectRandomEntry();
     }
-    private void OnFormClosing(object sender, FormClosingEventArgs e)
+    internal void SuspendCatalog()
     {
-        // Save position and size
-        Settings.Default.FormLocation = Location;
-        Settings.Default.FormSize = Size;
-        Settings.Default.Save();
+        lastFocusedControl = FindFocusedControl(this) ?? lastFocusedControl;
+        if (m_TypeField == ETypeField.Title)
+        {
+            // Apply a pending typed search before its tab is hidden.
+            m_TypeTimer.Stop();
+            m_TypeField = ETypeField.None;
+            QueryEntries();
+        }
+        m_TypeTimer.Stop();
+        m_TypeField = ETypeField.None;
+        HideFloatingPanel();
     }
+
+    internal void FocusCatalog()
+    {
+        if (lastFocusedControl is { IsDisposed: false, CanFocus: true })
+        {
+            lastFocusedControl.Focus();
+        }
+        else
+        {
+            m_ImageListView.Focus();
+        }
+    }
+
+    internal void HandleKeyDown(KeyEventArgs e) => MainPanel_KeyUp(this, e);
+    internal void HandleKeyPress(KeyPressEventArgs e) => MainPanel_KeyPress(this, e);
+
+    private static Control FindFocusedControl(Control parent)
+    {
+        foreach (Control child in parent.Controls)
+        {
+            if (child.Focused)
+            {
+                return child;
+            }
+            if (child.ContainsFocus)
+            {
+                return FindFocusedControl(child);
+            }
+        }
+        return null;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && !resourcesDisposed)
+        {
+            resourcesDisposed = true;
+            m_DbStrategy.EntryInserted -= OnNewEntryInserted;
+            m_TypeTimer.Tick -= OnTypeTimer;
+            m_TypeTimer.Dispose();
+            m_FloatingPanel.Deactivate -= OnFloatingPanelClosed;
+            m_FloatingPanel.ItemSelected -= OnFloatingPanelItemSelected;
+            m_FloatingPanel.Dispose();
+            components?.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+
     private void UpdateImageList(List<EntryDto> entries)
     {
         m_ToolStrip_EntriesCount.Text = entries.Count.ToString();
@@ -141,6 +200,8 @@ public partial class MainPanel : Form
     }
     private void QueryEntries()
     {
+        m_TypeTimer.Stop();
+        m_TypeField = ETypeField.None;
         HideFloatingPanel();
         RunWithWaitCursor(() => UpdateImageList(m_DbStrategy.QueryEntries(CreateQueryParams())));
     }
@@ -163,7 +224,10 @@ public partial class MainPanel : Form
     }
     private void FillQuickList(HashSet<string> firstChars)
     {
-        m_QuickListFlow.Controls.Clear();
+        foreach (var button in m_QuickListFlow.Controls.Cast<Control>().ToArray())
+        {
+            button.Dispose();
+        }
 
         foreach (var firstChar in firstChars)
         {
@@ -188,8 +252,8 @@ public partial class MainPanel : Form
                 Text = firstChar,
                 AutoSize = false,
                 Size = new Size(40, 40),
-                BackColor = Theme.MainBackColor,
-                ForeColor = Theme.MainForeColor,
+                BackColor = theme.MainBackColor,
+                ForeColor = theme.MainForeColor,
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold),
             };
@@ -508,25 +572,30 @@ public partial class MainPanel : Form
     {
         m_FloatingPanel.Bounds = GetFloatingPanelBounds(imageH);
 
-        m_FloatingPanel.Deactivate += OnFloatingPanelClosed;
-        m_FloatingPanel.ItemSelected += OnFloatingPanelItemSelected;
-
         m_FloatingPanel.UpdateListView(values, contentType, checkBox, multiSelect, imageW, imageH);
         if (!m_FloatingPanel.Visible)
         {
-            m_FloatingPanel.Show(this);
+            m_FloatingPanel.Show(FindForm());
         }
     }
     private void HideFloatingPanel()
     {
         if (m_FloatingPanel.Visible)
         {
-            m_FloatingPanel.Hide();
+            suppressFloatingSelection = true;
+            try
+            {
+                m_FloatingPanel.Hide();
+            }
+            finally
+            {
+                suppressFloatingSelection = false;
+            }
         }
     }
     private void OnFloatingPanelClosed(object sender, EventArgs e)
     {
-        if (m_FloatingPanel.Visible)
+        if (m_FloatingPanel.Visible || suppressFloatingSelection)
         {
             return;
         }
@@ -668,11 +737,8 @@ public partial class MainPanel : Form
 
     private Rectangle GetFloatingPanelBounds(int imageHeight)
     {
-        var width = Size.Width - 12 * 2;
-        var height = imageHeight * 3 + 12;
-        var x = Location.X + 12;
-        var y = Location.Y + SystemInformation.CaptionHeight + m_ToolStrip.Size.Height + 8;
-        return new Rectangle(x, y, width, height);
+        var origin = m_ToolStrip.PointToScreen(new Point(0, m_ToolStrip.Height));
+        return new Rectangle(origin.X + 12, origin.Y + 8, Math.Max(1, Width - 24), imageHeight * 3 + 12);
     }
 
     private void ClearTextAndQuery(ToolStripItem item, string emptyValue = "", Action beforeClear = null, bool hideFloatingPanel = true)

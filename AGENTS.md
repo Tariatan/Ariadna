@@ -17,11 +17,11 @@ Resolve contradictions explicitly instead of silently choosing an old memory ent
 
 ## Product boundaries
 
-Ariadna is a personal Windows media catalog with four independently launched
-modes: movies, documentaries, games, and library. The current application uses
+Ariadna is a personal Windows media catalog with one application instance and
+four permanent tabs: movies, documentaries, games, and library. The current application uses
 C#/.NET 10 WinForms and direct SQLite storage in Ariadna.Storage. The separate
 migration utility alone uses a SQL client for legacy export. Preserve collection-specific
-behavior and the ability to run all four modes simultaneously.
+behavior and each tab's filters, selection, scroll position, and palette.
 
 Keep existing catalog IDs, metadata, relationships, ignore entries, and external
 images intact. Poster filenames use extensionless IDs; game previews use the

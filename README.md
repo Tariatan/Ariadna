@@ -16,7 +16,7 @@ See [docs/PLAN.md](docs/PLAN.md) for remaining/upcoming tasks.
 
 ---
 
-Launch with one argument to pick your collection:
+Launch without an argument to open Movies, or select an initial tab:
 
 ```
 Ariadna.exe movies          # Movies & TV series
@@ -25,7 +25,14 @@ Ariadna.exe games           # PC / VR games
 Ariadna.exe library         # Books & documents
 ```
 
-Each mode has its own color theme, toolbar, and genre set. You can run all four simultaneously.
+Movies, Documentaries, Games, and Library are four permanent tabs in one window.
+Each retains its own filters, selection, scroll position, palette, toolbar, and
+genres while you switch. A second launch activates the existing window; a named
+argument selects its tab, while no argument preserves the active tab. A requested
+switch waits for an open modal editor to close.
+
+Use **Ctrl+Tab** / **Ctrl+Shift+Tab** to cycle tabs, or **Ctrl+1** through **Ctrl+4**
+to select Movies, Documentaries, Games, or Library directly.
 
 ## What it does
 
@@ -47,6 +54,10 @@ Each mode has its own color theme, toolbar, and genre set. You can run all four 
 
 Open `Ariadna.slnx` in Visual Studio 2026 or an editor with SLNX support. The
 solution contains all six desktop, storage, migration, and test projects.
+The desktop preserves its existing Windows-scaled UI size on high-DPI displays.
+WinForms designers use a fixed 96-DPI baseline through `ForceDesignerDpiUnaware`;
+close and reopen an already open designer after changing project settings.
+
 `global.json` selects SDK 10.0.401 with patch updates allowed within 10.0.4xx;
 preview SDKs are excluded. Dependencies use checked-in NuGet lock files:
 
@@ -70,7 +81,9 @@ migration. Version 2.0.1 removes Windows API Code Pack and uses the bundled Medi
 reader for duration; existing-video regression tests cover details opening.
 Version 2.1.0 gives each collection an independent detail form, composed from
 shared controls and services. Version 3.0.0 requires .NET 10 for framework-dependent
-runs and uses the six-project SLNX solution. See [PLAN.md](docs/PLAN.md) for the
+runs and uses the six-project SLNX solution. Version 4.0.0 replaces separately
+launched catalog windows with one instance and four permanent tabs. See
+[PLAN.md](docs/PLAN.md) for the
 verified checks and remaining manual integration review. A clean-machine
 installation test remains open.
 
