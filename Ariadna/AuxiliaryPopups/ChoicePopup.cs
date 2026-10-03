@@ -22,11 +22,16 @@ public partial class ChoicePopup : Form
 
     private void OnSelectedIndexChanged(object sender, EventArgs e)
     {
-        Index = m_ResultList.FocusedItem!.Index;
+        Index = m_ResultList.SelectedItems.Count > 0 ? m_ResultList.SelectedItems[0].Index : -1;
     }
 
     private void OnDoubleClick(object sender, EventArgs e)
     {
+        if (Index < 0)
+        {
+            return;
+        }
+        DialogResult = DialogResult.OK;
         Close();
     }
 
@@ -34,8 +39,24 @@ public partial class ChoicePopup : Form
     {
         if (e.KeyCode == Keys.Escape)
         {
+            Index = -1;
+            DialogResult = DialogResult.Cancel;
             Close();
         }
+        else if (e.KeyCode == Keys.Enter && Index >= 0)
+        {
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+    }
+
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        if (DialogResult != DialogResult.OK)
+        {
+            Index = -1;
+        }
+        base.OnFormClosing(e);
     }
 
     private void AddResults(IEnumerable<MovieChoiceDto> results)

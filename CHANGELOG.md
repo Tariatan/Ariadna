@@ -13,6 +13,19 @@ Versioning rule:
 
 ## Ariadna
 
+### [2.1.0] - 2026-10-03
+
+#### Changed
+
+- Replaced the shared DetailsForm hierarchy with independently designed movie, game, documentary, and library forms. Reuse is through focused genre, people, image, preview, size, and video controls plus metadata/file services.
+- Removed templated save hooks; each form explicitly maps its collection fields into the existing complete-entry SQLite/image operation. Modal callers dispose their dialogs, and background requests cancel on close.
+
+#### Fixed
+
+- Author portrait lookup uses the author role, and cast F2 renaming uses the cast selection. Enter commits people edits without saving the form.
+- Canceling a selected TMDb choice clears it; late metadata/inspection results cannot overwrite manual edits or update closed controls.
+- Preserved unchanged nullable flags/dates and undecorated descriptions during edits; loaded genre lists above the configured limit remain intact.
+
 ### [2.0.1] - 2026-10-03
 
 #### Fixed

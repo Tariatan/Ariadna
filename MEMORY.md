@@ -4,59 +4,55 @@ Last updated: 2026-10-03. Scope: this repository only.
 
 ## Durable context
 
-- Windows personal media catalog: movies/series, documentaries, games, and books.
-  Each launch selects one mode; independent windows can run simultaneously.
-- Current stack: .NET 9 WinForms, EF6 6.5.1, SQL Server LocalDB. DbProvider is a
-  legacy .NET Framework 4.8 project; its generated sources are also linked into
-  the desktop project. SQLite remains a proposed migration.
-- Catalog IDs connect database entries to extensionless poster filenames.
-  Game previews append the configured suffix and numbers 1 through 4. Preserve
-  identifiers and keep database/assets together for recovery.
-- Language conventions and reusable-agent routing are supplied by global agent
-  instructions. Repository editing/test/review rules remain in [AGENTS.md](AGENTS.md).
+- Personal Windows catalog with four independently launched modes: movies/series,
+  documentaries, games, and library. Keep simultaneous processes and each mode's
+  fields, genres, palette, and paths working.
+- Current implementation: .NET 9 WinForms and direct SQLite through
+  Ariadna.Storage. Legacy EF6/LocalDB and DbProvider were removed. Only the separate
+  migration utility uses a SQL client for legacy export. Dependencies are locked;
+  no SDK pin is configured.
+- IDs identify extensionless posters. Game previews use the configured suffix
+  and numbers 1 through 4. Preserve existing IDs, NULLs, relationships, ignore
+  paths, and assets. Database and images form one recovery dataset.
+- [Technical Design Description](docs/Technical_Design_Description.md) owns
+  architecture; [PLAN.md](docs/PLAN.md) owns upcoming work; [SQLite operation and
+  recovery](docs/SQLITE-OPERATIONS.md) owns migration/recovery evidence and limits.
+- Language conventions are supplied by the session's global instructions.
+  Repository rules, versioning, and context maintenance are in [AGENTS.md](AGENTS.md).
 
 ## Current evidence
 
-- 2026-10-03: removed machine-specific instruction paths and local-library links
-  from public documentation. The migration investigation now identifies catalog
-  locations through configuration names and filenames instead of absolute paths.
-  Global instructions remain supplied by the agent environment.
-- 2026-10-03: added [CHANGELOG.md](CHANGELOG.md) following Balancia's per-project
-  Keep a Changelog/SemVer format. Baselines are Ariadna 1.0.0 (evaluated MSBuild
-  Version) and DbProvider 1.0.0 (assembly/file version 1.0.0.0). These dates record
-  changelog initialization, not earlier releases; version metadata is unchanged.
-  AGENTS.md now requires notable implementation changes to be recorded there.
-- 2026-10-03: compared Balancia's current AGENTS, MEMORY, README, and docs with
-  this repository. Aligned their document roles and reading order, renamed the
-  architecture document to [docs/Technical_Design_Description.md](docs/Technical_Design_Description.md),
-  and added [docs/PLAN.md](docs/PLAN.md). Source/project inspection confirmed the
-  current stack, duplicate model compilation, direct EF access in forms/main
-  window, and PNG saves to extensionless image paths.
-- [docs/SQLITE-MIGRATION-PLAN.md](docs/SQLITE-MIGRATION-PLAN.md) reports a
-  2026-10-03 read-only investigation of the live database and image inventory.
-  That evidence was not rechecked against live data during harness alignment.
-  Backup/restore rehearsal, export, conversion, content-hash comparison,
-  performance benchmarking, and migrated UI acceptance remain unperformed.
-- The migration investigation was already present as an untracked file at the
-  start of alignment and was preserved during initial alignment; the later
-  public-documentation cleanup replaces its local path references. Documentation
-  work changes no application implementation, dependency, database, or image asset.
-- This checkout has no SDK pin or NuGet dependency lock files. Existing CLI
-  commands are documented in README; build/test/native UI checks were not run
-  for this documentation-only change. Documentation links, obsolete filename
-  references, trailing blank lines, and diff whitespace were checked.
+- The approved SQLite migration and matched snapshot/restore tooling are
+  implemented. PLAN records user acceptance on the copied catalog with 2.0.1 on
+  2026-10-03; retain that dated evidence without inferring new live-data checks.
+- 2026-10-03: implemented the accepted auxiliary popup refactor in Ariadna 2.1.0.
+  Movie, game, documentary, and library detail forms inherit directly from Form,
+  each with its own designer/resources. Focused controls/services provide reuse;
+  EntryEditorSession coordinates commands and the existing atomic storage save.
+  The DetailsForm base, template hooks, and old designer are removed.
+- Locked restore, Release build (zero warnings/errors), and 167 desktop plus 38
+  storage tests passed. Debug desktop build passed. All four forms opened in
+  Visual Studio's WinForms designer; corrected an unsupported movie-icon cast.
+- Characterization/regression tests use disposable real SQLite/image data. They
+  cover four-mode save/reopen, nullable values and original descriptions, clearing
+  relationships, Escape/ignore/validation, role-specific author portraits, image
+  ownership, MediaInfo/file inspection, and cancellation/stale metadata/results.
+- Native Windows checks used a disposable synthetic harness: reviewed all four
+  layouts and save/reopen, author/cast F2 plus Enter, documentary keyboard save,
+  and game version/VR mouse edit. A game layout overlap was corrected and checked.
+  The genre picker displayed, but automation could not confirm its owned-window
+  selection. Automated selection/cancel tests passed; exhaustive native clipboard,
+  image-dialog, live TMDb, and clean-machine acceptance remain open.
+- No personal catalog or image data was used or modified for this refactor.
+  Storage/migration implementation and versions remain unchanged.
 
 ## Resume here
 
-Use [docs/PLAN.md](docs/PLAN.md) for the next task. Establish a repeatable clean
-restore/build/test baseline and native four-mode acceptance on disposable data.
-Before any SQLite implementation, resolve the proposal's open choices and
-demonstrate matched database/image recovery. Do not infer migration approval
-or completed work from the existence of planning documents.
+Complete the remaining native/integration review in [PLAN.md](docs/PLAN.md).
+For an individual detail-form change, edit that form's designer and collection
+mapping; change shared controls only when the behavior should apply to every
+consumer. Keep save/reopen characterization and background-lifetime checks.
 
-## Context maintenance
-
-Product behavior and technical reasoning belong in the Technical Design
-Description; remaining/upcoming tasks belong in PLAN.md. Keep this handoff
-compact, dated, and explicit about evidence limits. This is repository memory,
-not the global agent memory folder.
+Use README's locked restore, Release build/test commands. Changes to storage or
+schema require the matched recovery and comparison gates; build success alone
+does not prove native interaction or recovery.

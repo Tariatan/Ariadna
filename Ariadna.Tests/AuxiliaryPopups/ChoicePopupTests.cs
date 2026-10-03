@@ -50,6 +50,7 @@ public class ChoicePopupTests
             testee.Show();
             var resultList = GetResultList(testee);
             resultList.Items[1].Focused = true;
+            resultList.Items[1].Selected = true;
 
             // Act
             InvokeChoicePopupMethod(testee, "OnSelectedIndexChanged", testee, EventArgs.Empty);
@@ -60,7 +61,7 @@ public class ChoicePopupTests
     }
 
     [TestMethod]
-    public void OnDoubleClick_WhenInvoked_ClosesForm()
+    public void OnDoubleClick_WithSelection_ClosesForm()
     {
         RunInSta(() =>
         {
@@ -70,17 +71,20 @@ public class ChoicePopupTests
                 new MovieChoiceDto { Title = "Terminator", TitleOrig = "The Terminator", Year = 1984 },
             ]);
             testee.Show();
+
+            GetResultList(testee).Items[0].Selected = true;
 
             // Act
             InvokeChoicePopupMethod(testee, "OnDoubleClick", testee, EventArgs.Empty);
 
             // Assert
             Assert.IsTrue(testee.IsDisposed);
+            Assert.AreEqual(0, testee.Index);
         });
     }
 
     [TestMethod]
-    public void OnKeyDown_EscapePressed_ClosesForm()
+    public void OnKeyDown_EscapeAfterSelection_ClearsSelectionAndClosesForm()
     {
         RunInSta(() =>
         {
@@ -90,12 +94,53 @@ public class ChoicePopupTests
                 new MovieChoiceDto { Title = "Terminator", TitleOrig = "The Terminator", Year = 1984 },
             ]);
             testee.Show();
+            GetResultList(testee).Items[0].Selected = true;
 
             // Act
             InvokeChoicePopupMethod(testee, "OnKeyDown", testee, new KeyEventArgs(Keys.Escape));
 
             // Assert
             Assert.IsTrue(testee.IsDisposed);
+            Assert.AreEqual(-1, testee.Index);
+            Assert.AreEqual(DialogResult.Cancel, testee.DialogResult);
+        });
+    }
+
+    [TestMethod]
+    public void OnKeyDown_EnterAfterSelection_AcceptsSelection()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new ChoicePopup("synthetic.mkv", [new MovieChoiceDto { Title = "Synthetic", TitleOrig = "Original", Year = 2026 }]);
+            testee.Show();
+            GetResultList(testee).Items[0].Selected = true;
+
+            // Act
+            InvokeChoicePopupMethod(testee, "OnKeyDown", testee, new KeyEventArgs(Keys.Enter));
+
+            // Assert
+            Assert.IsTrue(testee.IsDisposed);
+            Assert.AreEqual(0, testee.Index);
+            Assert.AreEqual(DialogResult.OK, testee.DialogResult);
+        });
+    }
+
+    [TestMethod]
+    public void OnDoubleClick_WithoutSelection_KeepsDialogOpen()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new ChoicePopup("synthetic.mkv", []);
+            testee.Show();
+
+            // Act
+            InvokeChoicePopupMethod(testee, "OnDoubleClick", testee, EventArgs.Empty);
+
+            // Assert
+            Assert.IsTrue(testee.Visible);
+            Assert.AreEqual(-1, testee.Index);
         });
     }
 

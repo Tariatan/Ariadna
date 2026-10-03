@@ -16,14 +16,14 @@
     <Compile Update="AuxiliaryPopups\ChoicePopup.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="AuxiliaryPopups\DetailsForm.Catalog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="AuxiliaryPopups\DetailsForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Update="AuxiliaryPopups\DocumentaryDetailsForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\EntryEditorSession.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\FileSizeControl.cs">
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="AuxiliaryPopups\FloatingPanel.cs">
       <SubType>Form</SubType>
@@ -31,11 +31,26 @@
     <Compile Update="AuxiliaryPopups\GameDetailsForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="AuxiliaryPopups\GamePreviewsControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\GenreSelectionControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\ImageEditorControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="AuxiliaryPopups\LibraryDetailsForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="AuxiliaryPopups\MovieDetailsForm.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\PeopleEditorControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="AuxiliaryPopups\VideoInfoControl.cs">
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="ImageListView\AriadnaVScrollBar.cs">
       <SubType>Component</SubType>
@@ -91,9 +106,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="AuxiliaryPopups\ChoicePopup.resx">
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="AuxiliaryPopups\DetailsForm.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Update="AuxiliaryPopups\FloatingPanel.resx">

@@ -124,7 +124,7 @@ public class MoviesDbStrategy : MediaDbStrategyBase
     protected virtual void RemoveEntryFromDatabase(int id) { Store.Delete(CatalogKind.Movie, id); }
     protected override void ShowDataDialog(string path)
     {
-        var detailsForm = new MovieDetailsForm(path, Logger);
+        using var detailsForm = new MovieDetailsForm(path, Logger);
         detailsForm.FormClosed += OnDetailsFormClosed;
         detailsForm.ShowDialog();
     }
@@ -139,7 +139,7 @@ public class MoviesDbStrategy : MediaDbStrategyBase
 
         m_IsFetching = true;
         var client = new TMDbClient(Settings.Default.TmdbApiKey);
-        var detailsForm = new MovieDetailsForm(path, Logger)
+        using var detailsForm = new MovieDetailsForm(path, Logger)
         {
             TmdbMovieIndex = -1,
             TmdbTvShowIndex = -1
@@ -189,7 +189,7 @@ public class MoviesDbStrategy : MediaDbStrategyBase
             titles.Add(new MovieChoiceDto { Title = result.Title, TitleOrig = result.OriginalTitle, Year = y });
         }
 
-        var choice = new ChoicePopup(path, titles);
+        using var choice = new ChoicePopup(path, titles);
         choice.ShowDialog(Form.ActiveForm);
         return choice.Index;
     }
@@ -201,7 +201,7 @@ public class MoviesDbStrategy : MediaDbStrategyBase
             var y = result.FirstAirDate?.Year ?? 0;
             titles.Add(new MovieChoiceDto { Title = result.Name, TitleOrig = result.OriginalName, Year = y });
         }
-        var choice = new ChoicePopup(path, titles);
+        using var choice = new ChoicePopup(path, titles);
 
         choice.ShowDialog(Form.ActiveForm);
         return choice.Index;

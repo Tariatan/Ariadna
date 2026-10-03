@@ -1,60 +1,106 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
 using Ariadna.Storage;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Ariadna.AuxiliaryPopups;
 
-public class DocumentaryDetailsForm(string filePath, ILogger logger) : DetailsForm(filePath, logger)
+public partial class DocumentaryDetailsForm : Form, IEntryDetailsDialog
 {
-    #region OVERRIDEN FUNCTIONS
-    protected override void DoLoad()
+    private readonly string initialPath;
+    private readonly EntryEditorSession session;
+
+    public DocumentaryDetailsForm() : this(string.Empty, NullLogger.Instance) { }
+
+    public DocumentaryDetailsForm(string filePath, ILogger logger)
     {
-        #region Hide inappropriate fields
-        m_DirectorsList.Visible = false;
-        m_CastList.Visible = false;
-        m_DirectorPaste.Visible = false;
-        m_CastPaste.Visible = false;
-        m_LblDirector.Visible = false;
-        m_LblCast.Visible = false;
-        #endregion
-        m_TxtDescription.Height = m_TxtDescription.Height * 5/2;
+        initialPath = filePath;
+        InitializeComponent();
+        session = new EntryEditorSession(components, this, saveButton, CatalogKind.Documentary, logger, SaveEntry, genres.DismissPicker);
+        DetailTheme.Apply(this);
+        fileSize.Configure(logger);
+        videoInfo.Configure(logger);
+        genres.Configure(Utilities.DocumentaryGenres.Keys.ToArray(), Utilities.GetDocumentaryGenreBySynonym, Utilities.GetDocumentaryGenreImage);
+    }
 
-        // Remove extension
-        m_TxtTitle.Text = m_TxtTitle.Text.RemoveExtension();
-        var length = Utilities.GetVideoDuration(FilePath);
-        m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public int StoredDbEntryId => session.StoredDbEntryId;
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Utilities.EFormCloseReason FormCloseReason => session.FormCloseReason;
 
-        StoredDbEntryId = GetStoredEntryId();
-
-        if (StoredDbEntryId != -1)
+    private async void OnLoad(object? sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(initialPath))
         {
-            LoadCatalogEntry(CatalogKind.Documentary, CatalogServices.GetPosterRoot(CatalogKind.Documentary));
+            return;
         }
+        session.Load(initialPath);
+        titleText.Text = Path.GetFileName(initialPath).RemoveExtension();
+        pathText.Text = initialPath;
+        if (session.Loaded is { } details)
+        {
+            var entry = details.Entry;
+            titleText.Text = entry.Title;
+            originalTitleText.Text = entry.OriginalTitle;
+            yearText.Text = entry.Year > 0 ? entry.Year.ToString(CultureInfo.InvariantCulture) : string.Empty;
+            pathText.Text = entry.Path;
+            wanted.Checked = entry.Wanted.GetValueOrDefault();
+            genres.LoadGenres(details.Genres);
+            poster.LoadImage(Path.Combine(session.PosterRoot, entry.Id.ToString(CultureInfo.InvariantCulture)));
+            descriptionText.Text = Utilities.DecorateDescription(entry.Description ?? string.Empty);
+        }
+        session.FilePath = pathText.Text;
+        var sizeTask = fileSize.LoadPathAsync(pathText.Text);
+        var videoTask = videoInfo.LoadPathAsync(pathText.Text);
+        await Task.WhenAll(sizeTask, videoTask);
+    }
 
-        FillMediaInfo(FilePath);
-    }
-    protected override bool StorePreEntryData() => true;
-    protected override bool StoreMainEntry() => SaveCatalogEntry(CatalogKind.Documentary, CatalogServices.GetPosterRoot(CatalogKind.Documentary));
-    protected override void StoreRelatedData() { }
-    protected override List<string> GetGenres()
+    private bool SaveEntry()
     {
-        return Utilities.DocumentaryGenres.Keys.ToList();
+        if (string.IsNullOrWhiteSpace(titleText.Text))
+        {
+            titleText.Focus();
+            return false;
+        }
+        var entry = session.CreateEntry(titleText.Text, originalTitleText.Text, yearText.Text.ToInt(), pathText.Text, wanted.Checked);
+        entry.Description = session.PreserveDescription(descriptionText.Text);
+        var details = new CatalogDetails(entry, genres.GetGenres(), [], []);
+        var images = new Dictionary<string, byte[]> { [string.Empty] = poster.GetPngBytes() };
+        return session.Save(details, images);
     }
-    protected override string GetGenreBySynonym(string name)
-    {
-        return Utilities.GetDocumentaryGenreBySynonym(name);
-    }
-    protected override Bitmap GetGenreImage(string name)
-    {
-        return Utilities.GetDocumentaryGenreImage(name);
-    }
-    protected virtual int GetStoredEntryId() => Store.FindId(CatalogKind.Documentary, FilePath);
-    #endregion
 
+    private void OnPathChanged(object? sender, EventArgs e)
+    {
+        session.FilePath = pathText.Text;
+    }
+
+    private void OnFormClosed(object? sender, FormClosedEventArgs e)
+    {
+        fileSize.Cancel();
+        videoInfo.Cancel();
+        genres.DismissPicker();
+    }
+
+    private void OnDescriptionPaste(object? sender, EventArgs e)
+        => descriptionText.Text = Utilities.DecorateDescription(Clipboard.GetText());
+
+    private void OnDescriptionKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Control && e.KeyCode == Keys.V)
+        {
+            descriptionText.Text = Utilities.DecorateDescription(descriptionText.Text);
+        }
+    }
 }

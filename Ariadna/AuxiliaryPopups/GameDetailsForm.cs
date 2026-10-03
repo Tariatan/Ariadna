@@ -1,6 +1,8 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -8,73 +10,90 @@ using Ariadna.Extension;
 using Ariadna.Properties;
 using Ariadna.Storage;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Ariadna.AuxiliaryPopups;
 
-public class GameDetailsForm(string filePath, ILogger logger) : DetailsForm(filePath, logger)
+public partial class GameDetailsForm : Form, IEntryDetailsDialog
 {
-    #region OVERRIDEN FUNCTIONS
-    protected override void DoLoad()
+    private readonly string initialPath;
+    private readonly EntryEditorSession session;
+
+    public GameDetailsForm() : this(string.Empty, NullLogger.Instance) { }
+
+    public GameDetailsForm(string filePath, ILogger logger)
     {
-        #region Hide inappropriate fields
-        m_TxtLength.Visible = false;
-        m_TxtDescription.Visible = false;
-        m_TxtDimension.Visible = false;
-        m_TxtBitrate.Visible = false;
-        m_DirectorsList.Visible = false;
-        m_CastList.Visible = false;
-        m_DescriptionPaste.Visible = false;
-        m_DirectorPaste.Visible = false;
-        m_CastPaste.Visible = false;
-        m_LblDirector.Visible = false;
-        m_LblCast.Visible = false;
-        m_LblDescr.Visible = false;
-        m_PicFlag1.Visible = false;
-        m_PicFlag2.Visible = false;
-        m_PicFlag3.Visible = false;
-        m_PicFlag4.Visible = false;
-        m_LblDuration.Visible = false;
-        m_LblDimensions.Visible = false;
-        m_LblBitrate.Visible = false;
-        m_LblAudioStreams.Visible = false;
-        #endregion
-        #region Show my fields
-        m_PreviewFull.Visible = true;
-        m_Preview1.Visible = true;
-        m_Preview2.Visible = true;
-        m_Preview3.Visible = true;
-        m_Preview4.Visible = true;
-        m_VR.Visible = true;
-        m_LblVersion.Visible = true;
-        m_TxtVersion.Visible = true;
-        m_VR.Checked = FilePath.Contains(Settings.Default.DefaultGamesPathVR);
+        initialPath = filePath;
+        InitializeComponent();
+        session = new EntryEditorSession(components, this, saveButton, CatalogKind.Game, logger, SaveEntry, genres.DismissPicker);
+        DetailTheme.Apply(this);
+        fileSize.Configure(logger);
+        genres.Configure(Utilities.GameGenres.Keys.ToArray(), Utilities.GetGameGenreBySynonym, Utilities.GetGameGenreImage);
+    }
 
-        Icon = Resources.AriadnaGames;
-        #endregion
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public int StoredDbEntryId => session.StoredDbEntryId;
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Utilities.EFormCloseReason FormCloseReason => session.FormCloseReason;
 
-        StoredDbEntryId = GetStoredEntryId();
-
-        if (StoredDbEntryId != -1)
+    private async void OnLoad(object? sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(initialPath))
         {
-            LoadCatalogEntry(CatalogKind.Game, CatalogServices.GetPosterRoot(CatalogKind.Game));
+            return;
         }
+        session.Load(initialPath);
+        titleText.Text = Path.GetFileName(initialPath);
+        pathText.Text = initialPath;
+        vr.Checked = initialPath.Contains(Settings.Default.DefaultGamesPathVR, StringComparison.OrdinalIgnoreCase);
+        if (session.Loaded is { } details)
+        {
+            var entry = details.Entry;
+            titleText.Text = entry.Title;
+            originalTitleText.Text = entry.OriginalTitle;
+            yearText.Text = entry.Year > 0 ? entry.Year.ToString(CultureInfo.InvariantCulture) : string.Empty;
+            pathText.Text = entry.Path;
+            wanted.Checked = entry.Wanted.GetValueOrDefault();
+            genres.LoadGenres(details.Genres);
+            poster.LoadImage(Path.Combine(session.PosterRoot, entry.Id.ToString(CultureInfo.InvariantCulture)));
+            versionText.Text = entry.Version ?? string.Empty;
+            vr.Checked = entry.Vr.GetValueOrDefault();
+            previews.LoadImages(session.PosterRoot, entry.Id);
+        }
+        session.FilePath = pathText.Text;
+        await fileSize.LoadPathAsync(pathText.Text);
     }
-    protected override bool StorePreEntryData() => true;
-    protected override bool StoreMainEntry() => SaveCatalogEntry(CatalogKind.Game, CatalogServices.GetPosterRoot(CatalogKind.Game));
-    protected override void StoreRelatedData() { }
-    protected override List<string> GetGenres()
-    {
-        return Utilities.GameGenres.Keys.ToList();
-    }
-    protected override string GetGenreBySynonym(string name)
-    {
-        return Utilities.GetGameGenreBySynonym(name);
-    }
-    protected override Bitmap GetGenreImage(string name)
-    {
-        return Utilities.GetGameGenreImage(name);
-    }
-    protected virtual int GetStoredEntryId() => Store.FindId(CatalogKind.Game, FilePath);
 
-    #endregion
+    private bool SaveEntry()
+    {
+        if (string.IsNullOrWhiteSpace(titleText.Text))
+        {
+            titleText.Focus();
+            return false;
+        }
+        var entry = session.CreateEntry(titleText.Text, originalTitleText.Text, yearText.Text.ToInt(), pathText.Text, wanted.Checked);
+        entry.Version = session.Loaded != null && versionText.Text == (session.Loaded.Entry.Version ?? string.Empty)
+            ? session.Loaded.Entry.Version : versionText.Text.Trim();
+        entry.Vr = session.PreserveFlag(session.Loaded?.Entry.Vr, vr.Checked);
+        var details = new CatalogDetails(entry, genres.GetGenres(), [], []);
+        var images = new Dictionary<string, byte[]> { [string.Empty] = poster.GetPngBytes() };
+        foreach (var image in previews.GetImages())
+        {
+            images[image.Key] = image.Value;
+        }
+        return session.Save(details, images);
+    }
+
+    private void OnPathChanged(object? sender, EventArgs e)
+    {
+        session.FilePath = pathText.Text;
+    }
+
+    private void OnFormClosed(object? sender, FormClosedEventArgs e)
+    {
+        fileSize.Cancel();
+        genres.DismissPicker();
+    }
 }

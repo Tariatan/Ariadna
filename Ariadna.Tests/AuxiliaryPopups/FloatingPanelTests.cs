@@ -148,6 +148,54 @@ public class FloatingPanelTests
         });
     }
 
+    [TestMethod]
+    public void OnKeyDown_EnterWithFocusedGenre_ConfirmsSelectionOnce()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new FloatingPanel();
+            using var icon = new Bitmap(10, 10);
+            testee.UpdateListView(ImmutableSortedDictionary<string, Bitmap>.Empty.Add("Drama", icon), FloatingPanel.EPanelContentType.GENRES);
+            testee.Show();
+            GetPanelListView(testee).Items[0].Focused = true;
+            var confirmations = 0;
+            testee.SelectionConfirmed += (_, _) => confirmations++;
+
+            // Act
+            InvokeFloatingPanelMethod(testee, "OnKeyDown", testee, new KeyEventArgs(Keys.Enter));
+
+            // Assert
+            Assert.IsFalse(testee.Visible);
+            Assert.AreEqual(1, confirmations);
+            CollectionAssert.AreEqual(new[] { "Drama" }, testee.EntryNames);
+            Assert.AreEqual(Utilities.EFormCloseReason.SUCCESS, testee.FormCloseReason);
+        });
+    }
+
+    [TestMethod]
+    public void OnKeyDown_EscapeWithPendingSelection_ClearsResultWithoutConfirmation()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            using var testee = new FloatingPanel();
+            testee.EntryNames.Add("Drama");
+            testee.Show();
+            var confirmations = 0;
+            testee.SelectionConfirmed += (_, _) => confirmations++;
+
+            // Act
+            InvokeFloatingPanelMethod(testee, "OnKeyDown", testee, new KeyEventArgs(Keys.Escape));
+
+            // Assert
+            Assert.IsFalse(testee.Visible);
+            Assert.HasCount(0, testee.EntryNames);
+            Assert.AreEqual(0, confirmations);
+            Assert.AreEqual(Utilities.EFormCloseReason.NONE, testee.FormCloseReason);
+        });
+    }
+
     private static ListView GetPanelListView(FloatingPanel panel)
     {
         return (ListView)typeof(FloatingPanel).GetField("m_PanelListView", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(panel)!;

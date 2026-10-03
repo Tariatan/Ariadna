@@ -27,6 +27,27 @@ backup/restore, migration evidence, and verification limits.
 - [x] Configure dependency locks and verify restore, Release builds/tests, and a
   self-contained win-x64 publish.
 
+## Completed auxiliary popup refactor
+
+- [x] Replace `DetailsForm` inheritance and template save hooks with four direct
+  `Form` subclasses, each with an independent designer/resource pair and explicit
+  collection mapping. Compose shared editor controls and inspection/TMDb services.
+- [x] Open all four independent forms in Visual Studio's WinForms designer. Fixed
+  an unsupported movie-icon resource cast found during this check.
+- [x] Preserve complete-entry SQLite/image saves, IDs, nullable values, existing
+  relationships, and configured asset filenames; characterize shown-form
+  save/reopen, relationship clearing, cancel/ignore, and delayed request behavior.
+- [x] Native Windows checks on disposable synthetic data: inspect all four layouts;
+  save/reopen in all four modes; author/cast F2 plus Enter commit; documentary
+  keyboard save; game version/VR mouse edit and save/reopen. Corrected a game
+  layout overlap found during this review. Verified on 2026-10-03.
+- [x] Locked restore, Release build with zero warnings/errors, and 167 desktop
+  plus 38 storage tests pass. Debug desktop build also passes for designer loading.
+- [ ] Complete every-control native review, including picker confirmation,
+  clipboard paths, image-file dialogs, and live TMDb. The owned genre picker was
+  displayed, but the automation target did not allow confirming its selection;
+  selection/cancellation events are covered by shown-form automated tests.
+
 ## Remaining acceptance and future work
 
 - [x] User acceptance on the copied catalog: browse/navigation, existing-entry

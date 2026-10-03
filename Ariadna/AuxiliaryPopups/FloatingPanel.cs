@@ -28,6 +28,7 @@ public partial class FloatingPanel : Form
     public List<string> EntryNames { get; set; }
 
     public event EventHandler ItemSelected;
+    public event EventHandler SelectionConfirmed;
 
     public FloatingPanel()
     {
@@ -39,7 +40,10 @@ public partial class FloatingPanel : Form
         ResetState(contentType);
         ConfigureListView(checkBox, multiSelect, imageW, imageH);
 
-        var empty = new Bitmap(Properties.Resources.No_Preview_Image_small);
+        // A created native list copies added images before temporary bitmaps are disposed.
+        _ = m_PanelImageView.Handle;
+
+        using var empty = new Bitmap(Properties.Resources.No_Preview_Image_small);
         foreach (var value in values)
         {
             m_PanelImageView.Images.Add(value.Key, value.Value ?? empty);
@@ -50,14 +54,30 @@ public partial class FloatingPanel : Form
     {
         if (e.KeyCode == Keys.Escape)
         {
+            EntryNames.Clear();
+            FormCloseReason = Utilities.EFormCloseReason.NONE;
             Hide();
+        }
+        else if (e.KeyCode == Keys.Enter)
+        {
+            ConfirmFocusedItem();
         }
     }
     private void OnListEntryDoubleClicked(object sender, MouseEventArgs e)
     {
+        ConfirmFocusedItem();
+    }
+
+    private void ConfirmFocusedItem()
+    {
+        if (m_PanelListView.FocusedItem == null)
+        {
+            return;
+        }
         EntryNames.Add(GetFocusedEntryName());
         FormCloseReason = Utilities.EFormCloseReason.SUCCESS;
         Hide();
+        SelectionConfirmed?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnListItemChecked(object sender, ItemCheckedEventArgs e)

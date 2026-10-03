@@ -34,7 +34,7 @@ Each mode has its own color theme, toolbar, and genre set. You can run all four 
 - Open video files in MPC-HC or browse directories in Total Commander with one click
 - Fetch movie metadata and posters automatically from TMDb
 - Add entries manually or let the app discover new files on disk
-- Edit full metadata in a detail form — cast, genres, file info, MediaInfo stats
+- Edit metadata in a collection-specific form — cast/authors, genres, previews, file info, and MediaInfo stats
 
 ## Requirements
 
@@ -67,8 +67,11 @@ disposable test overrides, and backup/restore commands.
 
 Release builds/tests and a self-contained win-x64 publish were verified during the
 migration. Version 2.0.1 removes Windows API Code Pack and uses the bundled MediaInfo
-reader for duration; existing-video regression tests cover details opening. There
-is no SDK pin or clean-machine installation test.
+reader for duration; existing-video regression tests cover details opening.
+Version 2.1.0 gives each collection an independent detail form, composed from
+shared controls and services. See [PLAN.md](docs/PLAN.md) for the verified checks
+and remaining manual integration review. There is no SDK pin or clean-machine
+installation test.
 
 ## Documentation
 

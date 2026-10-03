@@ -1,6 +1,8 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -8,134 +10,114 @@ using Ariadna.Extension;
 using Ariadna.Properties;
 using Ariadna.Storage;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Ariadna.AuxiliaryPopups;
 
-public class LibraryDetailsForm(string filePath, ILogger logger) : DetailsForm(filePath, logger)
+public partial class LibraryDetailsForm : Form, IEntryDetailsDialog
 {
-    private enum LibraryGenre
+    private readonly string initialPath;
+    private readonly EntryEditorSession session;
+
+    public LibraryDetailsForm() : this(string.Empty, NullLogger.Instance) { }
+
+    public LibraryDetailsForm(string filePath, ILogger logger)
     {
-        LANGUAGES,
-        LITERATURE,
-        PROGRAMMING,
-        MISC,
-        COMMON,
-    }
-    private LibraryGenre m_LibraryGenre;
-
-    #region OVERRIDEN FUNCTIONS
-    protected override void DoLoad()
-    {
-        #region Hide inappropriate fields
-        m_CastList.Visible = false;
-        m_CastPaste.Visible = false;
-        m_LblCast.Visible = false;
-        m_TxtLength.Visible = false;
-        m_TxtDimension.Visible = false;
-        m_LblDimensions.Visible = false;
-        m_TxtBitrate.Visible = false;
-        m_LblBitrate.Visible = false;
-        m_LblAudioStreams.Visible = false;
-        m_LblDuration.Visible = false;
-        #endregion
-
-        // Remove extension
-        m_TxtTitle.Text = m_TxtTitle.Text.RemoveExtension();
-        var length = Utilities.GetVideoDuration(FilePath);
-        m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
-
-        #region Workaround
-        m_LblDirector.Text = "Authors";
-        m_DirectorsList.Width = m_TxtDescription.Width;
-        m_TxtDescription.Height += 100;
-        m_DirectorsList.Top += 100;
-        m_DirectorsList.Height = m_PicPoster.Bottom - m_DirectorsList.Top;
-        m_LblDirector.Top += 100;
-        m_DirectorPaste.Top += 100;
-        #endregion
-
-        m_LibraryGenre = GetGenreByPath(FilePath);
-        StoredDbEntryId = GetStoredEntryId();
-
-        if (StoredDbEntryId != -1)
-        {
-            LoadCatalogEntry(CatalogKind.Library, CatalogServices.GetPosterRoot(CatalogKind.Library));
-        }
-
-        FillMediaInfo(FilePath);
+        initialPath = filePath;
+        InitializeComponent();
+        session = new EntryEditorSession(components, this, saveButton, CatalogKind.Library, logger, SaveEntry, genres.DismissPicker);
+        DetailTheme.Apply(this);
+        fileSize.Configure(logger);
+        authors.Configure(PersonRole.Author);
+        ConfigureLibraryGenres(filePath);
     }
 
-    protected override void DoAddListViewItemFromClipboard(ListView listView, ImageList imageList)
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public int StoredDbEntryId => session.StoredDbEntryId;
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Utilities.EFormCloseReason FormCloseReason => session.FormCloseReason;
+
+    private async void OnLoad(object? sender, EventArgs e)
     {
-        foreach (var item in Clipboard.GetText().Split(','))
+        if (string.IsNullOrEmpty(initialPath))
         {
-            AddNewListItem(listView, imageList, item.Capitalize());
+            return;
+        }
+        session.Load(initialPath);
+        titleText.Text = Path.GetFileName(initialPath).RemoveExtension();
+        pathText.Text = initialPath;
+        if (session.Loaded is { } details)
+        {
+            var entry = details.Entry;
+            titleText.Text = entry.Title;
+            originalTitleText.Text = entry.OriginalTitle;
+            yearText.Text = entry.Year > 0 ? entry.Year.ToString(CultureInfo.InvariantCulture) : string.Empty;
+            pathText.Text = entry.Path;
+            wanted.Checked = entry.Wanted.GetValueOrDefault();
+            genres.LoadGenres(details.Genres);
+            poster.LoadImage(Path.Combine(session.PosterRoot, entry.Id.ToString(CultureInfo.InvariantCulture)));
+            descriptionText.Text = Utilities.DecorateDescription(entry.Description ?? string.Empty);
+            authors.LoadPeople(details.Directors);
+        }
+        session.FilePath = pathText.Text;
+        await fileSize.LoadPathAsync(pathText.Text);
+    }
+
+    private bool SaveEntry()
+    {
+        if (string.IsNullOrWhiteSpace(titleText.Text))
+        {
+            titleText.Focus();
+            return false;
+        }
+        var entry = session.CreateEntry(titleText.Text, originalTitleText.Text, yearText.Text.ToInt(), pathText.Text, wanted.Checked);
+        entry.Description = session.PreserveDescription(descriptionText.Text);
+        var details = new CatalogDetails(entry, genres.GetGenres(), authors.GetPeople(), []);
+        var images = new Dictionary<string, byte[]> { [string.Empty] = poster.GetPngBytes() };
+        return session.Save(details, images);
+    }
+
+    private void OnPathChanged(object? sender, EventArgs e)
+    {
+        session.FilePath = pathText.Text;
+    }
+
+    private void OnFormClosed(object? sender, FormClosedEventArgs e)
+    {
+        fileSize.Cancel();
+        genres.DismissPicker();
+    }
+
+    private void OnDescriptionPaste(object? sender, EventArgs e)
+        => descriptionText.Text = Utilities.DecorateDescription(Clipboard.GetText());
+
+    private void OnDescriptionKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Control && e.KeyCode == Keys.V)
+        {
+            descriptionText.Text = Utilities.DecorateDescription(descriptionText.Text);
         }
     }
 
-    protected override bool StorePreEntryData() => true;
-    protected override bool StoreMainEntry() => SaveCatalogEntry(CatalogKind.Library, CatalogServices.GetPosterRoot(CatalogKind.Library));
-    protected override bool StorePostEntryData() => true;
-    protected override void StoreRelatedData() { }
-    protected override List<string> GetGenres()
+    private void ConfigureLibraryGenres(string path)
     {
-        switch (m_LibraryGenre)
+        if (path.Contains("Languages", StringComparison.OrdinalIgnoreCase))
         {
-            case LibraryGenre.LANGUAGES:
-                return Utilities.LibraryLanguagesGenres.Keys.ToList();
-            case LibraryGenre.LITERATURE:
-                return Utilities.LibraryLiteratureGenres.Keys.ToList();
-            case LibraryGenre.PROGRAMMING:
-                return Utilities.LibraryProgrammingGenres.Keys.ToList();
-            case LibraryGenre.MISC:
-                return Utilities.LibraryMiscGenres.Keys.ToList();
-            case LibraryGenre.COMMON:
-            default:
-                return Utilities.LibraryGenres.Keys.ToList();
+            genres.Configure(Utilities.LibraryLanguagesGenres.Keys.ToArray(), Utilities.GetLibraryGenreBySynonym, Utilities.GetLibraryLanguagesGenreImage);
         }
-    }
-    protected override string GetGenreBySynonym(string name)
-    {
-        return Utilities.GetLibraryGenreBySynonym(name);
-    }
-    protected override Bitmap GetGenreImage(string name)
-    {
-        switch (m_LibraryGenre)
+        else if (path.Contains("Literature", StringComparison.OrdinalIgnoreCase))
         {
-            case LibraryGenre.LANGUAGES:
-                return Utilities.GetLibraryLanguagesGenreImage(name);
-            case LibraryGenre.LITERATURE:
-                return Utilities.GetLibraryLiteratureGenreImage(name);
-            case LibraryGenre.PROGRAMMING:
-                return Utilities.GetLibraryProgrammingGenreImage(name);
-            case LibraryGenre.MISC:
-                return Utilities.GetLibraryMiscGenreImage(name);
-            case LibraryGenre.COMMON:
-            default:
-                return Utilities.GetLibraryGenreImage(name);
+            genres.Configure(Utilities.LibraryLiteratureGenres.Keys.ToArray(), Utilities.GetLibraryGenreBySynonym, Utilities.GetLibraryLiteratureGenreImage);
         }
-    }
-    protected virtual int GetStoredEntryId() => Store.FindId(CatalogKind.Library, FilePath);
-    #endregion
-
-
-    private LibraryGenre GetGenreByPath(string path)
-    {
-        if (path.Contains("Languages", StringComparison.InvariantCultureIgnoreCase))
+        else if (path.Contains("Programming", StringComparison.OrdinalIgnoreCase))
         {
-            return LibraryGenre.LANGUAGES;
+            genres.Configure(Utilities.LibraryProgrammingGenres.Keys.ToArray(), Utilities.GetLibraryGenreBySynonym, Utilities.GetLibraryProgrammingGenreImage);
         }
-
-        if (path.Contains("Literature", StringComparison.InvariantCultureIgnoreCase))
+        else
         {
-            return LibraryGenre.LITERATURE;
+            genres.Configure(Utilities.LibraryMiscGenres.Keys.ToArray(), Utilities.GetLibraryGenreBySynonym, Utilities.GetLibraryMiscGenreImage);
         }
-
-        if (path.Contains("Programming", StringComparison.InvariantCultureIgnoreCase))
-        {
-            return LibraryGenre.PROGRAMMING;
-        }
-
-        return LibraryGenre.MISC;
     }
 }

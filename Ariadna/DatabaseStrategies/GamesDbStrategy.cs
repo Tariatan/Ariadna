@@ -129,7 +129,7 @@ public class GamesDbStrategy : MediaDbStrategyBase
     protected virtual bool RemoveEntryFromDatabase(int id) => Store.Delete(CatalogKind.Game, id);
     protected override void ShowDataDialog(string path)
     {
-        var detailsForm = new GameDetailsForm(path, Logger);
+        using var detailsForm = new GameDetailsForm(path, Logger);
         detailsForm.FormClosed += OnDetailsFormClosed;
         detailsForm.ShowDialog();
     }

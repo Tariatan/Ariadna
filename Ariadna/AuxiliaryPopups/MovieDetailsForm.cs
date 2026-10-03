@@ -1,10 +1,10 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -12,221 +12,188 @@ using Ariadna.Extension;
 using Ariadna.Properties;
 using Ariadna.Storage;
 using Microsoft.Extensions.Logging;
-using TMDbLib.Client;
-using TMDbLib.Objects.TvShows;
-using TMDbLib.Utilities.Serializer;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Ariadna.AuxiliaryPopups;
 
-public class MovieDetailsForm(string filePath, ILogger logger) : DetailsForm(filePath, logger)
+public partial class MovieDetailsForm : Form, IEntryDetailsDialog
 {
-    #region Public Fields
+    private readonly string initialPath;
+    private readonly EntryEditorSession session;
+    private readonly ITmdbMetadataService metadataService;
+    private readonly CancellationTokenSource lifetime = new();
+    private bool metadataEdited;
+    private bool applyingMetadata;
+    private bool resourcesDisposed;
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public int TmdbMovieIndex { get; set; }
+    public int TmdbMovieIndex { get; set; } = -1;
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public int TmdbTvShowIndex { get; set; }
-    #endregion
+    public int TmdbTvShowIndex { get; set; } = -1;
 
-    #region Private Fields
-    private readonly TMDbClient m_TmDbClient = new(Settings.Default.TmdbApiKey);
-    #endregion
+    public MovieDetailsForm() : this(string.Empty, NullLogger.Instance) { }
 
-    #region OVERRIDEN FUNCTIONS
-    protected override void DoLoad()
+    public MovieDetailsForm(string filePath, ILogger logger) : this(filePath, logger, new TmdbMetadataService(logger)) { }
+
+    internal MovieDetailsForm(string filePath, ILogger logger, ITmdbMetadataService metadataService)
     {
-        m_CastPhotos.ImageSize = new Size(Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
-        m_DirectorsPhotos.ImageSize = new Size(Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
-
-        // Remove extension
-        m_TxtTitle.Text = m_TxtTitle.Text.RemoveExtension();
-        var length = Utilities.GetVideoDuration(FilePath);
-        m_TxtLength.Text = new TimeSpan(length.Hours, length.Minutes, length.Seconds).ToString(@"hh\:mm\:ss");
-
-        StoredDbEntryId = GetStoredEntryId();
-
-        if (StoredDbEntryId != -1)
-        {
-            LoadCatalogEntry(CatalogKind.Movie, CatalogServices.GetPosterRoot(CatalogKind.Movie));
-        }
-        else
-        {
-            if (TmdbMovieIndex != -1)
-            {
-                StartTmdbInfoLoad(FillMovieFieldsFromImdbAsync);
-            }
-            else if (TmdbTvShowIndex != -1)
-            {
-                StartTmdbInfoLoad(FillTvShowFieldsFromImdbAsync);
-            }
-        }
-
-        FillMediaInfo(FilePath);
+        initialPath = filePath;
+        InitializeComponent();
+        session = new EntryEditorSession(components, this, saveButton, CatalogKind.Movie, logger, SaveEntry, genres.DismissPicker);
+        DetailTheme.Apply(this);
+        fileSize.Configure(logger);
+        videoInfo.Configure(logger);
+        this.metadataService = metadataService;
+        directors.Configure(PersonRole.Director);
+        cast.Configure(PersonRole.Actor);
+        directors.PeopleAdded += OnPeopleAdded;
+        cast.PeopleAdded += OnPeopleAdded;
+        originalTitleText.TextChanged += OnMetadataEdited;
+        yearText.TextChanged += OnMetadataEdited;
+        descriptionText.TextChanged += OnMetadataEdited;
+        poster.ImageChanged += OnMetadataEdited;
+        genres.GenresChanged += OnMetadataEdited;
+        genres.Configure(Utilities.MovieGenres.Keys.ToArray(), Utilities.GetMovieGenreBySynonym, Utilities.GetMovieGenreImage);
     }
-    protected override void PrepareForStore()
-    {
-        m_DirectorsList.Capitalize();
-        m_CastList.Capitalize();
-    }
-    protected override bool StorePreEntryData() => true;
-    protected override bool StoreMainEntry() => SaveCatalogEntry(CatalogKind.Movie, CatalogServices.GetPosterRoot(CatalogKind.Movie));
-    protected override void StoreRelatedData() { }
 
-    protected override void DoAddListViewItemFromClipboard(ListView listView, ImageList imageList)
-    {
-        foreach (var item in Clipboard.GetText().Split(','))
-        {
-            AddNewListItem(listView, imageList, item.Capitalize());
-        }
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public int StoredDbEntryId => session.StoredDbEntryId;
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Utilities.EFormCloseReason FormCloseReason => session.FormCloseReason;
 
-        FetchPreviews(listView, imageList);
-    }
-    protected override List<string> GetGenres()
+    private async void OnLoad(object? sender, EventArgs e)
     {
-        return Utilities.MovieGenres.Keys.ToList();
-    }
-    protected override string GetGenreBySynonym(string name)
-    {
-        return Utilities.GetMovieGenreBySynonym(name);
-    }
-    protected override Bitmap GetGenreImage(string name)
-    {
-        return Utilities.GetMovieGenreImage(name);
-    }
-    protected virtual int GetStoredEntryId() => Store.FindId(CatalogKind.Movie, FilePath);
-    protected virtual Task EnsureTmdbConfigAsync()
-    {
-        return FetchConfig(m_TmDbClient);
-    }
-    #endregion
-
-    private async void StartTmdbInfoLoad(Func<Task> loadEntryDetailsAsync)
-    {
-        if (!await TryExecuteTmdbActionAsync(EnsureTmdbConfigAsync))
+        if (string.IsNullOrEmpty(initialPath))
         {
             return;
         }
-
-        await TryExecuteTmdbActionAsync(loadEntryDetailsAsync);
-    }
-    private static async Task FetchConfig(TMDbClient client)
-    {
-        var configJson = new FileInfo("config.json");
-
-        if (configJson.Exists && configJson.LastWriteTimeUtc >= DateTime.UtcNow.AddHours(-10))
+        session.Load(initialPath);
+        titleText.Text = Path.GetFileName(initialPath).RemoveExtension();
+        pathText.Text = initialPath;
+        if (session.Loaded is { } details)
         {
-            var json = await File.ReadAllTextAsync(configJson.FullName, Encoding.UTF8);
-            client.SetConfig(TMDbJsonSerializer.Instance.DeserializeFromString<TMDbLib.Objects.General.TMDbConfig>(json));
+            var entry = details.Entry;
+            titleText.Text = entry.Title;
+            originalTitleText.Text = entry.OriginalTitle;
+            yearText.Text = entry.Year > 0 ? entry.Year.ToString(CultureInfo.InvariantCulture) : string.Empty;
+            pathText.Text = entry.Path;
+            wanted.Checked = entry.Wanted.GetValueOrDefault();
+            genres.LoadGenres(details.Genres);
+            poster.LoadImage(Path.Combine(session.PosterRoot, entry.Id.ToString(CultureInfo.InvariantCulture)));
+            descriptionText.Text = Utilities.DecorateDescription(entry.Description ?? string.Empty);
+            directors.LoadPeople(details.Directors);
+            cast.LoadPeople(details.Actors);
         }
-        else
+        session.FilePath = pathText.Text;
+        metadataEdited = false;
+        var sizeTask = fileSize.LoadPathAsync(pathText.Text);
+        var videoTask = videoInfo.LoadPathAsync(pathText.Text);
+        var metadataTask = session.Loaded == null ? LoadMetadataAsync() : Task.CompletedTask;
+        await Task.WhenAll(sizeTask, videoTask, metadataTask);
+    }
+
+    private bool SaveEntry()
+    {
+        if (string.IsNullOrWhiteSpace(titleText.Text))
         {
-            var config = await client.GetConfigAsync();
-            var json = TMDbJsonSerializer.Instance.SerializeToString(config);
-            await File.WriteAllTextAsync(configJson.FullName, json, Encoding.UTF8);
+            titleText.Focus();
+            return false;
         }
+        var entry = session.CreateEntry(titleText.Text, originalTitleText.Text, yearText.Text.ToInt(), pathText.Text, wanted.Checked);
+        entry.Description = session.PreserveDescription(descriptionText.Text);
+        var details = new CatalogDetails(entry, genres.GetGenres(), directors.GetPeople(), cast.GetPeople());
+        var images = new Dictionary<string, byte[]> { [string.Empty] = poster.GetPngBytes() };
+        return session.Save(details, images);
     }
-    private async Task<bool> TryExecuteTmdbActionAsync(Func<Task> action)
+
+    private void OnPathChanged(object? sender, EventArgs e)
     {
-        for (var attempt = 1; attempt <= 2; attempt++)
+        session.FilePath = pathText.Text;
+    }
+
+    private void OnFormClosed(object? sender, FormClosedEventArgs e)
+    {
+        fileSize.Cancel();
+        videoInfo.Cancel();
+        lifetime.Cancel();
+        genres.DismissPicker();
+    }
+
+    private void OnDescriptionPaste(object? sender, EventArgs e)
+        => descriptionText.Text = Utilities.DecorateDescription(Clipboard.GetText());
+
+    private void OnDescriptionKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Control && e.KeyCode == Keys.V)
         {
-            try
-            {
-                await action();
-                return true;
-            }
-            catch (Exception)
-            {
-                // do nothing
-            }
-        }
-
-        return false;
-    }
-    protected virtual async Task FillMovieFieldsFromImdbAsync()
-    {
-        var entry = await m_TmDbClient.GetMovieAsync(TmdbMovieIndex, Settings.Default.ImdbLanguage);
-        var year = entry.ReleaseDate != null ? entry.ReleaseDate.Value.Year.ToString() : "0";
-        await FillFieldsAsync(entry.PosterPath, entry.OriginalTitle, entry.Overview, year, entry.Genres);
-    }
-    protected virtual async Task FillTvShowFieldsFromImdbAsync()
-    {
-        var entry = await m_TmDbClient.GetTvShowAsync(TmdbTvShowIndex, TvShowMethods.Undefined, Settings.Default.ImdbLanguage);
-        var year = (entry.FirstAirDate != null) ? entry.FirstAirDate.Value.Year.ToString() : "0";
-        await FillFieldsAsync(entry.PosterPath, entry.OriginalName, entry.Overview, year, entry.Genres);
-    }
-    protected virtual async Task FillFieldsAsync(string posterPath, string origTitle, string overview, string year, List<TMDbLib.Objects.General.Genre> genres)
-    {
-        if (posterPath != null)
-        {
-            // Download first available Poster
-            var imgSize = m_TmDbClient.Config.Images.PosterSizes.Last();
-            var urlOriginal = m_TmDbClient.GetImageUrl(imgSize, posterPath).AbsoluteUri;
-            var bts = await m_TmDbClient.GetImageBytesAsync(imgSize, urlOriginal, false, CancellationToken.None);
-
-            // Scale image
-            var bmp = new Bitmap(Settings.Default.PosterWidth, Settings.Default.PosterHeight);
-            var graph = Graphics.FromImage(bmp);
-            graph.DrawImage(bts.ToBitmap(), new Rectangle(0, 0, Settings.Default.PosterWidth, Settings.Default.PosterHeight));
-
-            // Set Poster image
-            m_PicPoster.Image = new Bitmap(bmp);
-        }
-
-        m_TxtTitleOrig.Text = origTitle;
-        m_TxtYear.Text = year;
-        m_TxtDescription.Text = overview;
-
-        foreach (var genre in genres)
-        {
-            AddGenre(genre.Name);
+            descriptionText.Text = Utilities.DecorateDescription(descriptionText.Text);
         }
     }
-    private async void FetchPreviews(ListView listView, ImageList imageList)
-    {
-        var actorNames = (from ListViewItem item in listView.Items 
-            where !Utilities.IsValidPreview(imageList.Images[imageList.Images.IndexOfKey(item.Text)].ToBytes())
-            select item.Text).ToList();
 
-        var downloadTasks = actorNames.Select(name => FetchAndDownloadActorPhotoAsync(name, listView, imageList));
-        await Task.WhenAll(downloadTasks);
+    private void OnMetadataEdited(object? sender, EventArgs e)
+    {
+        if (!applyingMetadata)
+        {
+            metadataEdited = true;
+        }
     }
 
-    private async Task FetchAndDownloadActorPhotoAsync(string actorName, ListView listView, ImageList imageList)
+    private async Task LoadMetadataAsync()
     {
+        var token = lifetime.Token;
         try
         {
-            // Search for the actor
-            var searchResult = await m_TmDbClient.SearchPersonAsync(actorName, "ru-RU");
-            var actor = searchResult.Results?.FirstOrDefault();
-
-            if (actor == null)
+            var metadata = await metadataService.LoadAsync(TmdbMovieIndex, TmdbTvShowIndex, token);
+            if (metadata == null || token.IsCancellationRequested || IsDisposed || metadataEdited)
             {
                 return;
             }
-
-            if (string.IsNullOrEmpty(actor.ProfilePath))
+            applyingMetadata = true;
+            try
             {
-                return;
+                originalTitleText.Text = metadata.OriginalTitle;
+                yearText.Text = metadata.Year.ToString(CultureInfo.InvariantCulture);
+                descriptionText.Text = metadata.Description;
+                if (metadata.Poster != null)
+                {
+                    using var image = metadata.Poster.ToBitmap();
+                    poster.SetImage(image);
+                }
+                foreach (var genre in metadata.Genres)
+                {
+                    genres.AddGenre(genre);
+                }
             }
-
-            // Download first available Photo
-            var imgSize = m_TmDbClient.Config.Images.ProfileSizes.Last();
-            var urlOriginal = m_TmDbClient.GetImageUrl(imgSize, actor.ProfilePath).AbsoluteUri;
-            var bts = await m_TmDbClient.GetImageBytesAsync(imgSize, urlOriginal);
-
-            // Scale image
-            var bmp = new Bitmap(Settings.Default.PortraitWidth, Settings.Default.PortraitHeight);
-            var graph = Graphics.FromImage(bmp);
-            graph.DrawImage(bts.ToBitmap(), new Rectangle(0, 0, Settings.Default.PortraitWidth, Settings.Default.PortraitHeight));
-
-            // Set Photo image
-            imageList.Images[imageList.Images.IndexOfKey(actorName)] = bmp;
-            listView.Refresh();
+            finally
+            {
+                applyingMetadata = false;
+            }
         }
-        catch (Exception)
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+    }
+
+    private async void OnPeopleAdded(object? sender, EventArgs e)
+    {
+        if (sender is not PeopleEditorControl editor)
         {
-            // ignored
+            return;
         }
+        var token = lifetime.Token;
+        try
+        {
+            var tasks = editor.GetMissingPhotoNames().Select(async name =>
+            {
+                var photo = await metadataService.GetPortraitAsync(name, token);
+                if (photo != null && !token.IsCancellationRequested && !IsDisposed)
+                {
+                    editor.ApplyDownloadedPhoto(name, photo);
+                }
+            });
+            await Task.WhenAll(tasks);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
     }
 }

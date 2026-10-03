@@ -258,21 +258,42 @@ one shared process.
 
 ### Entry Detail Forms
 
-`DetailsForm` (abstract base) provides shared detail/edit dialog behavior:
-- Async directory size calculation with cancellation
-- Async MediaInfo loading (resolution, bitrate, audio language detection)
-- Duration lookup through the bundled MediaInfo reader; no Windows Shell dependency
-- Genre picker via `FloatingPanel` overlay
-- Director/actor photo management
-- Templated DB save flow: `StorePreEntryData()` → `StoreMainEntry()` → `StorePostEntryData()` → `StoreRelatedData()`
+`MovieDetailsForm`, `GameDetailsForm`, `DocumentaryDetailsForm`, and
+`LibraryDetailsForm` each inherit directly from WinForms `Form`, with their own
+designer and resources. Each owns its layout, loading, validation, and explicit
+mapping to `CatalogDetails`. There is no shared detail-form base or save-hook chain.
+The small `IEntryDetailsDialog` contract exposes the stored ID and close reason.
 
-Concrete subclasses: `MovieDetailsForm`, `GameDetailsForm`, `DocumentaryDetailsForm`, `LibraryDetailsForm`.
+Shared behavior is composed into the forms:
 
-The template flow remains for workflow characterization. Production forms save
-metadata, people, and genres through one complete-entry storage operation; the
-pre/post hooks are no-ops. Selected images participate in recoverable promotion.
-Background directory/MediaInfo work retains existing cancellation, disposal, and
-stale-result guards. Automated shown-form checks use disposable SQLite/image data.
+- `GenreSelectionControl` owns genre normalization, duplicate/limit handling,
+  paste/delete, and a disposable `FloatingPanel` picker. Existing lists above the
+  configured limit remain intact; the limit applies to new additions.
+- `PeopleEditorControl` owns paste, rename, delete, and portrait replacement,
+  configured explicitly for director, actor, or author lookup. Enter commits a
+  label edit without saving the dialog; F2 acts on that editor's selected person.
+- `ImageEditorControl` owns cloned images and releases source file handles;
+  `GamePreviewsControl` composes four numbered previews and the selected view.
+- `FileSizeControl` and `VideoInfoControl` use `IFileInspectionService` for
+  cancellable size and bundled MediaInfo work. Only movies/documentaries request
+  video information; replaced or completed requests cannot apply stale results.
+- `MovieDetailsForm` uses `ITmdbMetadataService` for movie/series metadata and
+  missing portraits. Closing cancels requests; late metadata does not overwrite
+  manual edits, and downloaded portraits do not replace manual portraits.
+- `EntryEditorSession`, owned by the form's component container, handles lookup,
+  save/ignore, keyboard commands, and save failure recovery without owning any
+  collection controls. Forms are disposed by their modal callers.
+
+Save still uses one existing `CatalogStore.Save` operation for metadata, genres,
+people, and recoverable image promotion. IDs, unchanged nullable flags/dates,
+undecorated descriptions, and configured poster/preview filenames are preserved.
+Escape cancels editing; Shift-confirm ignores the path. TMDb choices accept Enter
+or double-click and clear a selected index on cancellation.
+
+Automated shown-form checks use disposable real SQLite/image data, including
+save/reopen, relationship clearing, cancellation, and delayed-result behavior.
+The current verification scope and remaining native checks are recorded in
+[PLAN.md](PLAN.md).
 
 ### Embedded ImageListView
 
@@ -295,7 +316,7 @@ Ariadna.sln
 │   ├── MainPanel.cs/.Designer.cs   # Main application window
 │   ├── Utilities.cs                # Genre dictionaries, image helpers, video duration
 │   ├── App.config                  # Connection string and all application settings
-│   ├── AuxiliaryPopups/            # Modal dialogs (DetailsForm, FloatingPanel, ChoicePopup)
+│   ├── AuxiliaryPopups/            # Independent detail forms, composed editors/services, picker/choice dialogs
 │   ├── Data/                       # DTOs (EntryDto, EntryInfo, MovieChoiceDto)
 │   ├── DatabaseStrategies/         # AbstractDbStrategy + 4 concrete strategies + helpers
 │   ├── Extension/                  # Static extension methods

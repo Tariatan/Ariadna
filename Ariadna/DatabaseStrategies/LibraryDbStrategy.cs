@@ -112,7 +112,7 @@ public class LibraryDbStrategy : AbstractDbStrategy
     }
     protected virtual void ShowDataDialog(string path)
     {
-        var detailsForm = new LibraryDetailsForm(path, m_Logger);
+        using var detailsForm = new LibraryDetailsForm(path, m_Logger);
         detailsForm.FormClosed += OnDetailsFormClosed;
         detailsForm.ShowDialog();
     }

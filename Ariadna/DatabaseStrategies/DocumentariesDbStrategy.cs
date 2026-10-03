@@ -89,7 +89,7 @@ public class DocumentariesDbStrategy : MediaDbStrategyBase
 
     protected override void ShowDataDialog(string path)
     {
-        var detailsForm = new DocumentaryDetailsForm(path, Logger);
+        using var detailsForm = new DocumentaryDetailsForm(path, Logger);
         detailsForm.FormClosed += OnDetailsFormClosed;
         detailsForm.ShowDialog();
     }
