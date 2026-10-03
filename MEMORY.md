@@ -7,10 +7,12 @@ Last updated: 2026-10-03. Scope: this repository only.
 - Personal Windows catalog with four independently launched modes: movies/series,
   documentaries, games, and library. Keep simultaneous processes and each mode's
   fields, genres, palette, and paths working.
-- Current implementation: .NET 9 WinForms and direct SQLite through
+- Current implementation: .NET 10 WinForms and direct SQLite through
   Ariadna.Storage. Legacy EF6/LocalDB and DbProvider were removed. Only the separate
   migration utility uses a SQL client for legacy export. Dependencies are locked;
-  no SDK pin is configured.
+  global.json pins stable SDK 10.0.401 with latestPatch updates in 10.0.4xx.
+  Ariadna.slnx contains all six desktop/storage/migration/test projects; the
+  desktop has no reference to the migration CLI.
 - IDs identify extensionless posters. Game previews use the configured suffix
   and numbers 1 through 4. Preserve existing IDs, NULLs, relationships, ignore
   paths, and assets. Database and images form one recovery dataset.
@@ -44,7 +46,33 @@ Last updated: 2026-10-03. Scope: this repository only.
   selection. Automated selection/cancel tests passed; exhaustive native clipboard,
   image-dialog, live TMDb, and clean-machine acceptance remain open.
 - No personal catalog or image data was used or modified for this refactor.
-  Storage/migration implementation and versions remain unchanged.
+  Storage/migration implementation and versions were unchanged by that refactor.
+
+- 2026-10-03: upgraded all six projects to .NET 10 and replaced Ariadna.sln with
+  Ariadna.slnx. Versions are Ariadna 3.0.0, Storage 2.0.0, and Migration 2.0.0
+  because runtime/consumer requirements changed. Schema and recovery formats
+  are unchanged. Direct package versions are unchanged; locks use net10 assets.
+- Locked restore, Debug/Release across Any CPU/x64/x86 (zero warnings/errors),
+  167 desktop + 38 storage + 5 migration tests, and self-contained win-x64
+  publishing passed. Visual Studio 2026 loaded the SLNX with all six projects.
+  ChoicePopup explicitly retains ManagerRenderMode for the changed WinForms
+  status-bar default.
+- Native Windows smoke checks of the published .NET 10 app used disposable
+  synthetic catalogs: all four modes ran concurrently, rendered posters, and
+  opened, saved unchanged, and reopened details; game previews also rendered.
+  A synthetic choice-dialog harness displayed its status bar and Escape closed
+  it. Clean-machine and exhaustive control/integration acceptance remain open.
+
+- 2026-10-03: fixed a startup cleanup failure in Storage 2.0.1. An empty image
+  recovery directory was read-only; cleanup now clears only that directory's
+  read-only flag and retains commit/rollback behavior and other access failures.
+  Four disposable filesystem regressions failed before the fix and pass afterward.
+  Locked restore, Debug/Release builds (zero warnings/errors), 214 total tests,
+  and self-contained win-x64 publishing passed. The reported empty directory's
+  read-only flag was cleared; no catalog records or image contents were changed
+  by this direct repair.
+  The published app opened its native poster grid with a synthetic catalog and
+  removed a deliberately read-only empty recovery directory during startup.
 
 ## Resume here
 

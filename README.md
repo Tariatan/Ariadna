@@ -3,7 +3,7 @@
 A Windows desktop app for managing a personal media library — movies, documentaries, games, and books — with poster thumbnails and rich metadata.
 
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
-![Framework](https://img.shields.io/badge/.NET-9.0-purple)
+![Framework](https://img.shields.io/badge/.NET-10.0-purple)
 ![Language](https://img.shields.io/badge/language-C%23-239120)
 
 **Status:** the WinForms catalog now uses SQLite through a focused storage layer.
@@ -38,27 +38,27 @@ Each mode has its own color theme, toolbar, and genre set. You can run all four 
 
 ## Requirements
 
-- Windows 10+ (x64), .NET 9.0
-- .NET 9 SDK for development; the self-contained Windows publish includes its runtime
+- Windows 10+ (x64), .NET 10.0
+- .NET 10 SDK 10.0.401 or a newer 10.0.4xx patch for development; the self-contained Windows publish includes its runtime
 - A verified SQLite catalog and its matching image folders
 - Paths to your media folders and a [TMDb API key](https://developer.themoviedb.org/docs/getting-started) configured in `Ariadna/App.config`
 
 ## Getting started
 
-Open `Ariadna.sln` in Rider or Visual Studio with the .NET 9 SDK. All production
-projects use SDK-style package references and checked-in NuGet lock files:
+Open `Ariadna.slnx` in Visual Studio 2026 or an editor with SLNX support. The
+solution contains all six desktop, storage, migration, and test projects.
+`global.json` selects SDK 10.0.401 with patch updates allowed within 10.0.4xx;
+preview SDKs are excluded. Dependencies use checked-in NuGet lock files:
 
 ```powershell
-dotnet restore Ariadna.sln --locked-mode
-dotnet build Ariadna.sln -c Release --no-restore
-dotnet test Ariadna.sln -c Release --no-build --no-restore
-dotnet restore Ariadna.Migration.Tests/Ariadna.Migration.Tests.csproj --locked-mode
-dotnet test Ariadna.Migration.Tests/Ariadna.Migration.Tests.csproj -c Release --no-restore
-dotnet publish Ariadna/Ariadna.csproj -c Release -r win-x64 --self-contained true -o publish
+dotnet restore Ariadna.slnx --locked-mode
+dotnet build Ariadna.slnx -c Release --no-restore
+dotnet test Ariadna.slnx -c Release --no-build --no-restore
+dotnet publish Ariadna/Ariadna.csproj -c Release -r win-x64 --self-contained true --no-restore -o publish
 ```
 
 Close running instances before rebuilding. Launch
-`Ariadna/bin/Release/net9.0-windows8.0/Ariadna.exe` with a mode above; no argument
+`Ariadna/bin/Release/net10.0-windows8.0/Ariadna.exe` with a mode above; no argument
 defaults to movies. A missing catalog produces a recovery error instead of creating
 an empty database. The separate `Ariadna.Migration` utility provides lossless export,
 import, verification, and matched SQLite/image snapshots. See
@@ -69,9 +69,10 @@ Release builds/tests and a self-contained win-x64 publish were verified during t
 migration. Version 2.0.1 removes Windows API Code Pack and uses the bundled MediaInfo
 reader for duration; existing-video regression tests cover details opening.
 Version 2.1.0 gives each collection an independent detail form, composed from
-shared controls and services. See [PLAN.md](docs/PLAN.md) for the verified checks
-and remaining manual integration review. There is no SDK pin or clean-machine
-installation test.
+shared controls and services. Version 3.0.0 requires .NET 10 for framework-dependent
+runs and uses the six-project SLNX solution. See [PLAN.md](docs/PLAN.md) for the
+verified checks and remaining manual integration review. A clean-machine
+installation test remains open.
 
 ## Documentation
 

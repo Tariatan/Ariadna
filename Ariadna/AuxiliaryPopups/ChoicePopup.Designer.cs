@@ -77,6 +77,7 @@
             m_StatusStrip.Location = new System.Drawing.Point(0, 272);
             m_StatusStrip.Name = "m_StatusStrip";
             m_StatusStrip.Padding = new System.Windows.Forms.Padding(1, 0, 16, 0);
+            m_StatusStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.ManagerRenderMode;
             m_StatusStrip.Size = new System.Drawing.Size(679, 25);
             m_StatusStrip.SizingGrip = false;
             m_StatusStrip.Stretch = false;

@@ -73,6 +73,13 @@ public sealed class CatalogAssets(string root, IReadOnlyDictionary<string, byte[
 
     internal static void Recover(string directory, bool committed)
     {
+        // A read-only staging directory cannot be removed on Windows, even when empty.
+        var attributes = File.GetAttributes(directory);
+        if ((attributes & FileAttributes.ReadOnly) != 0)
+        {
+            File.SetAttributes(directory, attributes & ~FileAttributes.ReadOnly);
+        }
+
         var journalPath = Path.Combine(directory, "journal.json");
         if (!File.Exists(journalPath))
         {

@@ -13,6 +13,14 @@ Versioning rule:
 
 ## Ariadna
 
+### [3.0.0] - 2026-10-03
+
+#### Changed
+
+- Upgraded the desktop to .NET 10; framework-dependent deployments now require the .NET 10 Windows Desktop runtime. Self-contained win-x64 publishing includes the runtime.
+- Replaced Ariadna.sln with Ariadna.slnx, including all six desktop, storage, migration, and test projects. Pinned SDK 10.0.401 with stable patch updates within the 10.0.4xx feature band; refreshed dependency locks without changing direct package versions.
+- Explicitly retained the TMDb choice dialog's status-bar renderer after the WinForms default changed in .NET 10.
+
 ### [2.1.0] - 2026-10-03
 
 #### Changed
@@ -51,6 +59,18 @@ Versioning rule:
 
 ## Ariadna.Storage
 
+### [2.0.1] - 2026-10-03
+
+#### Fixed
+
+- Clear the read-only attribute on image recovery directories before cleanup, preventing an empty leftover save directory from blocking startup or subsequent saves. Preserve commit/rollback decisions and surface other access failures.
+
+### [2.0.0] - 2026-10-03
+
+#### Changed
+
+- Retargeted the storage library to .NET 10, raising the runtime requirement for consumers. Catalog schema, data format, and recovery behavior are unchanged.
+
 ### [1.0.0] - 2026-10-03
 
 #### Added
@@ -58,6 +78,12 @@ Versioning rule:
 - Direct SQLite catalog operations, explicit schema and Unicode comparison, complete-entry transactions, integrity/backup operations, and recoverable external image writes.
 
 ## Ariadna.Migration
+
+### [2.0.0] - 2026-10-03
+
+#### Changed
+
+- Retargeted the migration utility to .NET 10 and included it and its tests in Ariadna.slnx. Framework-dependent CLI runs require .NET 10; export, verification, and snapshot formats are unchanged.
 
 ### [1.0.0] - 2026-10-03
 

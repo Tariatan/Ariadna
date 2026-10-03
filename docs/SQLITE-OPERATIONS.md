@@ -3,7 +3,7 @@
 Implemented on 2026-10-03. The desktop uses `Ariadna.Storage` and direct
 `Microsoft.Data.Sqlite` commands. EF, EDMX/T4, SQL Server configuration, and the
 legacy DbProvider project have been removed. The conversion tool is a separate
-project and is not referenced by the desktop or its production solution.
+project included in the solution; it is not referenced by the desktop.
 
 ## Catalog format
 
@@ -30,6 +30,10 @@ commit. The next save or startup removes completed journals. Database and image
 updates are recoverable; independent readers may briefly see promoted images
 before the database commit. Keep the catalog and its recovery journals on local
 storage, with the configured asset folders accessible.
+Recovery clears the read-only attribute on its own staging directories before
+removing them. An empty read-only leftover can otherwise prevent startup even
+after all image work completed. Other access failures still stop recovery;
+do not delete nonempty journals manually because they may be needed for rollback.
 
 Text uses a registered `ARIADNA` collation backed by Windows/.NET en-US
 case-insensitive comparison; literal substring search is Unicode aware. Cyrillic

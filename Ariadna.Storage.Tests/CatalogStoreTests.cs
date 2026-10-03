@@ -313,6 +313,101 @@ public sealed class CatalogStoreTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void RecoverAssets_ReadOnlyEmptyRecoveryDirectory_RemovesDirectoryAndCommitMarker(bool committed)
+    {
+        // Arrange
+        var token = Guid.NewGuid().ToString("N");
+        var staging = Path.Combine(directory, ".ariadna-save-" + token);
+        Directory.CreateDirectory(staging);
+        File.SetAttributes(staging, File.GetAttributes(staging) | FileAttributes.ReadOnly);
+        if (committed)
+        {
+            using var connection = database.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = "INSERT INTO CatalogAssetCommit(token) VALUES ($token)";
+            command.Parameters.AddWithValue("$token", token);
+            command.ExecuteNonQuery();
+        }
+
+        try
+        {
+            // Act
+            database.RecoverAssets();
+
+            // Assert
+            Assert.IsFalse(Directory.Exists(staging));
+            using var connection = database.Open(true);
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT COUNT(*) FROM CatalogAssetCommit";
+            Assert.AreEqual(0L, command.ExecuteScalar());
+            database.CheckIntegrity();
+        }
+        finally
+        {
+            if (Directory.Exists(staging))
+            {
+                File.SetAttributes(staging, File.GetAttributes(staging) & ~FileAttributes.ReadOnly);
+            }
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void RecoverAssets_ReadOnlyRecoveryDirectory_PreservesCommittedImagesOrRestoresUncommittedImages(bool committed)
+    {
+        // Arrange
+        var root = Path.Combine(directory, "images");
+        Directory.CreateDirectory(root);
+        var poster = Path.Combine(root, "42");
+        var preview = Path.Combine(root, "42_preview1");
+        byte[] expectedPoster = committed ? [1] : [9];
+        byte[] expectedPreview = [2];
+        File.WriteAllBytes(poster, [9]);
+        var assets = new CatalogAssets(root, new Dictionary<string, byte[]> { [string.Empty] = [1], ["_preview1"] = [2] });
+        assets.Prepare(directory, 42);
+        assets.Promote();
+        var staging = Directory.GetDirectories(directory, ".ariadna-save-*").Single();
+        File.SetAttributes(staging, File.GetAttributes(staging) | FileAttributes.ReadOnly);
+        if (committed)
+        {
+            using var connection = database.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = "INSERT INTO CatalogAssetCommit(token) VALUES ($token)";
+            command.Parameters.AddWithValue("$token", assets.Token);
+            command.ExecuteNonQuery();
+        }
+
+        try
+        {
+            // Act
+            database.RecoverAssets();
+
+            // Assert
+            CollectionAssert.AreEqual(expectedPoster, File.ReadAllBytes(poster));
+            if (committed)
+            {
+                CollectionAssert.AreEqual(expectedPreview, File.ReadAllBytes(preview));
+            }
+            else
+            {
+                Assert.IsFalse(File.Exists(preview));
+            }
+            Assert.IsFalse(Directory.Exists(staging));
+            database.CheckIntegrity();
+        }
+        finally
+        {
+            if (Directory.Exists(staging))
+            {
+                File.SetAttributes(staging, File.GetAttributes(staging) & ~FileAttributes.ReadOnly);
+            }
+        }
+    }
+
+    [TestMethod]
     public void Delete_RelatedEntry_RemovesRelationsAndKeepsSharedPeople()
     {
         // Arrange

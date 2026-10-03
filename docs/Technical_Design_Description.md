@@ -16,16 +16,19 @@ handoff evidence belongs in repository MEMORY.md.
 
 ## Scope
 
-This document covers all projects in `Ariadna.sln`:
+This document covers all six projects in `Ariadna.slnx`:
 
-- **Ariadna** — WinForms desktop application, targeting `net9.0-windows8.0`
-- **Ariadna.Storage** — direct SQLite storage, targeting `net9.0`
-- **Ariadna.Storage.Tests** — real-provider integration tests, targeting `net9.0`
-- **Ariadna.Tests** — MSTest characterization/unit tests, targeting `net9.0-windows8.0`
+- **Ariadna** — WinForms desktop application, targeting `net10.0-windows8.0`
+- **Ariadna.Storage** — direct SQLite storage, targeting `net10.0`
+- **Ariadna.Storage.Tests** — real-provider integration tests, targeting `net10.0`
+- **Ariadna.Tests** — MSTest characterization/unit tests, targeting `net10.0-windows8.0`
+- **Ariadna.Migration** — standalone migration/recovery CLI, targeting `net10.0`
+- **Ariadna.Migration.Tests** — synthetic import/compare/snapshot tests, targeting `net10.0`
 
-The production backend is SQLite. `Ariadna.Migration` and its tests are separate
-projects outside the production solution; only SQL export/comparison needs a SQL
-Server client. The desktop has no EF or SQL Server dependency.
+The production backend is SQLite. The migration CLI and its tests participate
+in solution-wide builds/tests; the desktop does not reference the CLI. Only SQL
+export/comparison needs a SQL Server client. The desktop has no EF or SQL Server
+dependency.
 
 ## References
 
@@ -127,7 +130,7 @@ differences are recorded in the operations guide.
 ## Requirements
 
 - **OS**: Windows 10 or later (x64)
-- **Runtime**: .NET 9.0 (net9.0-windows8.0)
+- **Runtime**: .NET 10.0 (net10.0-windows8.0); self-contained publishing includes it
 - **Database**: a verified SQLite catalog plus matching external image directories
 - **External tools** (optional, paths configured in `App.config`):
   - [MPC-HC](https://github.com/clsid2/mpc-hc) — media player for opening video files
@@ -179,7 +182,11 @@ required path separators. Typed settings are generated from
 Use [README.md](../README.md) for build/test guidance and its verification limits.
 All production projects are SDK-style and use locked NuGet dependencies. The
 legacy DbProvider project, generated/linked models, EF packages, and EDMX/T4
-build tooling have been removed.
+build tooling have been removed. `Ariadna.slnx` includes all six projects and retains
+the Debug/Release and Any CPU/x64/x86 solution configurations. `global.json` pins
+SDK 10.0.401 with `latestPatch` roll-forward within 10.0.4xx and excludes previews.
+Framework-dependent runs and consumers of the storage library now require .NET 10;
+the schema and matched database/image recovery format are unchanged.
 
 ---
 
@@ -246,6 +253,9 @@ original 19 data tables are retained, plus internal image commit metadata:
 saves, and relationship-aware deletes. `CatalogDatabase` owns validated connections,
 backup, integrity checks, writer coordination, and image-journal recovery. Lists and
 entry information avoid loading photos; details and suggestions request them.
+Recovery clears the read-only attribute on its own staging directories before
+cleanup so empty leftovers do not block startup or later writes. Commit/rollback
+decisions are unchanged; other filesystem access failures still propagate.
 
 ### Theming
 
@@ -290,6 +300,9 @@ undecorated descriptions, and configured poster/preview filenames are preserved.
 Escape cancels editing; Shift-confirm ignores the path. TMDb choices accept Enter
 or double-click and clear a selected index on cancellation.
 
+The choice dialog explicitly uses `ManagerRenderMode` for its status bar to
+preserve its existing appearance under .NET 10's changed WinForms default.
+
 Automated shown-form checks use disposable real SQLite/image data, including
 save/reopen, relationship clearing, cancellation, and delayed-result behavior.
 The current verification scope and remaining native checks are recorded in
@@ -310,8 +323,8 @@ The `Ariadna/ImageListView/` directory contains an embedded fork of the open-sou
 ## Project Structure
 
 ```
-Ariadna.sln
-├── Ariadna/                        # Main WinForms application (net9.0-windows)
+Ariadna.slnx
+├── Ariadna/                        # Main WinForms application (net10.0-windows)
 │   ├── Program.cs                  # Entry point — selects strategy + theme by CLI arg
 │   ├── MainPanel.cs/.Designer.cs   # Main application window
 │   ├── Utilities.cs                # Genre dictionaries, image helpers, video duration
@@ -328,7 +341,9 @@ Ariadna.sln
 │   └── Themes/                     # Theme base + ThemeMovies/Games/Documentaries/Library
 ├── Ariadna.Storage/                # Focused SQLite operations, schema, image recovery
 ├── Ariadna.Storage.Tests/          # Real SQLite integration tests
-└── Ariadna.Tests/                  # MSTest unit test project (net9.0-windows)
+├── Ariadna.Migration/              # Standalone export/import/compare/snapshot CLI
+├── Ariadna.Migration.Tests/        # Synthetic migration/recovery tests
+└── Ariadna.Tests/                  # MSTest unit test project (net10.0-windows)
     ├── AuxiliaryPopups/
     ├── DatabaseStrategies/
     ├── ImageListHelpers/
@@ -352,7 +367,7 @@ Ariadna.sln
 | MSTest.TestFramework / TestAdapter | 4.2.1 | Unit testing |
 
 Versions reflect project files and locked packages on 2026-10-03. Locked restores
-are verified; no SDK pin is configured. The separate migration tool uses
+use the SDK pin in global.json. The separate migration tool uses
 Microsoft.Data.SqlClient 7.1.1 for SQL export/comparison only.
 
 ---

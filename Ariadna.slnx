@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Ariadna.Migration.Tests/Ariadna.Migration.Tests.csproj" />
+  <Project Path="Ariadna.Migration/Ariadna.Migration.csproj" />
+  <Project Path="Ariadna.Storage.Tests/Ariadna.Storage.Tests.csproj" />
+  <Project Path="Ariadna.Storage/Ariadna.Storage.csproj" />
+  <Project Path="Ariadna.Tests/Ariadna.Tests.csproj" />
+  <Project Path="Ariadna/Ariadna.csproj" />
+</Solution>

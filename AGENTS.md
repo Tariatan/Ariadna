@@ -19,7 +19,7 @@ Resolve contradictions explicitly instead of silently choosing an old memory ent
 
 Ariadna is a personal Windows media catalog with four independently launched
 modes: movies, documentaries, games, and library. The current application uses
-C#/.NET 9 WinForms and direct SQLite storage in Ariadna.Storage. The separate
+C#/.NET 10 WinForms and direct SQLite storage in Ariadna.Storage. The separate
 migration utility alone uses a SQL client for legacy export. Preserve collection-specific
 behavior and the ability to run all four modes simultaneously.
 
@@ -38,8 +38,9 @@ Migration work must follow the recovery and comparison gates in
 [docs/SQLITE-MIGRATION-PLAN.md](docs/SQLITE-MIGRATION-PLAN.md).
 
 Use README.md for restore/build/test/run guidance. The solution uses SDK-style
-projects with checked-in dependency locks; do not assume another project's SDK
-or commands apply here. Close running Ariadna instances
+projects in Ariadna.slnx with checked-in dependency locks and an SDK pin in
+global.json; do not assume another project's SDK or commands apply here.
+Close running Ariadna instances
 before rebuilding. UI changes need native Windows mouse/keyboard checks in the
 affected modes. In-memory query tests do not prove database-provider behavior.
 Do not claim planned commands, unavailable checks, or documentation as verified
