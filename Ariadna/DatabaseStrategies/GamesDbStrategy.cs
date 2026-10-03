@@ -8,105 +8,32 @@ using System.Windows.Forms;
 using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
 using Ariadna.Properties;
-using DbProvider;
+using Ariadna.Storage;
 using Microsoft.Extensions.Logging;
 
 namespace Ariadna.DatabaseStrategies;
 
 public class GamesDbStrategy : MediaDbStrategyBase
 {
-    public GamesDbStrategy(ILogger logger) : base(logger, Settings.Default.GamePostersRootPath)
+    protected override CatalogKind Kind => CatalogKind.Game;
+
+    public GamesDbStrategy(ILogger logger) : base(logger, CatalogServices.GetPosterRoot(CatalogKind.Game))
     {
     }
         
-    public override List<EntryDto> GetEntries()
-    {
-        using var ctx = new AriadnaEntities();
-        return ctx.Games.AsNoTracking().OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
-    }
+    public override List<EntryDto> GetEntries() => QueryEntries(new QueryParams { Subgenre = Utilities.EmptyDots });
     public override List<EntryDto> QueryEntries(QueryParams values)
     {
-        using var ctx = new AriadnaEntities();
-        return QueryEntries(values, CreateQuerySource(ctx));
-    }
-    protected List<EntryDto> QueryEntries(QueryParams values, GameQuerySource source)
-    {
-        IQueryable<Game> query = source.Entries;
-
-        // -- Search Name --
-        if (!string.IsNullOrEmpty(values.Name))
-        {
-            var toSearch = values.Name.ToUpper();
-            query = query.Where(r => r.title.ToUpper().Contains(toSearch) ||
-                                     r.title_original.ToUpper().Contains(toSearch) ||
-                                     r.file_path.ToUpper().Contains(toSearch));
-        }
-        // -- GENRE --
-        if (!string.IsNullOrEmpty(values.Genre))
-        {
-            var genreId = source.FindGenreId(values.Genre);
-            if (genreId.HasValue)
-            {
-                query = query.Where(r => r.GameGenres.Any(l => l.genreId == genreId.Value));
-            }
-        }
-        // -- WISH LIST --
-        if (values.IsWish)
-        {
-            query = query.Where(r => (r.want_to_play == true));
-        }
-        // -- RECENTLY Added --
-        if (values.IsRecent)
-        {
-            var recentDateStart = DateTime.Now.AddMonths(-6);
-            query = query.Where(r => ((r.creation_time > recentDateStart)));
-        }
-        // -- NEW --
-        if (values.IsNew)
-        {
-            query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
-        }
-        // -- VR --
-        if (values.IsVr)
-        {
-            query = query.Where(r => (r.vr == true));
-        }
-        // -- nonVR --
-        if (values.IsNonVr)
-        {
-            query = query.Where(r => (r.vr == false));
-        }
-
-        return query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
-    }
-    protected virtual GameQuerySource CreateQuerySource(AriadnaEntities ctx)
-    {
-        return new GameQuerySource
-        {
-            Entries = ctx.Games.AsNoTracking(),
-            FindGenreId = name => ctx.GenreOfGames.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
-        };
+        return Store.Query(CatalogKind.Game, CatalogServices.CreateQuery(values)).Select(entry => new EntryDto { Id = entry.Id, Title = entry.Title, Path = entry.Path }).ToList();
     }
     public override EntryInfo GetEntryInfo(int id)
     {
-        var details = new EntryInfo();
-        using var ctx = new AriadnaEntities();
-
-        var entry = ctx.Games.FirstOrDefault(r => r.Id == id);
-        if (entry == null)
-        {
-            return details;
-        }
-
-        details.Path = entry.file_path;
-        details.Title = entry.title;
-        details.TitleOrig = entry.title_original;
-
-        return details;
+        var entry = Store.GetEntry(CatalogKind.Game, id);
+        return entry == null ? new EntryInfo() : new EntryInfo { Path = entry.Path, Title = entry.Title, TitleOrig = entry.OriginalTitle };
     }
     public override void RemoveEntry(int id)
     {
-        var posterPath = Settings.Default.GamePostersRootPath + id;
+        var posterPath = CatalogServices.GetPosterRoot(CatalogKind.Game) + id;
         var paths = new List<string> { posterPath };
         for (var i = 1u; i <= 4; ++i)
         {
@@ -167,14 +94,10 @@ public class GamesDbStrategy : MediaDbStrategyBase
     public override ImmutableSortedDictionary<string, Bitmap> GetGenres()
     {
         var values = new SortedDictionary<string, Bitmap>();
-        using var ctx = new AriadnaEntities();
-        var genres = ctx.GenreOfGames.AsNoTracking().ToList();
-
-        foreach (var genre in genres)
+        foreach (var name in Store.GetGenres(CatalogKind.Game))
         {
-            values[genre.name] = Utilities.GetGameGenreImage(genre.name);
+            values[name] = Utilities.GetGameGenreImage(name);
         }
-
         return values.ToImmutableSortedDictionary();
     }
     public override void FilterControls(MainPanel panel)
@@ -203,20 +126,7 @@ public class GamesDbStrategy : MediaDbStrategyBase
         panel.m_ToolStrip_nonVRBtn.Visible = true;
         panel.Icon = Resources.AriadnaGames;
     }
-    protected virtual bool RemoveEntryFromDatabase(int id)
-    {
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Games.FirstOrDefault(r => r.Id == id);
-        if (entry == null)
-        {
-            return false;
-        }
-
-        ctx.GameGenres.RemoveRange(ctx.GameGenres.Where(r => (r.gameId == id)));
-        ctx.Games.Remove(entry);
-        ctx.SaveChanges();
-        return true;
-    }
+    protected virtual bool RemoveEntryFromDatabase(int id) => Store.Delete(CatalogKind.Game, id);
     protected override void ShowDataDialog(string path)
     {
         var detailsForm = new GameDetailsForm(path, Logger);
@@ -234,23 +144,6 @@ public class GamesDbStrategy : MediaDbStrategyBase
         var eventArgs = new EntryInsertedEventArgs(detailsForm.StoredDbEntryId);
         OnEntryInserted(eventArgs);
     }
-    protected override string FindStoredEntryPathById(int id)
-    {
-        if (id == -1)
-        {
-            return string.Empty;
-        }
+    protected override string FindStoredEntryPathById(int id) => Store.GetEntry(CatalogKind.Game, id)?.Path ?? string.Empty;
 
-        using var ctx = new AriadnaEntities();
-        var path = ctx.Games.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault()?.file_path;
-
-        return !string.IsNullOrEmpty(path) ? path : string.Empty;
-    }
-    protected override bool IsStoredPath(string path, AriadnaEntities ctx)
-        => ctx.Games.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() is not null;
-    protected class GameQuerySource
-    {
-        public required IQueryable<Game> Entries { get; init; }
-        public required Func<string, int?> FindGenreId { get; init; }
-    }
 }

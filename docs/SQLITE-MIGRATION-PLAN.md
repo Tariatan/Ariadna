@@ -1,6 +1,6 @@
 # SQLite migration investigation and plan
 
-Investigated on 2026-10-03. This is a proposal, not an implemented migration. Application code and source records have not been changed. No recovery backup or SQLite conversion has been created yet.
+Investigated and implemented on 2026-10-03 following user approval. This document retains the original pre-migration findings and plan. The desktop now uses SQLite; the SQL source remains intact for recovery. See [SQLITE-OPERATIONS.md](SQLITE-OPERATIONS.md) for the implemented design and verification evidence.
 
 ## Recommendation
 
@@ -10,7 +10,7 @@ Direct conversion is practical for this database. The difficult part is replacin
 
 Do not make a general-purpose export/import UI a prerequisite. The migration utility can produce a durable, lossless export package as a recovery artifact before conversion. This makes the data recoverable independently of both application versions without delaying migration for UI work.
 
-## Verified current state
+## Verified pre-migration state
 
 The application targets `net9.0-windows8.0`. `DbProvider` targets .NET Framework 4.8. EF6 6.5.1 is referenced by both projects. The main application both references `DbProvider` and directly compiles its generated entity/context source files. It also links the EDMX. Warning CS0436 is suppressed in the main project; removing duplicate model compilation eliminates that particular source of type conflicts, but other warning suppressions need individual assessment.
 
@@ -185,9 +185,19 @@ Use SQLite's backup API for database snapshots, combined with a brief applicatio
 
 Keep explicit schema versions and small transactional schema upgrades, taking a verified backup before future upgrades. A general export/import UI can later reuse the migration package format if it proves useful.
 
-## Remaining verification
+## Implementation results and remaining verification
 
-The live schema, counts, integrity check, and image filenames were checked. No actual export, restore rehearsal, SQLite import, content-hash comparison, performance benchmark, or migrated native UI test has been performed. These are implementation gates, not completed results. No implementation-time package version has been selected yet.
+SQL checksum backups were verified and restored separately with CHECKDB passing.
+Rehearsal and fresh final conversion verified all 69,724 rows and 6,067 external
+image hashes. Direct SQLite storage replaced all production EF access; the legacy
+project and model-generation tooling were removed. Real-provider storage,
+conversion-failure, and shown WinForms tests cover the implemented paths. A matched
+SQLite backup/restore is demonstrated independently of SQL Server.
+
+The operations guide records collation/order differences and benchmark limitations.
+Manual review of every control and deployment on a clean Windows machine remain
+outside the verified scope. The original catalog/assets, legacy executable, SQL
+backups, and portable export packages remain available for recovery.
 
 ## Primary references
 

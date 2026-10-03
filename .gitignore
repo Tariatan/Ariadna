@@ -10,3 +10,6 @@ DbProvider/obj/
 packages
 
 *.DotSettings.user
+**/bin/
+**/obj/
+TestResults/

@@ -16,6 +16,9 @@
     <Compile Update="AuxiliaryPopups\ChoicePopup.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="AuxiliaryPopups\DetailsForm.Catalog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="AuxiliaryPopups\DetailsForm.cs">
       <SubType>Form</SubType>
     </Compile>

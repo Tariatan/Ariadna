@@ -1,5 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-using Microsoft.WindowsAPICodePack.Shell;
+using MediaInfo;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -278,9 +277,8 @@ public static class Utilities
             return TimeSpan.Zero;
         }
 
-        using var shell = ShellObject.FromParsingName(filePath);
-        IShellProperty prop = shell.Properties.System.Media.Duration;
-        return prop.ValueAsObject == null ? TimeSpan.Zero : TimeSpan.FromTicks((long)(ulong)prop.ValueAsObject);
+        var media = new MediaInfoWrapper(filePath);
+        return media.Success ? TimeSpan.FromMilliseconds(media.Duration) : TimeSpan.Zero;
     }
     public static string DecorateDescription(string description)
     {

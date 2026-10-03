@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Data.Entity.Validation;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -12,7 +11,7 @@ using Ariadna.Data;
 using Ariadna.Extension;
 using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
-using DbProvider;
+using Ariadna.Storage;
 using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 
@@ -20,107 +19,32 @@ namespace Ariadna.DatabaseStrategies;
 
 public class LibraryDbStrategy : AbstractDbStrategy
 {
+    private CatalogStore Store => CatalogServices.CreateStore();
+
     private readonly ILogger m_Logger;
     private readonly PosterFromFileAdaptor m_PosterImageAdaptor = new();
 
     public LibraryDbStrategy(ILogger logger)
     {
         m_Logger = logger;
-        m_PosterImageAdaptor.RootPath = Settings.Default.LibraryPostersRootPath;
+        m_PosterImageAdaptor.RootPath = CatalogServices.GetPosterRoot(CatalogKind.Library);
     }
 
     public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
 
-    public override List<EntryDto> GetEntries()
-    {
-        using var ctx = new AriadnaEntities();
-        return ctx.Libraries.AsNoTracking().OrderBy(r => r.title).
-            Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
-    }
+    public override List<EntryDto> GetEntries() => QueryEntries(new QueryParams { Subgenre = Utilities.EmptyDots });
     public override List<EntryDto> QueryEntries(QueryParams values)
     {
-        using var ctx = new AriadnaEntities();
-        return QueryEntries(values, CreateQuerySource(ctx));
-    }
-    protected List<EntryDto> QueryEntries(QueryParams values, LibraryQuerySource source)
-    {
-        IQueryable<Library> query = source.Entries;
-
-        // -- Search Name --
-        if (!string.IsNullOrEmpty(values.Name))
-        {
-            var toSearch = values.Name.ToUpper();
-            query = query.Where(r => r.title.ToUpper().Contains(toSearch) ||
-                                     r.title_original.ToUpper().Contains(toSearch) ||
-                                     r.file_path.ToUpper().Contains(toSearch));
-        }
-        // -- AUTHOR NAME --
-        if (!string.IsNullOrEmpty(values.Director))
-        {
-            var authorId = source.FindAuthorId(values.Director);
-            if (authorId.HasValue)
-            {
-                query = query.Where(r => r.LibraryAuthors.Any(l => l.authorId == authorId.Value));
-            }
-        }
-        // -- GENRE --
-        var genre = values.Subgenre != Utilities.EmptyDots ? values.Subgenre : values.Genre;
-        if (!string.IsNullOrEmpty(genre))
-        {
-            var genreId = source.FindGenreId(genre);
-            if (genreId.HasValue)
-            {
-                query = query.Where(r => r.LibraryGenres.Any(l => l.genreId == genreId.Value));
-            }
-        }
-        // -- WISH LIST --
-        if (values.IsWish)
-        {
-            query = query.Where(r => (r.want_to_see == true));
-        }
-        // -- RECENTLY Added --
-        if (values.IsRecent)
-        {
-            var recentDateStart = DateTime.Now.AddMonths(-Settings.Default.RecentInMonth);
-            query = query.Where(r => ((r.creation_time > recentDateStart)));
-        }
-        // -- NEW --
-        if (values.IsNew)
-        {
-            query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
-        }
-
-        return query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
-    }
-    protected virtual LibraryQuerySource CreateQuerySource(AriadnaEntities ctx)
-    {
-        return new LibraryQuerySource
-        {
-            Entries = ctx.Libraries.AsNoTracking(),
-            FindAuthorId = name => ctx.Authors.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
-            FindGenreId = name => ctx.GenreOfLibraries.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
-        };
+        return Store.Query(CatalogKind.Library, CatalogServices.CreateQuery(values, library: true)).Select(entry => new EntryDto { Id = entry.Id, Title = entry.Title, Path = entry.Path }).ToList();
     }
     public override EntryInfo GetEntryInfo(int id)
     {
-        var details = new EntryInfo();
-        using var ctx = new AriadnaEntities();
-
-        var entry = ctx.Libraries.FirstOrDefault(r => r.Id == id);
-        if (entry == null)
-        {
-            return details;
-        }
-
-        details.Path = entry.file_path;
-        details.Title = entry.title;
-        details.TitleOrig = entry.title_original;
-
-        return details;
+        var entry = Store.GetEntry(CatalogKind.Library, id);
+        return entry == null ? new EntryInfo() : new EntryInfo { Path = entry.Path, Title = entry.Title, TitleOrig = entry.OriginalTitle };
     }
     public override void RemoveEntry(int id)
     {
-        var posterPath = Settings.Default.LibraryPostersRootPath + id;
+        var posterPath = CatalogServices.GetPosterRoot(CatalogKind.Library) + id;
         EntryRemovalHelper.RemoveSingleFile(() => RemoveEntryFromDatabase(id), posterPath, FileExists, DeleteFile, ShowMessage);
     }
     public override bool FindNextEntryAutomatically()
@@ -134,15 +58,6 @@ public class LibraryDbStrategy : AbstractDbStrategy
         ShowDataDialog(foundPath);
 
         return true;
-    }
-    protected virtual bool IsAlreadyInserted(string subDir, AriadnaEntities ctx)
-    {
-        if (ctx.Ignores.AsNoTracking().FirstOrDefault(r => r.path == subDir) is not null)
-        {
-            return true;
-        }
-
-        return ctx.Libraries.AsNoTracking().Where(r => r.file_path == subDir).Select(r => r.file_path).FirstOrDefault() is not null;
     }
     public override void FindNextEntryManually()
     {
@@ -214,14 +129,10 @@ public class LibraryDbStrategy : AbstractDbStrategy
     public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
     {
         var values = new SortedDictionary<string, Bitmap>();
-        using var ctx = new AriadnaEntities();
-        var directors = ctx.LibraryAuthors.AsNoTracking().Where(r => r.Author.name.ToUpper().Contains(name)).Take(limit);
-
-        foreach (var director in directors)
+        foreach (var person in Store.SuggestPeople(false, true, name, limit))
         {
-            values[director.Author.name] = director.Author.photo.ToBitmap();
+            values[person.Name] = person.Photo.ToBitmap();
         }
-
         return values.ToImmutableSortedDictionary();
     }
     public override ImmutableSortedDictionary<string, Bitmap> GetActors(string name, int limit) => null;
@@ -283,36 +194,13 @@ public class LibraryDbStrategy : AbstractDbStrategy
         var eventArgs = new EntryInsertedEventArgs(detailsForm.StoredDbEntryId);
         OnEntryInserted(eventArgs);
     }
-    protected virtual string FindStoredEntryPathById(int id)
-    {
-        if (id == -1)
-        {
-            return string.Empty;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var path = ctx.Libraries.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault()?.file_path;
-        
-        return !string.IsNullOrEmpty(path) ? path : string.Empty;
-    }
-    protected virtual void RemoveEntryFromDatabase(int id)
-    {
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Libraries.FirstOrDefault(r => r.Id == id);
-        if (entry == null)
-        {
-            return;
-        }
-
-        ctx.LibraryAuthors.RemoveRange(ctx.LibraryAuthors.Where(r => (r.libraryId == id)));
-        ctx.LibraryGenres.RemoveRange(ctx.LibraryGenres.Where(r => (r.libraryId == id)));
-        ctx.Libraries.Remove(entry);
-        ctx.SaveChanges();
-    }
+    protected virtual string FindStoredEntryPathById(int id) => Store.GetEntry(CatalogKind.Library, id)?.Path ?? string.Empty;
+    protected virtual void RemoveEntryFromDatabase(int id) { Store.Delete(CatalogKind.Library, id); }
+    protected virtual IReadOnlyCollection<string> GetRegisteredPaths() => Store.GetRegisteredPaths(CatalogKind.Library);
     protected virtual string FindNextEntryPathAutomatically()
     {
-        using var ctx = new AriadnaEntities();
-        Func<string, bool> isAlreadyInserted = path => IsAlreadyInserted(path, ctx);
+        var registered = GetRegisteredPaths();
+        Func<string, bool> isAlreadyInserted = path => registered.Any(stored => CatalogStore.PathsEqual(stored, path));
         foreach (var baseDir in GetDirectories(Settings.Default.DefaultLibraryPath))
         {
             var foundPath = FindNextEntryPathInBaseDirectory(baseDir, isAlreadyInserted);
@@ -359,53 +247,6 @@ public class LibraryDbStrategy : AbstractDbStrategy
     protected virtual void DeleteFile(string path) => File.Delete(path);
     protected virtual void StartProcess(ProcessStartInfo startInfo) => Process.Start(startInfo);
     protected virtual void ShowMessage(string text, string caption, MessageBoxButtons buttons, MessageBoxIcon icon) => MessageBox.Show(text, caption, buttons, icon);
-    protected class LibraryQuerySource
-    {
-        public required IQueryable<Library> Entries { get; init; }
-        public required Func<string, int?> FindAuthorId { get; init; }
-        public required Func<string, int?> FindGenreId { get; init; }
-    }
+
     // ReSharper disable once UnusedMember.Local
-    private void DeleteUnusedGenres()
-    {
-        using var ctx = new AriadnaEntities();
-        var genres = ctx.GenreOfLibraries.ToList();
-
-        var bNeedToSaveChanges = false;
-        foreach (var genre in genres)
-        {
-            var usedGenres = ctx.LibraryGenres.FirstOrDefault(r => (r.genreId == genre.Id));
-
-            if (usedGenres == null)
-            {
-                ctx.GenreOfLibraries.Remove(genre);
-                bNeedToSaveChanges = true;
-            }
-        }
-
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
-    }
-    // ReSharper disable once UnusedMember.Local
-    private void UpdateEntryData()
-    {
-        using var ctx = new AriadnaEntities();
-        var entries = ctx.Libraries.ToList();
-
-        foreach(var entry in entries)
-        {
-            entry.creation_time = File.GetLastWriteTimeUtc(entry.file_path);
-
-            try
-            {
-                ctx.SaveChanges();
-            }
-            catch (DbEntityValidationException)
-            {
-                MessageBox.Show(entry.title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-    }
 }

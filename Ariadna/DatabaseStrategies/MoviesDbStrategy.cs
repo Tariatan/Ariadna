@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Data.Entity.Validation;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -10,7 +9,7 @@ using Ariadna.AuxiliaryPopups;
 using Ariadna.Data;
 using Ariadna.Extension;
 using Ariadna.Properties;
-using DbProvider;
+using Ariadna.Storage;
 using Microsoft.Extensions.Logging;
 using TMDbLib.Client;
 using TMDbLib.Objects.Search;
@@ -19,131 +18,25 @@ namespace Ariadna.DatabaseStrategies;
 
 public class MoviesDbStrategy : MediaDbStrategyBase
 {
-    public MoviesDbStrategy(ILogger logger) : base(logger, Settings.Default.MoviePostersRootPath)
+    protected override CatalogKind Kind => CatalogKind.Movie;
+
+    public MoviesDbStrategy(ILogger logger) : base(logger, CatalogServices.GetPosterRoot(CatalogKind.Movie))
     {
     }
 
-    public override List<EntryDto> GetEntries()
-    {
-        //UpdateMovieData();
-
-        using var ctx = new AriadnaEntities();
-        return ctx.Movies.AsNoTracking().OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
-    }
+    public override List<EntryDto> GetEntries() => QueryEntries(new QueryParams { Subgenre = Utilities.EmptyDots });
     public override List<EntryDto> QueryEntries(QueryParams values)
     {
-        using var ctx = new AriadnaEntities();
-        return QueryEntries(values, CreateQuerySource(ctx));
-    }
-    protected List<EntryDto> QueryEntries(QueryParams values, MovieQuerySource source)
-    {
-        IQueryable<Movie> query = source.Entries;
-
-        var alphabeticOrder = true;
-
-        // -- Search Name --
-        if (!string.IsNullOrEmpty(values.Name))
-        {
-            var toSearch = values.Name.ToUpper();
-            query = query.Where(r => r.title.ToUpper().Contains(toSearch) ||
-                                     r.title_original.ToUpper().Contains(toSearch) ||
-                                     r.file_path.ToUpper().Contains(toSearch));
-        }
-        // -- DIRECTOR NAME --
-        if (!string.IsNullOrEmpty(values.Director))
-        {
-            var directorId = source.FindDirectorId(values.Director);
-            if (directorId.HasValue)
-            {
-                query = query.Where(r => r.MovieDirectors.Any(l => l.directorId == directorId.Value));
-            }
-        }
-        // -- ACTOR NAME --
-        if (!string.IsNullOrEmpty(values.Actor))
-        {
-            var actorId = source.FindActorId(values.Actor);
-            if (actorId.HasValue)
-            {
-                query = query.Where(r => r.MovieCasts.Any(l => l.actorId == actorId.Value));
-            }
-        }
-        // -- GENRE --
-        if (!string.IsNullOrEmpty(values.Genre))
-        {
-            var genreId = source.FindGenreId(values.Genre);
-            if (genreId.HasValue)
-            {
-                query = query.Where(r => r.MovieGenres.Any(l => l.genreId == genreId.Value));
-            }
-        }
-        // -- WISH LIST --
-        if (values.IsWish)
-        {
-            query = query.Where(r => (r.want_to_see == true));
-        }
-        // -- RECENTLY Added --
-        if (values.IsRecent)
-        {
-            var recentDateStart = DateTime.Now.AddMonths(-Settings.Default.RecentInMonth);
-            query = query.Where(r => ((r.creation_time > recentDateStart)));
-
-            alphabeticOrder = false;
-        }
-        // -- NEW --
-        if (values.IsNew)
-        {
-            query = query.Where(r => ((r.year == (DateTime.Now.Year)) || r.year == (DateTime.Now.Year - 1)));
-
-            alphabeticOrder = false;
-        }
-        // -- SERIES --
-        if (values.IsSeries)
-        {
-            query = query.Where(r => (r.file_path.StartsWith(Settings.Default.DefaultSeriesPath.Substring(0, 1)) &&
-                                      !r.file_path.Contains(Settings.Default.DefaultMoviesPathTMP2)));
-        }
-        // -- MOVIES --
-        if (values.IsMovies)
-        {
-            query = query.Where(r => (r.file_path.StartsWith(Settings.Default.DefaultMoviesPath.Substring(0, 1)) ||
-                                      r.file_path.Contains(Settings.Default.DefaultMoviesPathTMP2) 
-                                      ));
-        }
-
-        return alphabeticOrder ?
-            query.OrderBy(r => r.title).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList() :
-            query.OrderByDescending(r => r.creation_time).Select(x => new EntryDto { Path = x.file_path, Title = x.title, Id = x.Id }).ToList();
-    }
-    protected virtual MovieQuerySource CreateQuerySource(AriadnaEntities ctx)
-    {
-        return new MovieQuerySource
-        {
-            Entries = ctx.Movies.AsNoTracking(),
-            FindDirectorId = name => ctx.Directors.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
-            FindActorId = name => ctx.Actors.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
-            FindGenreId = name => ctx.Genres.AsNoTracking().Where(r => r.name == name).Select(r => (int?)r.Id).FirstOrDefault(),
-        };
+        return Store.Query(CatalogKind.Movie, CatalogServices.CreateQuery(values)).Select(entry => new EntryDto { Id = entry.Id, Title = entry.Title, Path = entry.Path }).ToList();
     }
     public override EntryInfo GetEntryInfo(int id)
     {
-        var details = new EntryInfo();
-        using var ctx = new AriadnaEntities();
-
-        var entry = ctx.Movies.FirstOrDefault(r => r.Id == id);
-        if (entry == null)
-        {
-            return details;
-        }
-
-        details.Path = entry.file_path;
-        details.Title = entry.title;
-        details.TitleOrig = entry.title_original;
-
-        return details;
+        var entry = Store.GetEntry(CatalogKind.Movie, id);
+        return entry == null ? new EntryInfo() : new EntryInfo { Path = entry.Path, Title = entry.Title, TitleOrig = entry.OriginalTitle };
     }
     public override void RemoveEntry(int id)
     {
-        var posterPath = Settings.Default.MoviePostersRootPath + id;
+        var posterPath = CatalogServices.GetPosterRoot(CatalogKind.Movie) + id;
         EntryRemovalHelper.RemoveSingleFile(() => RemoveEntryFromDatabase(id), posterPath, FileExists, DeleteFile, ShowMessage);
     }
     public override bool FindNextEntryAutomatically()
@@ -201,27 +94,19 @@ public class MoviesDbStrategy : MediaDbStrategyBase
     public override ImmutableSortedDictionary<string, Bitmap> GetDirectors(string name, int limit)
     {
         var values = new SortedDictionary<string, Bitmap>();
-        using var ctx = new AriadnaEntities();
-        var directors = ctx.MovieDirectors.AsNoTracking().Where(r => r.Director.name.ToUpper().Contains(name)).Take(limit);
-
-        foreach (var director in directors)
+        foreach (var person in Store.SuggestPeople(false, false, name, limit))
         {
-            values[director.Director.name] = director.Director.photo.ToBitmap();
+            values[person.Name] = person.Photo.ToBitmap();
         }
-
         return values.ToImmutableSortedDictionary();
     }
     public override ImmutableSortedDictionary<string, Bitmap> GetActors(string name, int limit)
     {
         var values = new SortedDictionary<string, Bitmap>();
-        using var ctx = new AriadnaEntities();
-        var actors = ctx.MovieCasts.AsNoTracking().Where(r => r.Actor.name.ToUpper().Contains(name)).Take(limit);
-
-        foreach (var actor in actors)
+        foreach (var person in Store.SuggestPeople(true, false, name, limit))
         {
-            values[actor.Actor.name] = actor.Actor.photo.ToBitmap();
+            values[person.Name] = person.Photo.ToBitmap();
         }
-
         return values.ToImmutableSortedDictionary();
     }
 
@@ -229,33 +114,14 @@ public class MoviesDbStrategy : MediaDbStrategyBase
     public override ImmutableSortedDictionary<string, Bitmap> GetGenres()
     {
         var values = new SortedDictionary<string, Bitmap>();
-        using var ctx = new AriadnaEntities();
-        var genres = ctx.Genres.AsNoTracking().ToList();
-
-        foreach (var genre in genres)
+        foreach (var name in Store.GetGenres(CatalogKind.Movie))
         {
-            values[genre.name] = Utilities.GetMovieGenreImage(genre.name);
+            values[name] = Utilities.GetMovieGenreImage(name);
         }
-
         return values.ToImmutableSortedDictionary();
     }
     public override void FilterControls(MainPanel panel) {}
-    protected virtual void RemoveEntryFromDatabase(int id)
-    {
-        using var ctx = new AriadnaEntities();
-        var entry = ctx.Movies.FirstOrDefault(r => r.Id == id);
-        if (entry == null)
-        {
-            return;
-        }
-
-        ctx.MovieCasts.RemoveRange(ctx.MovieCasts.Where(r => (r.movieId == id)));
-        ctx.MovieDirectors.RemoveRange(ctx.MovieDirectors.Where(r => (r.movieId == id)));
-        ctx.MovieGenres.RemoveRange(ctx.MovieGenres.Where(r => (r.movieId == id)));
-
-        ctx.Movies.Remove(entry);
-        ctx.SaveChanges();
-    }
+    protected virtual void RemoveEntryFromDatabase(int id) { Store.Delete(CatalogKind.Movie, id); }
     protected override void ShowDataDialog(string path)
     {
         var detailsForm = new MovieDetailsForm(path, Logger);
@@ -351,99 +217,9 @@ public class MoviesDbStrategy : MediaDbStrategyBase
         var eventArgs = new EntryInsertedEventArgs(detailsForm.StoredDbEntryId);
         OnEntryInserted(eventArgs);
     }
-    protected override string FindStoredEntryPathById(int id)
-    {
-        if (id == -1)
-        {
-            return string.Empty;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var path = ctx.Movies.AsNoTracking().Where(r => r.Id == id).Select(x => new { x.file_path }).FirstOrDefault()!.file_path;
-        if (!string.IsNullOrEmpty(path))
-        {
-            return path;
-        }
-
-        return string.Empty;
-    }
+    protected override string FindStoredEntryPathById(int id) => Store.GetEntry(CatalogKind.Movie, id)?.Path ?? string.Empty;
     protected override bool SupportsFileExecution => true;
-    protected override bool IsStoredPath(string path, AriadnaEntities ctx)
-        => ctx.Movies.AsNoTracking().Where(r => r.file_path == path).Select(r => r.file_path).FirstOrDefault() is not null;
-    protected class MovieQuerySource
-    {
-        public required IQueryable<Movie> Entries { get; init; }
-        public required Func<string, int?> FindDirectorId { get; init; }
-        public required Func<string, int?> FindActorId { get; init; }
-        public required Func<string, int?> FindGenreId { get; init; }
-    }
+
     // ReSharper disable once UnusedMember.Local
-    private void DeleteUnusedActors()
-    {
-        using var ctx = new AriadnaEntities();
-        var actors = ctx.Actors.ToList();
-
-        var bNeedToSaveChanges = false;
-        foreach (var actor in actors)
-        {
-            var usedActor = ctx.MovieCasts.FirstOrDefault(r => (r.actorId == actor.Id));
-            if (usedActor == null)
-            {
-                ctx.Actors.Remove(actor);
-                bNeedToSaveChanges = true;
-            }
-        }
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
-    }
     // ReSharper disable once UnusedMember.Local
-    private void DeleteUnusedGenres()
-    {
-        using var ctx = new AriadnaEntities();
-        var genres = ctx.Genres.ToList();
-
-        var bNeedToSaveChanges = false;
-        foreach (var genre in genres)
-        {
-            var usedGenres = ctx.MovieGenres.FirstOrDefault(r => (r.genreId == genre.Id));
-            if (usedGenres == null)
-            {
-                ctx.Genres.Remove(genre);
-                bNeedToSaveChanges = true;
-            }
-        }
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
-    }
-    // ReSharper disable once UnusedMember.Local
-    private void UpdateEntryData()
-    {
-        using var ctx = new AriadnaEntities();
-        var entries = ctx.Movies.ToList();
-        foreach(var entry in entries)
-        {
-            bool save = false;
-            //entry.creation_time = File.GetLastWriteTimeUtc(entry.file_path);
-            if (entry.file_path.Contains("A:\\"))
-            {
-                entry.file_path = entry.file_path.Replace("A:\\", "S:\\");
-                save = true;
-            }
-
-            if (!save) continue;
-
-            try
-            {
-                ctx.SaveChanges();
-            }
-            catch (DbEntityValidationException)
-            {
-                MessageBox.Show(entry.title, Resources.FailedToSaveEntry, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-    }
 }

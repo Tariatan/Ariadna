@@ -1,6 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0-windows8.0</TargetFramework>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <Version>2.0.1</Version>
     <OutputType>WinExe</OutputType>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
@@ -14,18 +16,19 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <ApplicationVersion>2.0.1.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
     <Optimize>true</Optimize>
-    <NoWarn>$(NoWarn);1701;1702;CA1416;NU1701;NETSDK1206;CS0436</NoWarn>
+    <NoWarn>$(NoWarn);1701;1702;CA1416;NETSDK1206</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Ariadna.ico</ApplicationIcon>
@@ -33,7 +36,7 @@
     <SupportedOSPlatformVersion>8.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <NoWarn>$(NoWarn);1701;1702;CA1416;NU1701;NETSDK1206;CS0436</NoWarn>
+    <NoWarn>$(NoWarn);1701;1702;CA1416;NETSDK1206</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Update="AuxiliaryPopups\LibraryDetailsForm.cs" />
@@ -66,54 +69,16 @@
     <Content Include="Resources\empty_icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4.7.2 %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-	<EntityDeploy Include="..\DbProvider\AriadnaModel.edmx" Link="AriadnaModel.edmx" />
-    <Compile Include="..\DbProvider\Actor.cs" Link="EntityLink\Actor.cs" />
-    <Compile Include="..\DbProvider\AriadnaModel.Context.cs" Link="EntityLink\AriadnaModel.Context.cs" />
-    <Compile Include="..\DbProvider\Author.cs" Link="EntityLink\Author.cs" />
-    <Compile Include="..\DbProvider\Director.cs" Link="EntityLink\Director.cs" />
-    <Compile Include="..\DbProvider\Documentary.cs" Link="EntityLink\Documentary.cs" />
-    <Compile Include="..\DbProvider\DocumentaryGenre.cs" Link="EntityLink\DocumentaryGenre.cs" />
-    <Compile Include="..\DbProvider\Game.cs" Link="EntityLink\Game.cs" />
-    <Compile Include="..\DbProvider\GameGenre.cs" Link="EntityLink\GameGenre.cs" />
-    <Compile Include="..\DbProvider\Genre.cs" Link="EntityLink\Genre.cs" />
-    <Compile Include="..\DbProvider\GenreOfDocumentary.cs" Link="EntityLink\GenreOfDocumentary.cs" />
-    <Compile Include="..\DbProvider\GenreOfGame.cs" Link="EntityLink\GenreOfGame.cs" />
-    <Compile Include="..\DbProvider\GenreOfLibrary.cs" Link="EntityLink\GenreOfLibrary.cs" />
-    <Compile Include="..\DbProvider\Ignore.cs" Link="EntityLink\Ignore.cs" />
-    <Compile Include="..\DbProvider\Library.cs" Link="EntityLink\Library.cs" />
-    <Compile Include="..\DbProvider\LibraryAuthor.cs" Link="EntityLink\LibraryAuthor.cs" />
-    <Compile Include="..\DbProvider\LibraryGenre.cs" Link="EntityLink\LibraryGenre.cs" />
-    <Compile Include="..\DbProvider\Movie.cs" Link="EntityLink\Movie.cs" />
-    <Compile Include="..\DbProvider\MovieCast.cs" Link="EntityLink\MovieCast.cs" />
-    <Compile Include="..\DbProvider\MovieDirector.cs" Link="EntityLink\MovieDirector.cs" />
-    <Compile Include="..\DbProvider\MovieGenre.cs" Link="EntityLink\MovieGenre.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="EntityFramework" Version="6.5.1" />
     <PackageReference Include="MediaInfo.Wrapper.Core" Version="26.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
-    <PackageReference Include="Microsoft.WindowsAPICodePack-Shell" Version="1.1.0.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="10.0.5" />
     <PackageReference Include="TMDbLib" Version="3.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="EntityLink\" />
     <Folder Include="Extension\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DbProvider\DbProvider.csproj" />
+    <ProjectReference Include="..\Ariadna.Storage\Ariadna.Storage.csproj" />
   </ItemGroup>
 </Project>

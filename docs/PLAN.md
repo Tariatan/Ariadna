@@ -2,56 +2,49 @@
 
 Last updated: 2026-10-03.
 
-The current application remains on WinForms, EF6, and SQL Server LocalDB.
+The approved SQLite migration is implemented. The desktop uses direct SQLite
+storage; EF6, LocalDB configuration, EDMX/T4 tooling, and DbProvider are removed.
 The [Technical Design Description](Technical_Design_Description.md) owns current
-behavior and technical decisions. The
-[SQLite migration investigation](SQLITE-MIGRATION-PLAN.md) is a detailed proposal;
-its presence does not approve implementation or mark any migration gate complete.
+architecture; [SQLite operation and recovery](SQLITE-OPERATIONS.md) owns storage,
+backup/restore, migration evidence, and verification limits.
 
-## ToDO list
+## Completed migration work
 
-### Development and acceptance baseline
+- [x] Establish matched SQL/image/configuration recovery and restore a checksum
+  backup under a separate SQL database name with CHECKDB passing.
+- [x] Build a lossless export/import utility preserving IDs, identity counters,
+  NULLs, duplicates, photo bytes, and external filenames; verify every value/hash.
+- [x] Implement focused SQLite queries and complete-entry transactions across all
+  four collections, with Unicode searches, existing filters, discovery, and ignore.
+- [x] Add durable image journals, commit markers, concurrent-writer coordination,
+  rollback/recovery tests, and explicit empty relationship replacement.
+- [x] Verify real-provider queries and shown WinForms browse/search/save/reopen
+  paths using disposable catalog/image data; compare 50 real-source queries.
+- [x] Repeat conversion from a fresh final SQL backup/export; publish the verified
+  SQLite catalog while retaining SQL/asset/legacy-app recovery artifacts.
+- [x] Demonstrate matched SQLite/database-image snapshot and import/restore
+  without requiring SQL Server for the ongoing backup workflow.
+- [x] Configure dependency locks and verify restore, Release builds/tests, and a
+  self-contained win-x64 publish.
 
-- [ ] Verify and document a clean Windows restore/build/test recipe for the
-  SDK-style desktop/tests and legacy .NET Framework DbProvider project, including
-  restoration of its packages.config dependencies.
-- [ ] Decide the supported SDK/tooling baseline and whether to add an SDK pin
-  and dependency locks. Do not claim reproducible locked restore until configured
-  and verified for the actual project mix.
-- [ ] Run the existing characterization tests and native four-mode acceptance
-  scenarios in the Technical Design Description using disposable data/images.
-  Record actual results and limitations in repository MEMORY.md.
+## Remaining acceptance and future work
 
-### SQLite migration proposal — conditional work
+- [x] User acceptance on the copied catalog: browse/navigation, existing-entry
+  details, metadata/genre edits, save/reopen/restart across all four collections,
+  poster changes, and game previews. User reported all requested checks passed
+  on 2026-10-03 with version 2.0.1.
+- [ ] Manual Windows mouse/keyboard review of every control, image rendering,
+  and optional external player/file-manager/TMDb integration.
+- [ ] Clean-machine installation test; current deployment checks use the existing
+  Windows machine with LocalDB stopped rather than an unconfigured machine.
+- [x] Replace Windows API Code Pack duration lookup with bundled MediaInfo and
+  verify details opening using an existing video; the Shell dependency is removed.
+- [ ] Decide whether to pin the SDK.
+- [ ] Measure complete UI latency and profile image/discovery work before making
+  speedup claims; direct-query measurements did not show a universal speedup.
+- [ ] Optionally add a backup/export UI reusing the implemented package format.
+  The CLI already supplies the recovery workflow.
 
-Use the investigation's detailed sequence and gates if migration is approved.
-These are proposed tasks, not changes authorized by harness alignment.
-
-- [ ] Resolve storage organization, Unicode comparison policy, provider/native
-  engine selection, image recovery behavior, and practical performance baseline.
-- [ ] Establish matched SQL Server/image/configuration recovery and demonstrate
-  a restore to a separate database before changing the production application.
-- [ ] Build a separate, lossless export/conversion rehearsal against the restored
-  source. Preserve IDs, identity high-water marks, NULLs, duplicate relationships,
-  photos, and external image filenames. Compare all values and content hashes;
-  require structural and foreign-key integrity checks to pass.
-- [ ] Implement focused SQLite storage operations and migrate queries/detail
-  workflows collection by collection. Preserve filters, discovery, ignore rules,
-  launch behavior, and simultaneous windows; test transactions and failure paths.
-- [ ] Verify all four modes with the real provider and copied data, including
-  Unicode searches, empty relationships, image failures, concurrent writes, and
-  reopen behavior. Benchmark against the same baseline dataset.
-- [ ] Repeat conversion from a fresh matched backup for final cutover; retain
-  recovery artifacts and the legacy executable. Explain rollback limits after
-  accepting new SQLite edits. Remove EF/DbProvider dependencies only when all
-  migration gates pass and verify clean deployment without LocalDB.
-- [ ] Establish and demonstrate matched SQLite/database-image backup and restore
-  for ongoing use and future schema upgrades.
-
-## Completion evidence
-
-For each completed slice, record the source revision/context, checks actually
-run, and any remaining native/provider/recovery limitations. Documentation
-alignment is complete when reading order, document ownership, renamed-file
-references, local links, and editing rules are consistent; it does not verify
-application behavior or complete the migration proposal.
+Schema upgrades must start with a verified matched snapshot and advance the schema
+version transactionally. Returning to the legacy SQL database after SQLite edits
+requires separate data transfer; automatic reverse synchronization is not provided.

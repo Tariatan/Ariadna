@@ -253,6 +253,7 @@ public class LibraryDbStrategyTests
         public HashSet<string> InsertedPaths { get; } = [];
 
         protected override string FindStoredEntryPathById(int id) => StoredPath;
+        protected override IReadOnlyCollection<string> GetRegisteredPaths() => InsertedPaths;
         protected override void ShowDataDialog(string path)
         {
             OpenedDataPath = path;

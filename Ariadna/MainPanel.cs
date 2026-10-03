@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Drawing;
@@ -13,7 +13,6 @@ using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
 using Ariadna.SplashScreen;
 using Ariadna.Themes;
-using DbProvider;
 using Manina.Windows.Forms;
 
 namespace Ariadna;
@@ -448,47 +447,7 @@ public partial class MainPanel : Form
         m_DbStrategy.UpdateSubgenre(this);
     }
     // ReSharper disable once UnusedMember.Local
-    private void DeleteUnusedActors()
-    {
-        using var ctx = new AriadnaEntities();
-        var actors = ctx.Actors.ToList();
-
-        var bNeedToSaveChanges = false;
-        foreach (var actor in actors)
-        {
-            var usedActor = ctx.MovieCasts.FirstOrDefault(r => (r.actorId == actor.Id));
-            if (usedActor == null)
-            {
-                ctx.Actors.Remove(actor);
-                bNeedToSaveChanges = true;
-            }
-        }
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
-    }
-
-    private void DeleteUnusedGenres()
-    {
-        using var ctx = new AriadnaEntities();
-        var genres = ctx.Genres.ToList();
-
-        var bNeedToSaveChanges = false;
-        foreach (var genre in genres)
-        {
-            var usedGenres = ctx.MovieGenres.FirstOrDefault(r => (r.genreId == genre.Id));
-            if (usedGenres == null)
-            {
-                ctx.Genres.Remove(genre);
-                bNeedToSaveChanges = true;
-            }
-        }
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
-    }
+    private void DeleteUnusedGenres() => CatalogServices.CreateStore().DeleteUnusedMovieGenres();
 
     #endregion
     #region Edit Fields operations

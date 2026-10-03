@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Data.Entity.Validation;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -12,7 +11,7 @@ using System.Windows.Forms;
 using Ariadna.Extension;
 using Ariadna.Properties;
 using Ariadna.Themes;
-using DbProvider;
+using Ariadna.Storage;
 using MediaInfo;
 using Microsoft.Extensions.Logging;
 
@@ -20,6 +19,7 @@ namespace Ariadna.AuxiliaryPopups;
 
 public partial class DetailsForm : Form
 {
+
     private readonly ILogger m_Logger;
 
     #region Public Fields
@@ -443,12 +443,7 @@ public partial class DetailsForm : Form
     }
     private void AddToIgnoreList()
     {
-        using var ctx = new AriadnaEntities();
-        if (ctx.Ignores.FirstOrDefault(r => r.path == FilePath) == null)
-        {
-            ctx.Ignores.Add(new Ignore { path = FilePath });
-            ctx.SaveChanges();
-        }
+        Store.Ignore(FilePath);
 
         Close();
     }
@@ -648,13 +643,11 @@ public partial class DetailsForm : Form
         {
             return;
         }
-
-        using var ctx = new AriadnaEntities();
-        var director = ctx.Directors.AsNoTracking().FirstOrDefault(r => r.name == e.Label);
-        if (director is { photo: not null })
+        var person = Store.FindPerson(e.Label, false);
+        if (person?.Photo != null)
         {
             m_DirectorsPhotos.Images.SetKeyName(m_DirectorsList.Items[e.Item].ImageIndex, e.Label);
-            m_DirectorsPhotos.Images[m_DirectorsPhotos.Images.IndexOfKey(e.Label)] = director.photo.ToBitmap();
+            m_DirectorsPhotos.Images[m_DirectorsPhotos.Images.IndexOfKey(e.Label)] = person.Photo.ToBitmap();
             m_DirectorsList.Refresh();
         }
     }
@@ -664,13 +657,11 @@ public partial class DetailsForm : Form
         {
             return;
         }
-
-        using var ctx = new AriadnaEntities();
-        var actor = ctx.Actors.AsNoTracking().FirstOrDefault(r => r.name == e.Label);
-        if (actor is { photo: not null })
+        var person = Store.FindPerson(e.Label, true);
+        if (person?.Photo != null)
         {
             m_CastPhotos.Images.SetKeyName(m_CastList.Items[e.Item].ImageIndex, e.Label);
-            m_CastPhotos.Images[m_CastPhotos.Images.IndexOfKey(e.Label)] = actor.photo.ToBitmap();
+            m_CastPhotos.Images[m_CastPhotos.Images.IndexOfKey(e.Label)] = person.Photo.ToBitmap();
             m_CastList.Refresh();
         }
     }
@@ -888,108 +879,17 @@ public partial class DetailsForm : Form
     }
     protected void AddNewListItem(ListView listView, ImageList imageList, string name, Bitmap image = null)
     {
-        if (name == "↓")
+        if (name == "↓" || listView.FindItemWithText(name) != null)
         {
             return;
         }
-
-        if (listView.FindItemWithText(name) != null)
-        {
-            return;
-        }
-
         if (image == null)
         {
-            using var ctx = new AriadnaEntities();
-            var director = ctx.Directors.AsNoTracking().FirstOrDefault(r => r.name == name);
-            if (director?.photo != null)
-            {
-                image = director.photo.ToBitmap();
-            }
-
-            if (image == null)
-            {
-                var actor = ctx.Actors.AsNoTracking().FirstOrDefault(r => r.name == name);
-                if (actor?.photo != null && Utilities.IsValidPreview(actor.photo))
-                {
-                    image = actor.photo.ToBitmap();
-                }
-            }
-
-            image ??= new Bitmap(Resources.No_Preview_Image_small);
+            var person = Store.FindPerson(name) ?? Store.FindPerson(name, actor: true);
+            image = person?.Photo?.ToBitmap() ?? new Bitmap(Resources.No_Preview_Image_small);
         }
-
         imageList.Images.Add(name, image);
         listView.Items.Add(new ListViewItem(name, imageList.Images.IndexOfKey(name)));
-    }
-    protected bool TrySaveChanges(AriadnaEntities ctx, string text, string caption)
-    {
-        try
-        {
-            ctx.SaveChanges();
-            return true;
-        }
-        catch (DbEntityValidationException)
-        {
-            MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return false;
-        }
-    }
-    protected int ResolveStoredEntryId(IQueryable<int?> idQuery)
-    {
-        return idQuery.FirstOrDefault() ?? -1;
-    }
-    protected bool SaveMissingListEntries(ListView.ListViewItemCollection items, Func<AriadnaEntities, string, bool> addMissingEntry, string text, string caption)
-    {
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-
-        foreach (ListViewItem item in items)
-        {
-            bNeedToSaveChanges = addMissingEntry(ctx, item.Text) || bNeedToSaveChanges;
-        }
-
-        if (!bNeedToSaveChanges)
-        {
-            return true;
-        }
-
-        return TrySaveChanges(ctx, text, caption);
-    }
-    protected bool SaveNamedPhotoEntries(ListView.ListViewItemCollection items, ImageList imageList, Func<AriadnaEntities, string, byte[], bool> upsertEntry, string text, string caption)
-    {
-        using var ctx = new AriadnaEntities();
-
-        foreach (ListViewItem item in items)
-        {
-            var photo = imageList.Images[item.Text]?.ToBytes();
-            upsertEntry(ctx, item.Text, photo);
-        }
-
-        return TrySaveChanges(ctx, text, caption);
-    }
-    protected void ReplaceListRelations(ListView.ListViewItemCollection items, Action<AriadnaEntities> removeExistingRelations, Func<AriadnaEntities, string, bool> addRelationIfMissing)
-    {
-        if (items.Count == 0)
-        {
-            return;
-        }
-
-        using var ctx = new AriadnaEntities();
-        var bNeedToSaveChanges = false;
-
-        removeExistingRelations(ctx);
-        ctx.SaveChanges();
-
-        foreach (ListViewItem item in items)
-        {
-            bNeedToSaveChanges = addRelationIfMissing(ctx, item.Text) || bNeedToSaveChanges;
-        }
-
-        if (bNeedToSaveChanges)
-        {
-            ctx.SaveChanges();
-        }
     }
     protected void LoadPosterImage(string path, PictureBox pictureBox)
     {

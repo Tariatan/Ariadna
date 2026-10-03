@@ -6,6 +6,7 @@
     <IsPackable>false</IsPackable>
     <PlatformTarget>x64</PlatformTarget>
     <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <PropertyGroup>
     <NoWarn>$(NoWarn);WFO1000;NETSDK1206</NoWarn>
@@ -16,6 +17,9 @@
     <PackageReference Include="MSTest.TestFramework" Version="4.2.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Ariadna\Ariadna.csproj" Aliases="global,ariadna" />
+    <ProjectReference Include="..\Ariadna\Ariadna.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Fixtures\media-two-seconds.avi" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

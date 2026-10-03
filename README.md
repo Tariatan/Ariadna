@@ -6,8 +6,8 @@ A Windows desktop app for managing a personal media library — movies, document
 ![Framework](https://img.shields.io/badge/.NET-9.0-purple)
 ![Language](https://img.shields.io/badge/language-C%23-239120)
 
-**Status:** the WinForms catalog uses EF6 and SQL Server LocalDB. SQLite migration
-has been investigated and proposed; conversion and cutover remain unimplemented.
+**Status:** the WinForms catalog now uses SQLite through a focused storage layer.
+Entity Framework, SQL Server LocalDB, and the legacy DbProvider project are removed.
 See [docs/PLAN.md](docs/PLAN.md) for remaining/upcoming tasks.
 
 ---
@@ -39,30 +39,36 @@ Each mode has its own color theme, toolbar, and genre set. You can run all four 
 ## Requirements
 
 - Windows 10+ (x64), .NET 9.0
-- SQL Server LocalDB
-- .NET 9 SDK and .NET Framework 4.8 build tooling for the legacy `DbProvider` project
+- .NET 9 SDK for development; the self-contained Windows publish includes its runtime
+- A verified SQLite catalog and its matching image folders
 - Paths to your media folders and a [TMDb API key](https://developer.themoviedb.org/docs/getting-started) configured in `Ariadna/App.config`
 
 ## Getting started
 
-Open `Ariadna.sln` in Rider or Visual Studio with the required Windows/.NET
-Framework tooling. Restore both SDK-style package references and DbProvider's
-legacy `packages.config` dependencies before building.
-
-The existing CLI build/test commands are below. They have not been rerun during
-the 2026-10-03 documentation alignment; a clean-machine restore/build/test recipe
-remains a task in docs/PLAN.md.
+Open `Ariadna.sln` in Rider or Visual Studio with the .NET 9 SDK. All production
+projects use SDK-style package references and checked-in NuGet lock files:
 
 ```powershell
-dotnet build Ariadna.sln -c Release
-dotnet test Ariadna.Tests/Ariadna.Tests.csproj -c Release
+dotnet restore Ariadna.sln --locked-mode
+dotnet build Ariadna.sln -c Release --no-restore
+dotnet test Ariadna.sln -c Release --no-build --no-restore
+dotnet restore Ariadna.Migration.Tests/Ariadna.Migration.Tests.csproj --locked-mode
+dotnet test Ariadna.Migration.Tests/Ariadna.Migration.Tests.csproj -c Release --no-restore
+dotnet publish Ariadna/Ariadna.csproj -c Release -r win-x64 --self-contained true -o publish
 ```
 
-Close running instances before rebuilding. After a successful build, launch
-`Ariadna/bin/Release/net9.0-windows8.0/Ariadna.exe` with one of the modes above;
-no argument defaults to movies. Configure disposable catalog/image locations
-before running write checks. There is currently no `global.json` or NuGet
-lock-file setup; Balancia's `--locked-mode` commands are not established here.
+Close running instances before rebuilding. Launch
+`Ariadna/bin/Release/net9.0-windows8.0/Ariadna.exe` with a mode above; no argument
+defaults to movies. A missing catalog produces a recovery error instead of creating
+an empty database. The separate `Ariadna.Migration` utility provides lossless export,
+import, verification, and matched SQLite/image snapshots. See
+[SQLite operation and recovery](docs/SQLITE-OPERATIONS.md) for configuration,
+disposable test overrides, and backup/restore commands.
+
+Release builds/tests and a self-contained win-x64 publish were verified during the
+migration. Version 2.0.1 removes Windows API Code Pack and uses the bundled MediaInfo
+reader for duration; existing-video regression tests cover details opening. There
+is no SDK pin or clean-machine installation test.
 
 ## Documentation
 
@@ -70,8 +76,8 @@ lock-file setup; Balancia's `--locked-mode` commands are not established here.
 - [Technical Design Description](docs/Technical_Design_Description.md) — primary
   project reference for product behavior, architecture, configuration, and decisions
 - [Implementation plan](docs/PLAN.md) — remaining/upcoming tasks and completion gates
-- [SQLite migration investigation](docs/SQLITE-MIGRATION-PLAN.md) — dated evidence
-  and a detailed proposal; migration has not been implemented
+- [SQLite operation and recovery](docs/SQLITE-OPERATIONS.md) — implemented format, configuration, verification, and backup/restore
+- [SQLite migration investigation](docs/SQLITE-MIGRATION-PLAN.md) — original dated evidence and migration rationale
 - [AGENTS.md](AGENTS.md) / [MEMORY.md](MEMORY.md) — operational instructions and
   compact working handoff for contributors and agents
 

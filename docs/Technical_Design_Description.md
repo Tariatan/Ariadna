@@ -19,12 +19,13 @@ handoff evidence belongs in repository MEMORY.md.
 This document covers all projects in `Ariadna.sln`:
 
 - **Ariadna** — WinForms desktop application, targeting `net9.0-windows8.0`
-- **DbProvider** — EF6 Database-First model and legacy .NET Framework 4.8 project
+- **Ariadna.Storage** — direct SQLite storage, targeting `net9.0`
+- **Ariadna.Storage.Tests** — real-provider integration tests, targeting `net9.0`
 - **Ariadna.Tests** — MSTest characterization/unit tests, targeting `net9.0-windows8.0`
 
-The production backend remains SQL Server LocalDB. Direct SQLite storage is a
-proposal described in the focused migration investigation; no conversion or
-cutover has been implemented by this documentation change.
+The production backend is SQLite. `Ariadna.Migration` and its tests are separate
+projects outside the production solution; only SQL export/comparison needs a SQL
+Server client. The desktop has no EF or SQL Server dependency.
 
 ## References
 
@@ -34,7 +35,8 @@ cutover has been implemented by this documentation change.
 | [AGENTS.md](../AGENTS.md) | Operational instructions, editing rules, testing and review conventions |
 | [MEMORY.md](../MEMORY.md) | Compact dated handoff and evidence |
 | [PLAN.md](PLAN.md) | Remaining/upcoming tasks and completion gates |
-| [SQLite migration investigation](SQLITE-MIGRATION-PLAN.md) | Detailed proposal and dated source-data investigation |
+| [SQLite operation and recovery](SQLITE-OPERATIONS.md) | Implemented storage format, migration evidence, and backup/restore |
+| [SQLite migration investigation](SQLITE-MIGRATION-PLAN.md) | Original rationale and dated source-data investigation |
 
 ## Abbreviations and Definitions
 
@@ -54,10 +56,10 @@ cutover has been implemented by this documentation change.
 | Windows WinForms desktop | Existing local media workflow; preserve native interactions and file/tool integration |
 | One mode per process | Strategy and theme are selected before UI construction; independent modes can run simultaneously |
 | Category-specific strategies and detail forms | Collection fields, filters, discovery, and launch behavior differ; retain these differences |
-| EF6 Database-First with LocalDB | Current persisted model; generated files and legacy build tooling remain dependencies |
+| Direct SQLite commands in Ariadna.Storage | Explicit mapping, focused queries, complete-entry transactions, no server or ORM |
 | External posters keyed by catalog ID | IDs connect rows to extensionless PNG image files; changing IDs or filenames breaks lookup |
 | Embedded ImageListView fork | Existing custom grid/rendering/cache behavior; preserve its license and lifecycle handling |
-| SQLite replacement is proposed | Recovery, lossless conversion, compatibility, and native acceptance gates precede cutover |
+| Recoverable image promotion | Durable staging journals and database commit tokens support startup recovery |
 
 ## Overview
 
@@ -70,21 +72,17 @@ save catalog data and related images; thumbnail workers render cached posters.
 
 ```mermaid
 flowchart LR
-    Owner[Owner] --> Desktop[Ariadna: WinForms]
-    Desktop --> Strategies[Collection strategies and detail forms]
-    Strategies --> Model[EF6 model: linked DbProvider sources]
-    Desktop --> Model
-    Model --> DB[(SQL Server LocalDB catalog)]
-    Strategies --> Assets[External posters and game previews]
-    Desktop --> Grid[Embedded ImageListView and thumbnail workers]
+    Desktop[Program / MainPanel] --> Strategies[Collection strategies]
+    Strategies --> Forms[Detail forms]
+    Strategies --> Store[Ariadna.Storage]
+    Forms --> Store
+    Store --> DB[(SQLite catalog)]
+    Store --> Assets[External posters and previews]
+    Desktop --> Grid[ImageListView / thumbnail workers]
     Grid --> Assets
-    Strategies --> TMDb[TMDb metadata and posters]
-    Strategies --> Tools[MediaInfo / media player / file manager]
+    Strategies --> TMDb[TMDb]
+    Strategies --> Tools[MediaInfo / player / file manager]
 ```
-
-The direct desktop-to-model edge reflects existing lookup cleanup in MainPanel.
-Persistence is currently spread across strategies and forms; the diagram does
-not imply an isolated storage layer already exists.
 
 ### Considerations for a Secure Design
 
@@ -94,18 +92,18 @@ The configured API key is currently an application setting; this document does
 not claim encrypted credential storage. TMDb metadata retrieval uses network
 access; browsing local data depends on the configured database and image paths.
 
-Database and external files are separate persistence resources. Current save
-steps are not one atomic database/filesystem operation. Recovery and any storage
-migration must preserve a matched catalog/assets set; proposed transaction and
-image-compensation changes are detailed in the migration investigation.
+Database and external files are separate persistence resources. Complete-entry
+saves use a SQLite transaction plus recoverable image promotion. Snapshot backups
+pause shared writers and copy both resources; see the operations guide.
 
 ### Considerations for Localization
 
 The application uses resources and collection-specific controls. `ImdbLanguage`
 selects TMDb request language, not a verified runtime UI-language picker.
-Preserve Unicode titles, people, genres, and paths. A SQLite replacement needs
-an explicit Unicode comparison policy and provider tests before cutover; it
-must not assume SQLite's default text comparison matches the current backend.
+Unicode text is retained. A registered en-US case-insensitive collation and
+literal Unicode search functions support Cyrillic searches. Alphabetical ordering
+is close to, but does not exactly match, the old SQL Server collation; measured
+differences are recorded in the operations guide.
 
 ## Features
 
@@ -130,7 +128,7 @@ must not assume SQLite's default text comparison matches the current backend.
 
 - **OS**: Windows 10 or later (x64)
 - **Runtime**: .NET 9.0 (net9.0-windows8.0)
-- **Database**: SQL Server LocalDB (ships with Visual Studio or can be installed separately via the SQL Server Express LocalDB installer)
+- **Database**: a verified SQLite catalog plus matching external image directories
 - **External tools** (optional, paths configured in `App.config`):
   - [MPC-HC](https://github.com/clsid2/mpc-hc) — media player for opening video files
   - [Total Commander](https://www.ghisler.com/) — file manager for browsing entry directories
@@ -144,7 +142,7 @@ All paths and keys are set in `Ariadna/App.config`. Update these before building
 
 | Setting | Description |
 |---|---|
-| `connectionStrings` | Path to the `.mdf` database file (SQL Server LocalDB connection string) |
+| `AriadnaCatalog` connection string | Absolute SQLite filename; normal startup uses ReadWrite and validates application/schema identity |
 | `TmdbApiKey` | Your [TMDb API key](https://developer.themoviedb.org/docs/getting-started) |
 | `MoviePostersRootPath` | Root directory where movie poster images are stored by entry ID |
 | `GamePostersRootPath` | Root directory for game poster images |
@@ -179,10 +177,9 @@ required path separators. Typed settings are generated from
 ## Building
 
 Use [README.md](../README.md) for build/test guidance and its verification limits.
-`DbProvider` is an old-style .NET Framework 4.8 project with `packages.config`.
-The desktop references that project, directly compiles its generated entity/context
-files, and links the EDMX. Both model compilation paths currently exist; suppressing
-CS0436 does not remove the duplicate types or the legacy project dependency.
+All production projects are SDK-style and use locked NuGet dependencies. The
+legacy DbProvider project, generated/linked models, EF packages, and EDMX/T4
+build tooling have been removed.
 
 ---
 
@@ -218,8 +215,8 @@ LibraryDbStrategy            — books (implements AbstractDbStrategy directly)
 
 `Program.cs` selects a strategy and theme pair based on the command-line argument,
 then passes the strategy to `MainPanel`. The main collection operations use
-`AbstractDbStrategy`. MainPanel also contains direct EF lookup cleanup; this is
-an existing exception to that boundary, identified for the proposed migration.
+`AbstractDbStrategy`. Strategies and detail forms call focused `CatalogStore`
+operations; SQL and mapping belong to the storage project.
 
 Key strategy responsibilities:
 - `GetEntries()` / `QueryEntries(QueryParams)` — data retrieval with filtering
@@ -231,7 +228,8 @@ Key strategy responsibilities:
 
 ### Data Layer
 
-Entity Framework 6 Database-First targeting SQL Server LocalDB. The EDMX model lives in the `DbProvider` project and generates entity classes via T4 templates. The main entities are:
+Direct `Microsoft.Data.Sqlite` queries with explicit scalar/BLOB mapping. The
+original 19 data tables are retained, plus internal image commit metadata:
 
 | Entity | Description |
 |---|---|
@@ -244,9 +242,10 @@ Entity Framework 6 Database-First targeting SQL Server LocalDB. The EDMX model l
 | `MovieCast` / `MovieDirector` / `MovieGenre` / `GameGenre` / `DocumentaryGenre` / `LibraryAuthor` / `LibraryGenre` | Collection-to-person/genre relationship entities |
 | `Ignore` (`Ignores` context set) | Files permanently excluded from automatic discovery |
 
-Strategies, detail forms, shared save helpers, and MainPanel cleanup access EF
-directly. Generated sources live in DbProvider and are linked into Ariadna.
-There is currently no separate storage service owning complete-entry transactions.
+`CatalogStore` owns queries, people lookups, discovery/ignore paths, complete-entry
+saves, and relationship-aware deletes. `CatalogDatabase` owns validated connections,
+backup, integrity checks, writer coordination, and image-journal recovery. Lists and
+entry information avoid loading photos; details and suggestions request them.
 
 ### Theming
 
@@ -262,18 +261,18 @@ one shared process.
 `DetailsForm` (abstract base) provides shared detail/edit dialog behavior:
 - Async directory size calculation with cancellation
 - Async MediaInfo loading (resolution, bitrate, audio language detection)
+- Duration lookup through the bundled MediaInfo reader; no Windows Shell dependency
 - Genre picker via `FloatingPanel` overlay
 - Director/actor photo management
 - Templated DB save flow: `StorePreEntryData()` → `StoreMainEntry()` → `StorePostEntryData()` → `StoreRelatedData()`
 
 Concrete subclasses: `MovieDetailsForm`, `GameDetailsForm`, `DocumentaryDetailsForm`, `LibraryDetailsForm`.
 
-The shared store flow makes multiple EF save calls and then writes external
-images. It is not currently a single transaction over the complete entry and
-relationships. Background directory/MediaInfo work has cancellation and UI
-update guards; preserve cancellation, disposal, and stale-result handling when
-changing form lifecycle. Characterization tests cover substituted save steps;
-they do not establish live database atomicity or filesystem recovery.
+The template flow remains for workflow characterization. Production forms save
+metadata, people, and genres through one complete-entry storage operation; the
+pre/post hooks are no-ops. Selected images participate in recoverable promotion.
+Background directory/MediaInfo work retains existing cancellation, disposal, and
+stale-result guards. Automated shown-form checks use disposable SQLite/image data.
 
 ### Embedded ImageListView
 
@@ -306,10 +305,8 @@ Ariadna.sln
 │   ├── Resources/                  # PNG/BMP/ICO assets, 100+ genre icons
 │   ├── SplashScreen/               # SplashForm and Splasher helper
 │   └── Themes/                     # Theme base + ThemeMovies/Games/Documentaries/Library
-├── DbProvider/                     # EF6 Database-First data project (.NET Framework 4.8)
-│   ├── AriadnaModel.edmx           # EF designer model
-│   ├── AriadnaModel.Context.cs     # DbContext (AriadnaEntities)
-│   └── *.cs / *.tt                 # T4-generated entity classes
+├── Ariadna.Storage/                # Focused SQLite operations, schema, image recovery
+├── Ariadna.Storage.Tests/          # Real SQLite integration tests
 └── Ariadna.Tests/                  # MSTest unit test project (net9.0-windows)
     ├── AuxiliaryPopups/
     ├── DatabaseStrategies/
@@ -323,19 +320,19 @@ Ariadna.sln
 
 | Package | Version | Purpose |
 |---|---|---|
-| EntityFramework | 6.5.1 | Database-First ORM (SQL Server LocalDB) |
+| Microsoft.Data.Sqlite | 10.0.12 | Direct SQLite provider |
+| SQLitePCLRaw.bundle_e_sqlite3 | 3.0.5 | Native SQLite 3.53.4 runtime |
 | TMDbLib | 3.0.0 | The Movie Database REST API client |
 | MediaInfo.Wrapper.Core | 26.1.0 | Video metadata (resolution, bitrate, audio) |
-| Microsoft.WindowsAPICodePack-Shell | 1.1.0.0 | File duration via Windows Shell |
 | SkiaSharp | 3.119.2 | Image processing |
 | Microsoft.Extensions.Logging.Console | 10.0.5 | Console logging for strategies |
 | System.Runtime.Serialization.Formatters | 10.0.5 | Legacy serialization support |
 | Microsoft.NET.Test.Sdk | 18.4.0 | Test host |
 | MSTest.TestFramework / TestAdapter | 4.2.1 | Unit testing |
 
-Versions above reflect the inspected project files on 2026-10-03. No SDK pin or
-NuGet lock files currently establish reproducible restore. Dependency upgrades
-and warning-suppression cleanup require their own validation.
+Versions reflect project files and locked packages on 2026-10-03. Locked restores
+are verified; no SDK pin is configured. The separate migration tool uses
+Microsoft.Data.SqlClient 7.1.1 for SQL export/comparison only.
 
 ---
 
@@ -346,11 +343,10 @@ Use [README.md](../README.md) for test commands. Tests follow the
 Arrange / Act / Assert structure; see [AGENTS.md](../AGENTS.md) for the complete
 repository testing rules.
 
-Existing query characterization tests use in-memory IQueryable sources, and
-store-workflow tests replace persistence steps. They characterize workflows;
-provider-backed queries, complete-entry transactions, and native interaction
-need separate verification. No application build, tests, or native UI checks
-were run for the 2026-10-03 documentation alignment.
+Tests include retained workflow characterization, real SQLite query/write and
+recovery integration, conversion/package failures, and automated shown WinForms
+grid/detail checks in all four modes. See the operations guide for measured results
+and the limits of automated native checks.
 
 ### Acceptance Scenarios
 
@@ -365,7 +361,7 @@ scenarios against disposable catalog/image copies.
 | Discovery and ignore | Manual/automatic discovery retain collection-specific paths/exclusions; ignore prevents later rediscovery |
 | Execute and remove | Configured player/file manager receives the expected path; cancellation prevents deletion; optional filesystem removal respects the chosen action |
 | Form lifecycle | Closing a form during directory/MediaInfo work cancels it without stale UI updates; images are released for replacement |
-| SQLite proposal | Compare every converted value/ID/hash, real-provider searches and failures, concurrent windows, and matched restore before production cutover |
+| SQLite migration | Compare every converted value/ID/hash, real-provider searches and failures, concurrent windows, and matched restore before production cutover |
 
 ## Non-Functional Considerations
 
@@ -378,32 +374,22 @@ The embedded ImageListView source and license remain part of the application.
 Tests and builds do not prove native rendering, mouse/keyboard behavior, external
 tool availability, or recovery of a production catalog.
 
-## Proposed Storage Evolution
+## Storage evolution and verification limits
 
-The [SQLite migration investigation](SQLITE-MIGRATION-PLAN.md) proposes direct
-`Microsoft.Data.Sqlite` storage, focused operations, and a separate one-time
-conversion utility. Its 2026-10-03 source-data observations are dated evidence,
-not continuously verified inventory. Keep detailed schema comparisons and
-conversion gates in that investigation instead of duplicating them here.
+The approved SQLite migration is implemented. The initial source investigation
+is retained in [SQLITE-MIGRATION-PLAN.md](SQLITE-MIGRATION-PLAN.md); current
+storage/recovery behavior and migration evidence belong in
+[SQLITE-OPERATIONS.md](SQLITE-OPERATIONS.md). IDs, NULLs, duplicate relationships,
+photo bytes, and external filenames were verified before cutover.
 
-Migration must preserve IDs, NULL distinctions, original relationships including
-duplicates, person-photo bytes, external filenames, and collection behavior.
-Proposed reliability changes include complete-entry transactions, explicit empty
-relationship replacement, and recoverable external-image promotion. These
-changes have not been implemented. The current app continues using LocalDB
-until lossless conversion, all-mode acceptance, and final recovery gates pass.
-
-## Open Choices
-
-- Supported SDK/build tooling and reproducible package restore for the mixed solution
-- Approval and implementation scope of the SQLite migration proposal
-- Unicode search/order policy and compatibility with the existing database
-- Storage project boundaries, provider/native runtime version, and concurrency handling
-- Recoverable database/image writes and matched backup/restore workflow
-- Practical performance baseline and deployment validation without LocalDB
-
-Track remaining work in [PLAN.md](PLAN.md); do not turn these proposals into
-accepted decisions without resolving them in the task context.
+A clean-machine installation and manual review of every control remain outside
+the verified scope. Native automated checks exercise key browse/save/reopen paths.
+On 2026-10-03 the user reported successful manual browse/details/edit/restart
+checks across all four collections, including posters and game previews, using
+the isolated full-data copy with version 2.0.1; see the operations guide.
+Thumbnail decoding and external tool integration still affect responsiveness.
+Future schema upgrades must take a matched backup first and advance the schema
+version transactionally. Track future work in [PLAN.md](PLAN.md).
 
 ---
 

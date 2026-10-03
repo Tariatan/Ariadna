@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Ariadna.ImageListHelpers;
 using Ariadna.Properties;
-using DbProvider;
+using Ariadna.Storage;
 using Manina.Windows.Forms;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +21,8 @@ public abstract class MediaDbStrategyBase : AbstractDbStrategy
     }
 
     protected ILogger Logger { get; }
+    protected CatalogStore Store => CatalogServices.CreateStore();
+    protected abstract CatalogKind Kind { get; }
 
     public override ImageListView.ImageListViewItemAdaptor GetPosterImageAdapter() => m_PosterImageAdaptor;
 
@@ -65,21 +67,11 @@ public abstract class MediaDbStrategyBase : AbstractDbStrategy
 
     protected virtual string FindFirstNotInserted(string[] paths)
     {
-        using var ctx = new AriadnaEntities();
-        return EntryDiscoveryHelper.FindFirstNotInserted(paths, path => IsAlreadyInserted(path, ctx));
+        var registered = Store.GetRegisteredPaths(Kind);
+        return EntryDiscoveryHelper.FindFirstNotInserted(paths, path => registered.Any(stored => CatalogStore.PathsEqual(stored, path)));
     }
 
-    protected virtual bool IsAlreadyInserted(string path, AriadnaEntities ctx)
-    {
-        if (ctx.Ignores.AsNoTracking().FirstOrDefault(r => r.path == path) is not null)
-        {
-            return true;
-        }
 
-        return IsStoredPath(path, ctx);
-    }
-
-    protected abstract bool IsStoredPath(string path, AriadnaEntities ctx);
     protected abstract string FindStoredEntryPathById(int id);
     protected abstract void ShowDataDialog(string path);
     protected virtual void OpenDiscoveredPath(string path) => ShowDataDialog(path);

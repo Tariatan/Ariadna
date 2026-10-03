@@ -18,7 +18,16 @@ namespace Ariadna
             AppContext.SetSwitch("System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization", true);
             using var factory = LoggerFactory.Create(builder => builder.AddConsole());
             var logger = factory.CreateLogger("Ariadna");
-
+            try
+            {
+                CatalogServices.CreateDatabase().RecoverAssets();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(exception, "Unable to open the Ariadna catalog");
+                MessageBox.Show(exception.Message + "\n\nRestore or import your catalog and check the AriadnaCatalog setting.", "Ariadna catalog", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             Theme theme;
             AbstractDbStrategy strategy;

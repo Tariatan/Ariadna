@@ -13,10 +13,10 @@ public class UtilitiesTests
         // Arrange
 
         // Act
-        var result = Utilities.GetMovieGenreBySynonym("Ìóëüòôèëüì");
+        var result = Utilities.GetMovieGenreBySynonym("ÐœÑƒÐ»ÑŒÑ‚Ñ„Ð¸Ð»ÑŒÐ¼");
 
         // Assert
-        Assert.AreEqual("Àíèìàöèîííûé", result);
+        Assert.AreEqual("ÐÐ½Ð¸Ð¼Ð°Ñ†Ð¸Ð¾Ð½Ð½Ñ‹Ð¹", result);
     }
 
     [TestMethod]
@@ -37,7 +37,7 @@ public class UtilitiesTests
         // Arrange
 
         // Act
-        var result = Utilities.GetMovieGenreImage("Áîåâèê");
+        var result = Utilities.GetMovieGenreImage("Ð‘Ð¾ÐµÐ²Ð¸Ðº");
 
         // Assert
         AssertBitmapsEqual(Resources.fantasy, result);
@@ -219,6 +219,48 @@ public class UtilitiesTests
 
         // Assert
         Assert.AreEqual(TimeSpan.Zero, result);
+    }
+
+    [TestMethod]
+    public void GetVideoDuration_ExistingVideo_ReturnsDurationAndReleasesFile()
+    {
+        // Arrange
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".avi");
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "Fixtures", "media-two-seconds.avi"), path);
+        try
+        {
+            // Act
+            var result = Utilities.GetVideoDuration(path);
+
+            // Assert
+            Assert.AreEqual(TimeSpan.FromSeconds(2), result);
+            using var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            Assert.IsTrue(exclusive.Length > 0);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
+    public void GetVideoDuration_ExistingNonMediaFile_ReturnsZero()
+    {
+        // Arrange
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".txt");
+        File.WriteAllText(path, "Not a media file");
+        try
+        {
+            // Act
+            var result = Utilities.GetVideoDuration(path);
+
+            // Assert
+            Assert.AreEqual(TimeSpan.Zero, result);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     [TestMethod]
