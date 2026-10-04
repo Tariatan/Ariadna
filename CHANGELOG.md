@@ -13,6 +13,13 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.0.1] - 2026-10-04
+
+#### Fixed
+
+- Save the main window's size and position on accepted Closing, before WPF clears RestoreBounds. Restore the normal bounds on the next launch, including after minimized/maximized closure; retain the existing maximized-state setting. Canceled closure and windows never shown do not overwrite the previous placement.
+- Keep WPF test/resource-only application instances from running production startup, reading personal configuration, recovering its catalog, or opening an extra main window.
+
 ### [1.0.0] - 2026-10-04
 
 #### Added

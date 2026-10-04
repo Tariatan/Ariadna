@@ -9,7 +9,8 @@ internal static class WpfThread
         var thread = new Thread(() =>
         {
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
-            var app = new App();
+            // Load styles without production startup, which reads personal configuration and opens a window.
+            var app = new App(startCatalog: false);
             app.InitializeComponent();
             ready.SetResult(Dispatcher.CurrentDispatcher);
             Dispatcher.Run();

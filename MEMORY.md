@@ -4,6 +4,11 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Durable context
 
+- 2026-10-04: user designated Ariadna.Wpf as the default project for future work.
+  Prefer its frontend and Ariadna.Wpf.Tests; leave the legacy WinForms Ariadna
+  implementation unchanged unless explicitly requested. Shared storage changes
+  remain task-dependent. This routing decision does not claim completion of the
+  remaining acceptance checks or retirement of WinForms. PLAN is user-owned.
 - Personal Windows catalog with one application instance and four permanent tabs:
   movies/series, documentaries, games, and library. Preserve each tab's fields,
   genres, palette, paths, filters, selection, and scroll position. Legacy arguments
@@ -26,6 +31,27 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-04: Ariadna.Wpf 1.0.1 fixes main-window placement persistence. Saving
+  now occurs in OnClosing after cancellation handlers, not Closed (when WPF's
+  RestoreBounds is empty). The existing local application-data JSON store restores
+  normal size/position and retains maximized closure. Unshown windows skip saving;
+  canceled closure preserves the previous file. WinForms/Storage/Migration are
+  unchanged, and PLAN remains user-owned and untouched.
+- The placement regression reproduced invalid-infinity JSON serialization before
+  the fix. Five new cases cover move/resize/reopen, normal/minimized/maximized
+  closure, cancellation, and unshown-window protection. WPF test startup now
+  explicitly loads resources without production startup. An initial native harness
+  inadvertently started the production frontend alongside its synthetic window;
+  it was stopped before UI editing, then corrected to use the isolated startup.
+  No catalog edits were performed; no production recovery outcome is claimed.
+  The corrected native check used disposable catalog and placement files: mouse
+  movement, native keyboard resizing, Alt+F4, and reopening restored identical
+  screenshot bounds. Personal-catalog acceptance, changed-monitor/DPI checks,
+  and new publishing verification remain open for this patch.
+- Final verification for 1.0.1: locked solution restore, zero-warning/error Debug
+  and Release builds, and 292 Release tests passed (204 WinForms, 51 storage,
+  32 WPF, 5 migration). PLAN's content hash is unchanged. Next: user acceptance
+  of WPF move/resize/close/reopen with the normal startup executable.
 - 2026-10-04: implemented Ariadna.Wpf 1.0.0 alongside Ariadna 4.1.7. The WPF
   frontend references only Storage and uses native XAML views, four retained tabs,
   a recycling poster-row browser, bounded background thumbnail decoding, worker

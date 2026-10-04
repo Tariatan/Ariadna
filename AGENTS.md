@@ -15,11 +15,19 @@ Description owns product behavior and technical decisions; memory is a compact
 handoff, not a second specification. Proposals are not user-confirmed requirements.
 Resolve contradictions explicitly instead of silently choosing an old memory entry.
 
+## Default project
+
+Focus on Ariadna.Wpf by default for features, fixes, UI work, builds, and runs.
+Use Ariadna.Wpf.Tests for frontend tests and change shared projects only when
+the task requires it. The legacy WinForms Ariadna project is not the default
+target; modify it only when explicitly requested.
+
 ## Product boundaries
 
 Ariadna is a personal Windows media catalog with one application instance and
 four permanent tabs: movies, documentaries, games, and library. The current application uses
-C#/.NET 10 WinForms and direct SQLite storage in Ariadna.Storage. The separate
+C#/.NET 10 WPF in Ariadna.Wpf and direct SQLite storage in Ariadna.Storage.
+The legacy WinForms frontend remains in the repository. The separate
 migration utility alone uses a SQL client for legacy export. Preserve collection-specific
 behavior and each tab's filters, selection, scroll position, and palette.
 

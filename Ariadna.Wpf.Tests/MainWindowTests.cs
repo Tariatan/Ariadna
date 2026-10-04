@@ -11,6 +11,83 @@ namespace Ariadna.Wpf.Tests;
 public sealed class MainWindowTests
 {
     [TestMethod]
+    [DataRow(WindowState.Normal)]
+    [DataRow(WindowState.Minimized)]
+    [DataRow(WindowState.Maximized)]
+    public async Task Close_WindowMovedAndResized_RestoresNormalBoundsOnNextLaunch(WindowState state) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var path = System.IO.Path.Combine(fixture.Root, "window.json");
+        var placement = new WindowPlacement(path, NullLogger.Instance);
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, null, placement);
+        window.Show();
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+        window.WindowStartupLocation = WindowStartupLocation.Manual;
+        window.Left = SystemParameters.WorkArea.Left + 30;
+        window.Top = SystemParameters.WorkArea.Top + 30;
+        window.Width = 820;
+        window.Height = 620;
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+        var bounds = window.RestoreBounds;
+        window.WindowState = state;
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+        // Act
+        window.Close();
+        var reopened = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, null, placement);
+        try
+        {
+            reopened.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.IsTrue(System.IO.File.Exists(path));
+            Assert.AreEqual(WindowStartupLocation.Manual, reopened.WindowStartupLocation);
+            Assert.AreEqual(bounds.Left, reopened.RestoreBounds.Left, 1);
+            Assert.AreEqual(bounds.Top, reopened.RestoreBounds.Top, 1);
+            Assert.AreEqual(bounds.Width, reopened.RestoreBounds.Width, 1);
+            Assert.AreEqual(bounds.Height, reopened.RestoreBounds.Height, 1);
+            Assert.AreEqual(state == WindowState.Maximized ? WindowState.Maximized : WindowState.Normal, reopened.WindowState);
+        }
+        finally
+        {
+            reopened.Close();
+        }
+    });
+
+    [TestMethod]
+    public async Task Close_ClosureCanceled_DoesNotOverwriteSavedPlacement() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var path = System.IO.Path.Combine(fixture.Root, "window.json");
+        var placement = new WindowPlacement(path, NullLogger.Instance);
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, null, placement);
+        window.Show();
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+        placement.Save(window);
+        var saved = System.IO.File.ReadAllText(path);
+        window.Width += 80;
+        System.ComponentModel.CancelEventHandler cancel = (_, eventArgs) => eventArgs.Cancel = true;
+        window.Closing += cancel;
+        try
+        {
+            // Act
+            window.Close();
+
+            // Assert
+            Assert.IsTrue(window.IsVisible);
+            Assert.AreEqual(saved, System.IO.File.ReadAllText(path));
+        }
+        finally
+        {
+            window.Closing -= cancel;
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     public async Task Show_LargeCatalog_VirtualizesRowsAndRetainsTabState() => await WpfThread.RunAsync(async () =>
     {
         // Arrange

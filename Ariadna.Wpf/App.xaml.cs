@@ -6,11 +6,21 @@ using Microsoft.Extensions.Logging;
 namespace Ariadna.Wpf;
 public partial class App : Application
 {
+    private readonly bool startCatalog;
     private SingleInstance? instance;
     private ILoggerFactory? logging;
+
+    public App() : this(true) { }
+
+    internal App(bool startCatalog) => this.startCatalog = startCatalog;
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        if (!startCatalog)
+        {
+            return;
+        }
         Window? splash = null;
         try
         {

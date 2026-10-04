@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -123,10 +124,18 @@ public partial class MainWindow : Window
         }
     }
 
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        if (!e.Cancel)
+        {
+            placement?.Save(this);
+        }
+    }
+
     private void OnClosed(object? sender, EventArgs e)
     {
         lifetime.Cancel();
-        placement?.Save(this);
         foreach (var view in views)
         {
             view.Dispose();

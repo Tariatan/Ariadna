@@ -27,6 +27,11 @@ separate per-user configuration file. `ARIADNA_CATALOG_PATH` and
 `ARIADNA_ASSET_ROOT` support disposable testing with the existing collection
 subdirectories. Window geometry is stored separately under the local application
 data directory in `Ariadna/Wpf/window.json`.
+Size and position are captured after Closing handlers accept closure, while
+RestoreBounds is still available, and restored before the next window is shown.
+Closing minimized/maximized retains normal bounds; maximized closure also retains
+that state. Canceled closure and windows never shown do not overwrite saved
+placement. Invalid or off-desktop placement keeps the startup defaults.
 
 ## Browser and lifecycle
 

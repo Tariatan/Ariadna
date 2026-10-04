@@ -43,9 +43,14 @@ internal sealed class WindowPlacement(string path, ILogger logger)
 
     internal void Save(Window window)
     {
+        var rectangle = window.RestoreBounds;
+        if (rectangle.IsEmpty)
+        {
+            return;
+        }
+
         try
         {
-            var rectangle = window.RestoreBounds;
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(path, JsonSerializer.Serialize(new Placement(rectangle.Left, rectangle.Top, rectangle.Width, rectangle.Height, window.WindowState == WindowState.Maximized)));
         }

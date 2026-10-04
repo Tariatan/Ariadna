@@ -241,6 +241,13 @@ the main window disposes every loaded catalog view and its thumbnail resources.
 
 The approved WPF migration is implemented as a separate native frontend in
 `Ariadna.Wpf`, alongside the retained WinForms application for acceptance testing.
+The user designated Ariadna.Wpf as the default development target on 2026-10-04;
+new frontend work, builds, runs, and tests focus on WPF unless requested otherwise.
+Main-window geometry is saved on accepted Closing and restored on the next launch
+from the local application-data file `Ariadna/Wpf/window.json`. Normal restore
+bounds are retained when closing minimized or maximized; the existing maximized
+state is also persisted. Canceled closure and unshown windows leave saved geometry
+unchanged. WPF tests initialize application resources without production startup.
 It uses the same direct SQLite storage, schema, IDs and image files. XAML and
 observable models replace the shell, browser and editor controls; no WinForms
 controls are hosted. Row virtualization, asynchronous bounded thumbnail caching,
