@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna
 
+### [4.1.7] - 2026-10-04
+
+#### Changed
+
+- Paint the unused header area to the right of the catalog tabs green, retaining the collection-colored headers and native frame when switching tabs or resizing the window.
+
 ### [4.1.6] - 2026-10-04
 
 #### Fixed

@@ -112,6 +112,19 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Resume here
 
+2026-10-04: Ariadna 4.1.7 paints the unused tab-header strip green after native
+WM_PAINT/WM_PRINTCLIENT rendering. Header palettes, the user's four-pixel selected
+header inset, native page frame, and existing display scaling are retained.
+Locked restore, zero-warning/error Debug and Release solution builds, all 251
+Release tests (204 desktop, 42 storage, 5 migration), and diff checks passed.
+Native checks used the actual control in an isolated window (including maximize)
+and MainWindow with disposable synthetic SQLite/images: all four catalog colors,
+mouse Games selection, keyboard Library/Documentaries/Movies selection, green
+strip persistence, and retained Movies filters were confirmed. No personal
+catalog data was used. The prior icon-path build block is resolved in the user's
+current checkout. PLAN was left unchanged. Next: user acceptance of the color;
+publishing and a new designer round trip were not checked.
+
 2026-10-04: Ariadna 4.1.6 preserves the native tab frame at the upper-left corner
 when Movies is selected. CatalogTabControl insets only the selected header's
 background by two logical pixels at the top and sides, leaving its bottom joined

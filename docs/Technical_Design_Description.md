@@ -317,9 +317,12 @@ tabs cannot change colors in an already loaded view. The shared splash screen
 uses a fixed branding color.
 
 `CatalogTabControl` paints catalog-colored headers inside the native tab frame.
-The selected header's background is inset by two logical pixels at the top and
+The selected header's background is inset by four logical pixels at the top and
 sides so selecting Movies preserves the upper-left rim. Its bottom remains
 joined to the page; caption alignment uses the original drawing bounds.
+The unused header area to the right of the tabs is green. The control paints
+that strip after native painting, including client printing, while leaving the
+tab headers and page frame to their existing renderers.
 
 ### Display scaling
 
