@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.0.2] - 2026-10-04
+
+#### Changed
+
+- Enlarge catalog poster cards.
+
 ### [1.0.1] - 2026-10-04
 
 #### Fixed

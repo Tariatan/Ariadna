@@ -7,8 +7,8 @@ using Microsoft.Win32;
 namespace Ariadna.Wpf;
 public partial class CatalogView : UserControl, IDisposable
 {
-    private const double MinimumPosterWidth = 155;
-    private const double PosterRowHeight = 254;
+    private const double MinimumPosterWidth = 250;
+    private const double PosterRowHeight = 300;
     private readonly Action<CatalogView, string> edit;
     private double scrollOffset;
     private bool firstActivation = true;
