@@ -31,6 +31,17 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-04: Ariadna.Wpf 1.2.0 adds a bold "Found entries: <count>"
+  indicator after each catalog's filters. Its Entries.Count binding uses existing
+  refresh notifications, so the count follows the displayed results, including
+  zero matches, cleared filters and tab changes.
+- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
+  all 52 Release WPF tests passed. Native mouse/keyboard checks in an isolated
+  Debug WPF window with disposable SQLite/posters confirmed Library counts
+  20 -> 1 -> 0 -> 20 after Title filtering and its X reset, Movies 120, Games 20,
+  Documentaries 20 and Library 20 on return using Ctrl+1/2/4/3. Personal catalog
+  acceptance remains open; no personal data was used. WinForms, Storage/Migration
+  implementation and user-owned PLAN remain unchanged.
 - 2026-10-04: Ariadna.Wpf 1.1.2 separates Library filter categories from
   subjects. Genre offers Languages, Literature, Programming and Misc; Subgenre
   offers the chosen category's subjects (Programming -> C++). Stored flat tags

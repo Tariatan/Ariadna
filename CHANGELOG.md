@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.2.0] - 2026-10-04
+
+#### Added
+
+- Show a bold "Found entries: <count>" indicator after the filters in every CatalogView, updating with the displayed result count after filtering, clearing filters and switching tabs.
+
 ### [1.1.2] - 2026-10-04
 
 #### Fixed

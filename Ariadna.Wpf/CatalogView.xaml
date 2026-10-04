@@ -37,6 +37,8 @@
                     <ComboBox Width="28" ItemsSource="{Binding Subgenres}" IsEditable="True" Text="{Binding Subgenre, UpdateSourceTrigger=PropertyChanged}" />
                     <Button Content="X" Tag="Subgenre" Click="ClearFilter" />
                 </StackPanel>
+                <TextBlock x:Name="FoundEntriesText" Margin="8,6" VerticalAlignment="Center" FontWeight="Bold"
+                           Text="{Binding Entries.Count, StringFormat='Found entries: {0}'}" />
             </WrapPanel>
             <WrapPanel Margin="6,0">
                 <StackPanel Orientation="Horizontal" Visibility="{Binding IsLibrary, Converter={StaticResource Visibility}}"/>

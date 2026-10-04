@@ -259,6 +259,8 @@ Directors/Actors in Movies; VR/Non-VR in Games; Authors in Library.
 Library alone reveals the Subgenre label, selector and clear button after any
 nonblank Genre is chosen. Changing Genre resets Subgenre; clearing Genre also
 collapses that group. Filters and conditional visibility persist across tabs.
+Each catalog's filter panel ends with a bold "Found entries: <count>" indicator,
+bound to its displayed entries and updated after completed filter refreshes.
 Library's Genre dropdown contains the categories Languages, Literature,
 Programming and Misc. Its Subgenre dropdown contains subjects for the selected
 category (for example, Programming -> C++); stored subject tags are not added to
