@@ -9,8 +9,15 @@ internal sealed class CatalogTabControl : TabControl
     protected override void OnDrawItem(DrawItemEventArgs e)
     {
         var page = TabPages[e.Index];
+        var backgroundBounds = e.Bounds;
+        if (e.Index == SelectedIndex)
+        {
+            // The selected header expands into the native frame; keep its bottom joined to the page.
+            backgroundBounds.Inflate(-4, -4);
+            backgroundBounds.Height += 4;
+        }
         using var background = new SolidBrush(page.BackColor);
-        e.Graphics.FillRectangle(background, e.Bounds);
+        e.Graphics.FillRectangle(background, backgroundBounds);
 
         TextRenderer.DrawText(e.Graphics, page.Text, Font, e.Bounds, Color.White,
             TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);

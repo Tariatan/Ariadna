@@ -6,32 +6,9 @@ partial class MainWindow
 
     private void InitializeComponent()
     {
-        catalogTabs = new CatalogTabControl();
-        moviesPage = new System.Windows.Forms.TabPage();
-        gamesPage = new System.Windows.Forms.TabPage();
-        libraryPage = new System.Windows.Forms.TabPage();
-        documentariesPage = new System.Windows.Forms.TabPage();
-        catalogTabs.SuspendLayout();
+        System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
+
         SuspendLayout();
-        // 
-        // catalogTabs
-        // 
-        catalogTabs.Controls.Add(moviesPage);
-        catalogTabs.Controls.Add(gamesPage);
-        catalogTabs.Controls.Add(libraryPage);
-        catalogTabs.Controls.Add(documentariesPage);
-        catalogTabs.Dock = System.Windows.Forms.DockStyle.Fill;
-        catalogTabs.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
-        catalogTabs.ItemSize = new System.Drawing.Size(200, 36);
-        catalogTabs.Location = new System.Drawing.Point(0, 0);
-        catalogTabs.Name = "catalogTabs";
-        catalogTabs.Padding = new System.Drawing.Point(12, 4);
-        catalogTabs.SelectedIndex = 0;
-        catalogTabs.Size = new System.Drawing.Size(1676, 900);
-        catalogTabs.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
-        catalogTabs.TabIndex = 0;
-        catalogTabs.Selecting += OnCatalogSelecting;
-        catalogTabs.SelectedIndexChanged += OnCatalogSelected;
         // 
         // moviesPage
         // 
@@ -74,14 +51,13 @@ partial class MainWindow
         AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
         ClientSize = new System.Drawing.Size(1676, 900);
-        Controls.Add(catalogTabs);
         Font = new System.Drawing.Font("Segoe UI", 10F);
+        Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
         KeyPreview = true;
         MinimumSize = new System.Drawing.Size(1000, 650);
         Name = "MainWindow";
         StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
         Text = "Ariadna";
-        catalogTabs.ResumeLayout(false);
         ResumeLayout(false);
     }
 

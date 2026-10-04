@@ -112,6 +112,22 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Resume here
 
+2026-10-04: Ariadna 4.1.6 preserves the native tab frame at the upper-left corner
+when Movies is selected. CatalogTabControl insets only the selected header's
+background by two logical pixels at the top and sides, leaving its bottom joined
+to the page and using the original bounds for caption alignment.
+
+Native Windows checks reproduced the original border overlap and inspected the
+updated control in an isolated window using the actual source and existing
+tab dimensions, palettes, and DpiUnaware setting. Mouse switching to Games and
+Library, keyboard return to Movies, and keyboard selection of Documentaries
+passed. The isolated build and locked solution restore passed. Full application
+build/test verification is blocked by unrelated in-progress icon moves: resource
+entries still reference the removed root icons. No current suite pass or full
+application rendering is claimed. The designer/resource edits and icon moves
+were left intact; PLAN remains user-owned. Next: build/test the solution and
+check the actual shell after the icon references are updated.
+
 2026-10-04: Ariadna 4.1.5 fixes startup after the MainWindow designer was saved.
 The designer had added four untagged field-backed pages beside four inline
 runtime-created pages and duplicated the Selecting handler. MainWindow now maps

@@ -49,6 +49,9 @@ public partial class MainWindow : Form
             return Task.FromResult(createView(kind));
         });
         this.logger = logger ?? NullLogger.Instance;
+
+        CreateCatalog();
+
         InitializeComponent();
         catalogPages = new Dictionary<CatalogKind, TabPage>
         {
@@ -97,6 +100,34 @@ public partial class MainWindow : Form
             .Select(entry => new EntryDto { Id = entry.Id, Title = entry.Title, Path = entry.Path }).ToList(), cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         return new MainPanel(strategy, Theme.Create(kind), entries);
+    }
+
+    private void CreateCatalog()
+    {
+        catalogTabs = new CatalogTabControl();
+
+        moviesPage = new TabPage();
+        gamesPage = new TabPage();
+        libraryPage = new TabPage();
+        documentariesPage = new TabPage();
+
+        catalogTabs.Controls.Add(moviesPage);
+        catalogTabs.Controls.Add(gamesPage);
+        catalogTabs.Controls.Add(libraryPage);
+        catalogTabs.Controls.Add(documentariesPage);
+        catalogTabs.Dock = DockStyle.Fill;
+        catalogTabs.DrawMode = TabDrawMode.OwnerDrawFixed;
+        catalogTabs.ItemSize = new Size(200, 36);
+        catalogTabs.Location = new Point(0, 0);
+        catalogTabs.Name = "catalogTabs";
+        catalogTabs.Padding = new Point(12, 4);
+        catalogTabs.SelectedIndex = 0;
+        catalogTabs.Size = new Size(1676, 900);
+        catalogTabs.SizeMode = TabSizeMode.Fixed;
+        catalogTabs.TabIndex = 0;
+        catalogTabs.Selecting += OnCatalogSelecting;
+        catalogTabs.SelectedIndexChanged += OnCatalogSelected;
+        Controls.Add(catalogTabs);
     }
 
     internal void SelectCatalog(CatalogKind kind)

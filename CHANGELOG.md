@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna
 
+### [4.1.6] - 2026-10-04
+
+#### Fixed
+
+- Keep the native tab frame visible when the first catalog tab is selected by insetting the selected header's background along its top and sides while retaining its connection to the page below.
+
 ### [4.1.5] - 2026-10-04
 
 #### Fixed

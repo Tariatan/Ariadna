@@ -316,6 +316,11 @@ Independent detail forms explicitly apply their collection palette. Switching
 tabs cannot change colors in an already loaded view. The shared splash screen
 uses a fixed branding color.
 
+`CatalogTabControl` paints catalog-colored headers inside the native tab frame.
+The selected header's background is inset by two logical pixels at the top and
+sides so selecting Movies preserves the upper-left rim. Its bottom remains
+joined to the page; caption alignment uses the original drawing bounds.
+
 ### Display scaling
 
 The existing layouts and embedded poster grid use pixel-based sizes. Runtime
