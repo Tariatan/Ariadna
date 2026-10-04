@@ -5,10 +5,14 @@
     <Platform Name="x86" />
   </Configurations>
   <Folder Name="/docs/">
+    <File Path="AGENTS.md" />
+    <File Path="CHANGELOG.md" />
     <File Path="docs/PLAN.md" />
     <File Path="docs/SQLITE-MIGRATION-PLAN.md" />
     <File Path="docs/SQLITE-OPERATIONS.md" />
     <File Path="docs/Technical_Design_Description.md" />
+    <File Path="MEMORY.md" />
+    <File Path="README.md" />
   </Folder>
   <Project Path="Ariadna.Migration.Tests/Ariadna.Migration.Tests.csproj" />
   <Project Path="Ariadna.Migration/Ariadna.Migration.csproj" />

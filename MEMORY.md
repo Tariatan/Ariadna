@@ -31,6 +31,22 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-04: Ariadna.Wpf 1.1.0 scrolls the poster grid to an adjacent row
+  boundary per wheel notch in all four catalogs. Smaller deltas accumulate,
+  rapid input retains every step, and offsets clamp at the content ends.
+  Pixel virtualization, selection, scrollbar dragging and retained tab positions
+  are preserved. Wheel, resize and keyboard page calculations now measure the
+  rendered row height instead of assuming 300 pixels; current card styling is
+  unchanged. WinForms/Storage/Migration and user-owned PLAN are unchanged.
+- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds,
+  and all 39 Release WPF tests passed. Seven added cases cover four-catalog
+  partial-row alignment, fine/rapid wheel input and boundaries, keyboard paging,
+  and resize anchoring. Native checks with an isolated Debug WPF harness and
+  disposable SQLite/posters confirmed 427-DIP wheel steps in every tab, reversal,
+  keyboard Home/Page Down, partial-row alignment and retained Movies selection/
+  offset after Ctrl+2/3/4/1. No personal catalog was used. The supplied video path
+  was unavailable; video inspection, physical touchpad and changed-DPI acceptance
+  are not claimed. Next: user acceptance with the normal project-built executable.
 - 2026-10-04: Ariadna.Wpf 1.0.1 fixes main-window placement persistence. Saving
   now occurs in OnClosing after cancellation handlers, not Closed (when WPF's
   RestoreBounds is empty). The existing local application-data JSON store restores

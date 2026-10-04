@@ -13,6 +13,16 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.1.0] - 2026-10-04
+
+#### Added
+
+- Scroll the poster grid by one complete row per mouse-wheel notch in all four catalogs, aligning partial rows and accumulating smaller wheel deltas. Keep pixel virtualization and the selected entry unchanged.
+
+#### Fixed
+
+- Use the rendered poster-row height for resizing and Page Up/Page Down instead of the outdated 300-pixel assumption.
+
 ### [1.0.2] - 2026-10-04
 
 #### Changed

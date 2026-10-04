@@ -8,14 +8,15 @@ namespace Ariadna.Wpf;
 public partial class CatalogView : UserControl, IDisposable
 {
     private const double MinimumPosterWidth = 250;
-    private const double PosterRowHeight = 300;
     private readonly Action<CatalogView, string> edit;
     private double scrollOffset;
+    private int mouseWheelDelta;
     private bool firstActivation = true;
     private readonly CancellationTokenSource lifetime = new();
     private CancellationTokenSource? discovery;
     internal CatalogViewModel Model { get; }
     internal CatalogActions Actions { get; }
+    private double PosterRowHeight => FindChild<ListBoxItem>(PosterRows)?.ActualHeight ?? 0;
 
     internal CatalogView(CatalogViewModel model, CatalogActions actions, Action<CatalogView, string> edit)
     {
@@ -53,6 +54,7 @@ public partial class CatalogView : UserControl, IDisposable
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         scrollOffset = FindChild<ScrollViewer>(PosterRows)?.VerticalOffset ?? 0;
+        mouseWheelDelta = 0;
         discovery?.Cancel();
     }
 
@@ -66,9 +68,36 @@ public partial class CatalogView : UserControl, IDisposable
 
         var scroll = FindChild<ScrollViewer>(PosterRows);
         var offset = scroll?.VerticalOffset ?? 0;
-        var firstEntry = (int)(offset / PosterRowHeight) * Model.Columns;
+        var rowHeight = PosterRowHeight;
+        var firstEntry = rowHeight > 0 ? (int)(offset / rowHeight) * Model.Columns : 0;
+        var rowOffset = rowHeight > 0 ? offset % rowHeight : 0;
         Model.SetColumns(columns);
-        Dispatcher.InvokeAsync(() => scroll?.ScrollToVerticalOffset(firstEntry / columns * PosterRowHeight + offset % PosterRowHeight), System.Windows.Threading.DispatcherPriority.Loaded);
+        Dispatcher.InvokeAsync(() => scroll?.ScrollToVerticalOffset(firstEntry / columns * PosterRowHeight + rowOffset), System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private void OnGridMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        var scroll = FindChild<ScrollViewer>(PosterRows);
+        var rowHeight = PosterRowHeight;
+        if (scroll == null || rowHeight <= 0)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        mouseWheelDelta += e.Delta;
+        var rows = mouseWheelDelta / Mouse.MouseWheelDeltaForOneLine;
+        mouseWheelDelta %= Mouse.MouseWheelDeltaForOneLine;
+        if (rows == 0)
+        {
+            return;
+        }
+
+        var currentRow = scroll.VerticalOffset / rowHeight;
+        var targetRow = rows > 0 ? Math.Ceiling(currentRow) - rows : Math.Floor(currentRow) - rows;
+        scroll.ScrollToVerticalOffset(Math.Clamp(targetRow * rowHeight, 0, scroll.ScrollableHeight));
+        // Apply the queued offset before another wheel event calculates its next row.
+        scroll.UpdateLayout();
     }
 
     private void SelectPoster(object sender, MouseButtonEventArgs e)
@@ -92,7 +121,8 @@ public partial class CatalogView : UserControl, IDisposable
 
     private void OnGridKeyDown(object sender, KeyEventArgs e)
     {
-        var page = Model.Columns * Math.Max(1, (int)(PosterRows.ActualHeight / PosterRowHeight));
+        var rowHeight = PosterRowHeight;
+        var page = Model.Columns * (rowHeight > 0 ? Math.Max(1, (int)(PosterRows.ActualHeight / rowHeight)) : 1);
         var delta = e.Key switch
         {
             Key.Left => -1,

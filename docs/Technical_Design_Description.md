@@ -248,6 +248,11 @@ from the local application-data file `Ariadna/Wpf/window.json`. Normal restore
 bounds are retained when closing minimized or maximized; the existing maximized
 state is also persisted. Canceled closure and unshown windows leave saved geometry
 unchanged. WPF tests initialize application resources without production startup.
+The poster grid moves to the adjacent row boundary for each mouse-wheel notch,
+accumulating smaller wheel deltas; the last viewport is clamped to the content end.
+Wheel scrolling preserves selection and each tab's retained position. Row stepping,
+Page Up/Page Down and resize anchoring use the rendered row height, while scrollbar
+dragging retains pixel scrolling and rows remain virtualized.
 It uses the same direct SQLite storage, schema, IDs and image files. XAML and
 observable models replace the shell, browser and editor controls; no WinForms
 controls are hosted. Row virtualization, asynchronous bounded thumbnail caching,
