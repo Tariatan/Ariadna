@@ -18,9 +18,9 @@ partial class MainWindow
         catalogTabs.Name = "catalogTabs";
         catalogTabs.TabIndex = 0;
         catalogTabs.TabPages.Add(new System.Windows.Forms.TabPage("Movies") { Tag = CatalogKind.Movie });
-        catalogTabs.TabPages.Add(new System.Windows.Forms.TabPage("Documentaries") { Tag = CatalogKind.Documentary });
         catalogTabs.TabPages.Add(new System.Windows.Forms.TabPage("Games") { Tag = CatalogKind.Game });
         catalogTabs.TabPages.Add(new System.Windows.Forms.TabPage("Library") { Tag = CatalogKind.Library });
+        catalogTabs.TabPages.Add(new System.Windows.Forms.TabPage("Documentaries") { Tag = CatalogKind.Documentary });
         catalogTabs.Selecting += OnCatalogSelecting;
         catalogTabs.SelectedIndexChanged += OnCatalogSelected;
         AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);

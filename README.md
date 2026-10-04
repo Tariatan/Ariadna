@@ -26,13 +26,16 @@ Ariadna.exe library         # Books & documents
 ```
 
 Movies, Documentaries, Games, and Library are four permanent tabs in one window.
+After the initial page is shown, the remaining catalogs preload in the background,
+including their initial poster viewport. Selecting a tab while it is still loading
+shows a loading message until its prepared page is ready.
 Each retains its own filters, selection, scroll position, palette, toolbar, and
 genres while you switch. A second launch activates the existing window; a named
 argument selects its tab, while no argument preserves the active tab. A requested
 switch waits for an open modal editor to close.
 
 Use **Ctrl+Tab** / **Ctrl+Shift+Tab** to cycle tabs, or **Ctrl+1** through **Ctrl+4**
-to select Movies, Documentaries, Games, or Library directly.
+to select Movies, Games, Library, or Documentaries directly, in visible tab order.
 
 ## What it does
 

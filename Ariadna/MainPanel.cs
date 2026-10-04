@@ -28,6 +28,7 @@ public partial class MainPanel : UserControl
 
     private readonly ImageListViewAriadnaRenderer m_ListViewRenderer;
     private readonly Theme theme;
+    private readonly bool hasInitialEntries;
     private bool loaded;
     private bool resourcesDisposed;
     private bool suppressFloatingSelection;
@@ -48,9 +49,12 @@ public partial class MainPanel : UserControl
 
     public MainPanel(AbstractDbStrategy strategy) : this(strategy, Theme.Create(CatalogKind.Movie)) { }
 
-    public MainPanel(AbstractDbStrategy strategy, Theme theme)
+    public MainPanel(AbstractDbStrategy strategy, Theme theme) : this(strategy, theme, null) { }
+
+    internal MainPanel(AbstractDbStrategy strategy, Theme theme, List<EntryDto> initialEntries)
     {
         this.theme = theme;
+        hasInitialEntries = initialEntries != null;
         m_DbStrategy = strategy;
         m_ListViewRenderer = new ImageListViewAriadnaRenderer(theme);
         InitializeComponent();
@@ -63,7 +67,7 @@ public partial class MainPanel : UserControl
 
         if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
         {
-            UpdateImageList(m_DbStrategy.GetEntries());
+            UpdateImageList(initialEntries ?? m_DbStrategy.GetEntries());
         }
 
         // Type timer
@@ -107,14 +111,33 @@ public partial class MainPanel : UserControl
         m_ImageListView.vScrollBar.BackColor = theme.MainBackColor;
     }
     private void MainPanel_Load(object sender, EventArgs e)
+        => InitializeCatalog();
+
+    internal void InitializeCatalog()
     {
         if (loaded || LicenseManager.UsageMode == LicenseUsageMode.Designtime)
         {
             return;
         }
         loaded = true;
-        QueryEntries();
+        if (!hasInitialEntries)
+        {
+            QueryEntries();
+        }
+        m_ImageListView.layoutManager.Update(true);
         SelectRandomEntry();
+    }
+
+    internal void PreloadVisiblePosters()
+    {
+        m_ImageListView.layoutManager.Update(true);
+        var first = m_ImageListView.layoutManager.FirstPartiallyVisible;
+        var last = m_ImageListView.layoutManager.LastPartiallyVisible;
+        foreach (var item in m_ImageListView.Items.Cast<ImageListViewItem>().Skip(Math.Max(0, first)).Take(last - first + 1))
+        {
+            // Request only the initial viewport; the existing worker owns the cached images.
+            using var thumbnail = item.ThumbnailImage;
+        }
     }
     internal void SuspendCatalog()
     {
@@ -220,7 +243,10 @@ public partial class MainPanel : UserControl
         }
 
         SelectListItem(selection, selection.Index);
-        m_ImageListView.Focus();
+        if (Visible)
+        {
+            m_ImageListView.Focus();
+        }
     }
     private void FillQuickList(HashSet<string> firstChars)
     {

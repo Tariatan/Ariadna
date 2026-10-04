@@ -13,6 +13,13 @@ Versioning rule:
 
 ## Ariadna
 
+### [4.1.0] - 2026-10-04
+
+#### Added
+
+- Preload the remaining catalog tabs after the initial page is shown. Catalog reads run on worker threads; page controls, quick navigation, and initial selection are prepared on the UI thread without changing the active tab. Existing thumbnail workers warm each hidden page's initial viewport.
+- Selecting a tab during preload shows a loading message and reuses the pending page. Closing cancels pending work and discards late results; a failed preload is logged and can be retried by selecting the tab again.
+
 ### [4.0.1] - 2026-10-03
 
 #### Fixed

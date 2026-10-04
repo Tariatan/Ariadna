@@ -38,12 +38,18 @@ public sealed class MainWindowTests
         {
             for (var index = 0; index < 12; index++)
             {
-                store.Save(kind, new CatalogDetails(new CatalogEntry
+                var id = store.Save(kind, new CatalogDetails(new CatalogEntry
                 {
                     Title = $"{kind} {index:D2}",
                     Path = $"Synthetic-{kind}-{index}",
                     Wanted = index % 2 == 0,
                 }, [], [], []));
+                var posters = CatalogServices.GetPosterRoot(kind);
+                Directory.CreateDirectory(posters);
+                using var poster = new Bitmap(24, 36);
+                using var graphics = Graphics.FromImage(poster);
+                graphics.Clear(Theme.Create(kind).MainBackColor);
+                poster.Save(Path.Combine(posters, id.ToString()), System.Drawing.Imaging.ImageFormat.Png);
             }
         }
     }
@@ -53,11 +59,24 @@ public sealed class MainWindowTests
     {
         Environment.SetEnvironmentVariable("ARIADNA_CATALOG_PATH", previousCatalog);
         Environment.SetEnvironmentVariable("ARIADNA_ASSET_ROOT", previousAssets);
-        Directory.Delete(directory, true);
+        // A canceled synchronous SQLite read can finish releasing its connection after the UI closes.
+        var timeout = System.Diagnostics.Stopwatch.StartNew();
+        while (true)
+        {
+            try
+            {
+                Directory.Delete(directory, true);
+                break;
+            }
+            catch (IOException) when (timeout.Elapsed < TimeSpan.FromSeconds(5))
+            {
+                Thread.Sleep(10);
+            }
+        }
     }
 
     [TestMethod]
-    public void Show_FourPermanentTabs_LoadsOnlyTheInitialCatalog()
+    public void Show_FourPermanentTabs_LoadsInitialCatalogThenPreloadsRemainingCatalogs()
     {
         UiTest.Run(() =>
         {
@@ -71,12 +90,186 @@ public sealed class MainWindowTests
 
             // Act
             testee.Show();
-            Application.DoEvents();
+            CollectionAssert.AreEqual((CatalogKind[])[CatalogKind.Game], created);
+            UiTest.PumpUntil(() => created.Count == 4);
 
             // Assert
             var tabs = UiTest.Field<TabControl>(testee, "catalogTabs");
-            CollectionAssert.AreEqual((string[])["Movies", "Documentaries", "Games", "Library"], tabs.TabPages.Cast<TabPage>().Select(page => page.Text).ToArray());
-            CollectionAssert.AreEqual((CatalogKind[])[CatalogKind.Game], created);
+            CollectionAssert.AreEqual((string[])["Movies", "Games", "Library", "Documentaries"], tabs.TabPages.Cast<TabPage>().Select(page => page.Text).ToArray());
+            CollectionAssert.AreEquivalent(Enum.GetValues<CatalogKind>(), created);
+            Assert.AreEqual(CatalogKind.Game, testee.ActiveCatalog);
+            Assert.HasCount(12, Grid(testee.ActiveView!).Items);
+        });
+    }
+
+    [TestMethod]
+    public void Show_BackgroundCatalogsReady_PreservesActivePageAndInitializesHiddenViews()
+    {
+        UiTest.Run(() =>
+        {
+            // Arrange
+            using var testee = new MainWindow(NullLogger.Instance);
+            testee.Show();
+            Application.DoEvents();
+            var movies = testee.ActiveView!;
+            var search = UiTest.Field<ToolStripTextBox>(movies, "m_ToolStrip_EntryName");
+            search.Text = "Movie 00";
+            typeof(MainPanel).GetMethod("OnEntryNameConfirmed", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(movies, [search, new KeyEventArgs(Keys.Enter)]);
+            var selected = Grid(movies).Items.FocusedItem;
+            var scroll = Grid(movies).ViewOffset;
+            search.Focus();
+            var focusedControl = movies.ActiveControl;
+
+            // Act
+            var views = UiTest.Field<Dictionary<CatalogKind, MainPanel>>(testee, "views");
+            UiTest.PumpUntil(() => views.Count == 4);
+
+            // Assert
+            Assert.AreSame(movies, testee.ActiveView);
+            Assert.AreEqual(CatalogKind.Movie, testee.ActiveCatalog);
+            Assert.AreEqual("Movie 00", search.Text);
+            Assert.AreSame(focusedControl, movies.ActiveControl);
+            Assert.AreSame(selected, Grid(movies).Items.FocusedItem);
+            Assert.AreEqual(scroll, Grid(movies).ViewOffset);
+            foreach (var (kind, view) in views.Where(pair => pair.Key != CatalogKind.Movie))
+            {
+                Assert.HasCount(12, Grid(view).Items);
+                Assert.HasCount(1, Grid(view).SelectedItems);
+                Assert.IsNotNull(Grid(view).Items.FocusedItem);
+                Assert.IsFalse(view.Visible);
+                Assert.AreEqual(Theme.Create(kind).MainBackColor, view.BackColor);
+                Assert.IsTrue(UiTest.Field<bool>(view, "loaded"));
+            }
+        });
+    }
+
+    [TestMethod]
+    public void SelectCatalog_HiddenCatalogPreloaded_UsesPreparedGridAndCachedPostersWithoutReloading()
+    {
+        UiTest.Run(() =>
+        {
+            // Arrange
+            using var testee = new MainWindow(NullLogger.Instance);
+            testee.Show();
+            var views = UiTest.Field<Dictionary<CatalogKind, MainPanel>>(testee, "views");
+            UiTest.PumpUntil(() => views.Count == 4 && testee.PreloadCompletion.IsCompleted);
+            var games = views[CatalogKind.Game];
+            var grid = Grid(games);
+            var selected = grid.Items.FocusedItem;
+            UiTest.PumpUntil(() => selected!.ThumbnailCacheState == CacheState.Cached);
+            CatalogServices.CreateStore().Save(CatalogKind.Game, new CatalogDetails(new CatalogEntry
+            {
+                Title = "Added after preload",
+                Path = "Synthetic-new-game",
+            }, [], [], []));
+
+            // Act
+            testee.SelectCatalog(CatalogKind.Game);
+            Application.DoEvents();
+
+            // Assert
+            Assert.AreSame(games, testee.ActiveView);
+            Assert.HasCount(12, grid.Items);
+            Assert.AreSame(selected, grid.Items.FocusedItem);
+            Assert.AreEqual(CacheState.Cached, selected!.ThumbnailCacheState);
+            Assert.HasCount(1, grid.SelectedItems);
+        });
+    }
+
+    [TestMethod]
+    public void SelectCatalog_PreloadInProgress_ReusesPendingViewWithoutBlockingOrDuplicateCreation()
+    {
+        UiTest.Run(() =>
+        {
+            // Arrange
+            var ready = new TaskCompletionSource<MainPanel>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var created = new List<CatalogKind>();
+            using var testee = new MainWindow(CatalogKind.Movie, kind =>
+            {
+                created.Add(kind);
+                return new MainPanel(CreateStrategy(kind), Theme.Create(kind));
+            }, (kind, cancellationToken) => kind == CatalogKind.Game
+                ? ready.Task
+                : Task.FromResult(new MainPanel(CreateStrategy(kind), Theme.Create(kind))));
+            testee.Show();
+            UiTest.PumpUntil(() => UiTest.Field<HashSet<CatalogKind>>(testee, "preloadingCatalogs").Contains(CatalogKind.Game));
+
+            // Act
+            testee.SelectCatalog(CatalogKind.Game);
+            Assert.IsNull(testee.ActiveView);
+            var page = UiTest.Field<TabControl>(testee, "catalogTabs").SelectedTab!;
+            Assert.AreEqual("Loading catalog...", page.Controls[0].Text);
+            testee.SelectCatalog(CatalogKind.Movie);
+            testee.SelectCatalog(CatalogKind.Game);
+            var strategy = CreateStrategy(CatalogKind.Game);
+            var prepared = new MainPanel(strategy, Theme.Create(CatalogKind.Game), strategy.GetEntries());
+            ready.SetResult(prepared);
+            UiTest.PumpUntil(() => testee.ActiveView != null);
+
+            // Assert
+            CollectionAssert.AreEqual((CatalogKind[])[CatalogKind.Movie], created);
+            Assert.AreSame(prepared, testee.ActiveView);
+            Assert.HasCount(1, page.Controls);
+            Assert.HasCount(12, Grid(prepared).Items);
+            Assert.HasCount(1, Grid(prepared).SelectedItems);
+        });
+    }
+
+    [TestMethod]
+    public void Dispose_PreloadCompletesAfterShutdown_CancelsLifetimeAndDisposesUnattachedView()
+    {
+        UiTest.Run(() =>
+        {
+            // Arrange
+            var ready = new TaskCompletionSource<MainPanel>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var lifetime = CancellationToken.None;
+            using var testee = new MainWindow(CatalogKind.Movie,
+                kind => new MainPanel(CreateStrategy(kind), Theme.Create(kind)),
+                (kind, cancellationToken) =>
+                {
+                    lifetime = cancellationToken;
+                    return kind == CatalogKind.Game ? ready.Task
+                        : Task.FromResult(new MainPanel(CreateStrategy(kind), Theme.Create(kind)));
+                });
+            testee.Show();
+            UiTest.PumpUntil(() => lifetime.CanBeCanceled);
+            var strategy = CreateStrategy(CatalogKind.Game);
+            var prepared = new MainPanel(strategy, Theme.Create(CatalogKind.Game), strategy.GetEntries());
+
+            // Act
+            testee.Dispose();
+            ready.SetResult(prepared);
+            UiTest.PumpUntil(() => prepared.IsDisposed);
+
+            // Assert
+            Assert.IsTrue(lifetime.IsCancellationRequested);
+            Assert.IsTrue(prepared.IsDisposed);
+            Assert.IsTrue(UiTest.Field<FloatingPanel>(prepared, "m_FloatingPanel").IsDisposed);
+        });
+    }
+
+    [TestMethod]
+    public void Show_OnePreloadFails_LoadsOtherCatalogsAndRetriesFailedTabOnSelection()
+    {
+        UiTest.Run(() =>
+        {
+            // Arrange
+            using var testee = new MainWindow(CatalogKind.Movie,
+                kind => new MainPanel(CreateStrategy(kind), Theme.Create(kind)),
+                (kind, cancellationToken) => kind == CatalogKind.Game
+                    ? Task.FromException<MainPanel>(new IOException("Synthetic preload failure"))
+                    : Task.FromResult(new MainPanel(CreateStrategy(kind), Theme.Create(kind))));
+            testee.Show();
+            var views = UiTest.Field<Dictionary<CatalogKind, MainPanel>>(testee, "views");
+
+            // Act
+            UiTest.PumpUntil(() => views.Count == 3);
+            Assert.AreEqual(CatalogKind.Movie, testee.ActiveCatalog);
+            testee.SelectCatalog(CatalogKind.Game);
+
+            // Assert
+            Assert.HasCount(4, views);
             Assert.AreEqual(CatalogKind.Game, testee.ActiveCatalog);
             Assert.HasCount(12, Grid(testee.ActiveView!).Items);
         });
@@ -108,8 +301,7 @@ public sealed class MainWindowTests
             // Act
             foreach (var kind in (CatalogKind[])[CatalogKind.Documentary, CatalogKind.Game, CatalogKind.Library, CatalogKind.Movie])
             {
-                testee.SelectCatalog(kind);
-                Application.DoEvents();
+                SelectReadyCatalog(testee, kind);
                 Assert.AreEqual(Theme.Create(kind).MainBackColor, testee.ActiveView!.BackColor);
                 Assert.AreEqual(Theme.Create(kind).MainBackColor, Grid(testee.ActiveView!).vScrollBar.BackColor);
             }
@@ -143,8 +335,8 @@ public sealed class MainWindowTests
             picker.Show(testee);
 
             // Act
-            testee.SelectCatalog(CatalogKind.Library);
-            testee.SelectCatalog(CatalogKind.Movie);
+            SelectReadyCatalog(testee, CatalogKind.Library);
+            SelectReadyCatalog(testee, CatalogKind.Movie);
             Application.DoEvents();
 
             // Assert
@@ -167,13 +359,13 @@ public sealed class MainWindowTests
 
             // Act
             SendCommandKey(testee, Keys.Control | Keys.Shift | Keys.Tab);
-            Assert.AreEqual(CatalogKind.Library, testee.ActiveCatalog);
+            Assert.AreEqual(CatalogKind.Documentary, testee.ActiveCatalog);
             SendCommandKey(testee, Keys.Control | Keys.Tab);
             Assert.AreEqual(CatalogKind.Movie, testee.ActiveCatalog);
             SendCommandKey(testee, Keys.Control | Keys.D3);
 
             // Assert
-            Assert.AreEqual(CatalogKind.Game, testee.ActiveCatalog);
+            Assert.AreEqual(CatalogKind.Library, testee.ActiveCatalog);
         });
     }
 
@@ -192,6 +384,7 @@ public sealed class MainWindowTests
             testee.ActivateExisting(null);
             Assert.AreSame(library, testee.ActiveView);
             testee.ActivateExisting(CatalogKind.Game);
+            UiTest.PumpUntil(() => testee.ActiveView != null);
 
             // Assert
             Assert.AreEqual(CatalogKind.Game, testee.ActiveCatalog);
@@ -217,7 +410,8 @@ public sealed class MainWindowTests
             var expectedCatalog = newerRequestAfterClose ? CatalogKind.Library : CatalogKind.Game;
             completionTimer.Tick += (_, _) =>
             {
-                if (testee.ActiveCatalog == expectedCatalog || timeout.Elapsed > TimeSpan.FromSeconds(5))
+                if ((testee.ActiveCatalog == expectedCatalog && testee.PreloadCompletion.IsCompleted)
+                    || timeout.Elapsed > TimeSpan.FromSeconds(5))
                 {
                     completedCatalog = testee.ActiveCatalog;
                     completionTimer.Stop();
@@ -292,7 +486,7 @@ public sealed class MainWindowTests
             Assert.IsTrue(Grid(view).Items.Any(item => item.Text == "Edited in tab"));
             foreach (var otherKind in Enum.GetValues<CatalogKind>().Where(other => other != kind))
             {
-                testee.SelectCatalog(otherKind);
+                SelectReadyCatalog(testee, otherKind);
                 Assert.IsFalse(Grid(testee.ActiveView!).Items.Any(item => item.Text == "Edited in tab"));
             }
         });
@@ -309,7 +503,7 @@ public sealed class MainWindowTests
             var panels = new List<MainPanel>();
             foreach (var kind in Enum.GetValues<CatalogKind>())
             {
-                testee.SelectCatalog(kind);
+                SelectReadyCatalog(testee, kind);
                 panels.Add(testee.ActiveView!);
             }
 
@@ -329,6 +523,12 @@ public sealed class MainWindowTests
     }
 
     private static ImageListView Grid(MainPanel panel) => UiTest.Field<ImageListView>(panel, "m_ImageListView");
+
+    private static void SelectReadyCatalog(MainWindow window, CatalogKind kind)
+    {
+        window.SelectCatalog(kind);
+        UiTest.PumpUntil(() => window.ActiveView != null);
+    }
 
     private static void SendCommandKey(MainWindow window, Keys key)
     {

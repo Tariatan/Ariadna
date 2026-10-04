@@ -1,6 +1,6 @@
 # Ariadna project memory
 
-Last updated: 2026-10-03. Scope: this repository only.
+Last updated: 2026-10-04. Scope: this repository only.
 
 ## Durable context
 
@@ -111,6 +111,28 @@ Last updated: 2026-10-03. Scope: this repository only.
   input. No personal catalog data or storage/migration implementation changed.
 
 ## Resume here
+
+2026-10-04: Ariadna 4.1.0 preloads the remaining tabs after the initial page
+is shown. Database/default-query configuration is captured before worker reads;
+controls, quick lists, and random selections are prepared on the UI thread.
+Existing image workers warm only the initial viewport. Early selection reuses
+pending work; closure cancels and discards late results. Synchronous reads already
+running finish and release connections. Failed preloads are logged and retried
+on subsequent selection. Storage and Migration implementations/versions are
+unchanged. Preserved the user's local tab styling/order (Movies, Games, Library,
+Documentaries) and resource/designer edits; shortcuts follow that visible order.
+
+Locked restore, zero-warning/error Debug/Release solution builds, and 231 tests
+(184 desktop, 42 storage, 5 migration) passed. Native synthetic harness confirmed
+hidden pages with cached initial posters while Movies stayed active, tab mouse
+messages across all four pages, and SendKeys Ctrl+2 / Ctrl+1 retaining Movies.
+Reviewed the synthetic grid render. No personal catalog/image data was used.
+Personal-size responsiveness acceptance remains open; no latency benchmark or
+new publishing verification is claimed for this slice.
+
+Next: user acceptance of tab readiness/responsiveness on the personal catalog,
+then remaining integration review in PLAN. The preload does not warm an entire
+collection or perform background form/control construction.
 
 Complete the remaining native/integration review in [PLAN.md](docs/PLAN.md).
 For an individual detail-form change, edit that form's designer and collection

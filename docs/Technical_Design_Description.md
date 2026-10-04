@@ -1,6 +1,6 @@
 # Technical Design Description - Ariadna <!-- omit from toc -->
 
-Last reviewed: 2026-10-03. This describes the current implementation unless a
+Last reviewed: 2026-10-04. This describes the current implementation unless a
 section explicitly labels a proposal or an unverified target.
 
 ## Purpose
@@ -68,9 +68,12 @@ dependency.
 
 `Program` runs `CatalogApplication`, which enforces one instance through the
 WinForms application model and opens `MainWindow`. The shell hosts Movies,
-Documentaries, Games, and Library as permanent tabs. It creates each `MainPanel`
-user control, strategy, and palette on first selection and retains the view for
-the window lifetime. Strategies retrieve filtered entries and coordinate
+Games, Library, and Documentaries as permanent tabs in that order. The initial
+catalog loads under the splash screen. After the window is shown, the remaining
+catalog reads run on worker threads; their `MainPanel` controls, strategies,
+palettes, quick navigation, and initial random selections are prepared on the UI
+thread and retained for the window lifetime. Existing thumbnail workers warm
+only each hidden view's initial viewport. Strategies retrieve filtered entries and coordinate
 discovery, details, and execution. Detail forms save catalog data and related
 images; thumbnail workers render cached posters.
 
@@ -212,7 +215,7 @@ argument preserves the active tab. A minimized window is restored. If a modal
 editor is open, a requested switch waits until it closes.
 
 The four tabs cannot be closed. Ctrl+Tab and Ctrl+Shift+Tab cycle with wrapping;
-Ctrl+1 through Ctrl+4 select Movies, Documentaries, Games, and Library. Filters,
+Ctrl+1 through Ctrl+4 select Movies, Games, Library, and Documentaries. Filters,
 selection, scroll position, and palette persist when switching tabs. A pending
 title search is applied before hiding its tab; transient pickers close. Closing
 the main window disposes every loaded catalog view and its thumbnail resources.
@@ -238,6 +241,22 @@ LibraryDbStrategy            — books (implements AbstractDbStrategy directly)
 to its `MainPanel` user control. The main collection operations use
 `AbstractDbStrategy`. Strategies and detail forms call focused `CatalogStore`
 operations; SQL and mapping belong to the storage project.
+
+Background tab preparation captures the database and default query configuration
+before dispatching a read. Prepared entries seed the hidden page, so its first
+activation does not repeat the initial query or random selection. UI controls
+are constructed and attached only on the owning UI thread. Movies' filters,
+focus, selection, scroll, and palette are retained while other pages load; the
+same behavior applies when a legacy argument selects a different initial tab.
+Ctrl+1 through Ctrl+4 follow the visible Movies/Games/Library/Documentaries order.
+
+Selecting a pending tab displays `Loading catalog...` and joins its existing
+preload rather than creating another page. Preload failures are logged, other
+pages continue loading, and selecting the failed tab again retries normal
+initialization. Accepted window closure cancels pending work and discards late
+results; a synchronous SQLite read already running finishes and releases its
+connection before its canceled result is discarded. Loaded controls own and
+dispose their existing thumbnail workers, timers, and pickers.
 
 Key strategy responsibilities:
 - `GetEntries()` / `QueryEntries(QueryParams)` — data retrieval with filtering

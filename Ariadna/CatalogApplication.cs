@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using System.Windows.Forms;
-using Ariadna.DatabaseStrategies;
 using Ariadna.SplashScreen;
 using Ariadna.Storage;
 using Microsoft.Extensions.Logging;
