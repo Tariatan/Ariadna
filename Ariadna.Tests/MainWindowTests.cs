@@ -76,6 +76,70 @@ public sealed class MainWindowTests
     }
 
     [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Library)]
+    [DataRow(CatalogKind.Documentary)]
+    public void Show_DesignerCreatedPages_OpensRequestedCatalogWithFourUniqueTabs(CatalogKind initialCatalog)
+    {
+        UiTest.Run(() =>
+        {
+            // Arrange
+            using var testee = new MainWindow(NullLogger.Instance, initialCatalog);
+
+            // Act
+            testee.Show();
+            var views = UiTest.Field<Dictionary<CatalogKind, MainPanel>>(testee, "views");
+            UiTest.PumpUntil(() => views.Count == 4 && testee.PreloadCompletion.IsCompleted);
+
+            // Assert
+            var tabs = UiTest.Field<TabControl>(testee, "catalogTabs");
+            Assert.AreEqual(4, tabs.TabCount);
+            CollectionAssert.AreEqual((string[])["Movies", "Games", "Library", "Documentaries"],
+                tabs.TabPages.Cast<TabPage>().Select(page => page.Text).ToArray());
+            Assert.AreEqual(initialCatalog, testee.ActiveCatalog);
+            Assert.HasCount(12, Grid(testee.ActiveView!).Items);
+            Assert.AreEqual(Theme.Create(initialCatalog).MainBackColor, tabs.SelectedTab!.BackColor);
+        });
+    }
+
+    [TestMethod]
+    public void SelectCatalog_TagsMissingAndCaptionsAndOrderChanged_RetainsCatalogIdentityAndVisibleShortcuts()
+    {
+        UiTest.Run(() =>
+        {
+            // Arrange
+            using var testee = new MainWindow(NullLogger.Instance);
+            var tabs = UiTest.Field<TabControl>(testee, "catalogTabs");
+            var documentaryPage = tabs.TabPages[3];
+            foreach (TabPage page in tabs.TabPages)
+            {
+                page.Tag = null;
+                page.Text = "Localized catalog";
+            }
+            tabs.TabPages.Remove(documentaryPage);
+            tabs.TabPages.Insert(0, documentaryPage);
+            testee.Show();
+            var views = UiTest.Field<Dictionary<CatalogKind, MainPanel>>(testee, "views");
+            UiTest.PumpUntil(() => views.Count == 4 && testee.PreloadCompletion.IsCompleted);
+
+            // Act
+            foreach (var kind in Enum.GetValues<CatalogKind>())
+            {
+                testee.SelectCatalog(kind);
+
+                // Assert
+                Assert.AreEqual(kind, testee.ActiveCatalog);
+                Assert.AreSame(views[kind], testee.ActiveView);
+                Assert.AreEqual(Theme.Create(kind).MainBackColor, tabs.SelectedTab!.BackColor);
+            }
+            SendCommandKey(testee, Keys.Control | Keys.D1);
+            Assert.AreEqual(CatalogKind.Documentary, testee.ActiveCatalog);
+            Assert.AreSame(documentaryPage, tabs.SelectedTab);
+        });
+    }
+
+    [TestMethod]
     public void Show_FourPermanentTabs_LoadsInitialCatalogThenPreloadsRemainingCatalogs()
     {
         UiTest.Run(() =>

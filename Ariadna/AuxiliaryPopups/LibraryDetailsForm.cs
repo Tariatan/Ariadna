@@ -28,6 +28,7 @@ public partial class LibraryDetailsForm : Form, IEntryDetailsDialog
         InitializeComponent();
         session = new EntryEditorSession(components, this, saveButton, CatalogKind.Library, logger, SaveEntry, genres.DismissPicker);
         DetailTheme.Apply(this, Theme.Create(CatalogKind.Library));
+        _ = new DetailFormPresentation(components, this);
         fileSize.Configure(logger);
         authors.Configure(PersonRole.Author);
         ConfigureLibraryGenres(filePath);

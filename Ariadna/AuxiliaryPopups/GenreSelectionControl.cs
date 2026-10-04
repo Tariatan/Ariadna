@@ -70,13 +70,21 @@ public sealed class GenreSelectionControl : UserControl
 
     public void LoadGenres(IEnumerable<string> genres)
     {
-        list.Items.Clear();
-        images.Images.Clear();
-        foreach (var genre in genres)
+        list.BeginUpdate();
+        try
         {
-            AddItem(genre);
+            list.Items.Clear();
+            images.Images.Clear();
+            foreach (var genre in genres)
+            {
+                AddItem(genre);
+            }
+            UpdateAddButton();
         }
-        UpdateAddButton();
+        finally
+        {
+            list.EndUpdate();
+        }
     }
 
     public void AddGenre(string name)

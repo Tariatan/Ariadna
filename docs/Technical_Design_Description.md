@@ -252,6 +252,12 @@ to its `MainPanel` user control. The main collection operations use
 `AbstractDbStrategy`. Strategies and detail forms call focused `CatalogStore`
 operations; SQL and mapping belong to the storage project.
 
+The designer owns exactly four named tab pages. `MainWindow` maps their control
+references to `CatalogKind` in runtime code; tab `Tag` values and displayed
+captions do not identify catalogs. Designer saves therefore cannot remove a
+required identity or leave a second set of runtime-created pages. Keyboard
+shortcuts still follow the visible tab order.
+
 Background tab preparation captures the database and default query configuration
 before dispatching a read. Prepared entries seed the hidden page, so its first
 activation does not repeat the initial query or random selection. UI controls
@@ -342,6 +348,9 @@ Shared behavior is composed into the forms:
   label edit without saving the dialog; F2 acts on that editor's selected person.
 - `ImageEditorControl` owns cloned images and releases source file handles;
   `GamePreviewsControl` composes four numbered previews and the selected view.
+  Loading all four images selects the first once; later image edits and clicks
+  still update the selected view immediately. People/genre loading batches native
+  list updates without normalizing or dropping saved relationships.
 - `FileSizeControl` and `VideoInfoControl` use `IFileInspectionService` for
   cancellable size and bundled MediaInfo work. Only movies/documentaries request
   video information; replaced or completed requests cannot apply stale results.
@@ -351,6 +360,12 @@ Shared behavior is composed into the forms:
 - `EntryEditorSession`, owned by the form's component container, handles lookup,
   save/ignore, keyboard commands, and save failure recovery without owning any
   collection controls. Forms are disposed by their modal callers.
+- `DetailFormPresentation`, also owned by the component container, keeps each
+  runtime form transparent through local loading and its first paint. A callback
+  queued after `Shown` refreshes the form and child windows before restoring its
+  opacity. No fixed delay is added, and background file inspection/TMDb requests
+  do not gate visibility. Closing/disposal cancels the queued reveal; designer
+  construction leaves visibility unchanged.
 
 Save still uses one existing `CatalogStore.Save` operation for metadata, genres,
 people, and recoverable image promotion. IDs, unchanged nullable flags/dates,

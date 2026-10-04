@@ -16,6 +16,7 @@ public sealed class GamePreviewsControl : UserControl
         SizeMode = PictureBoxSizeMode.Zoom,
     };
     private readonly ImageEditorControl[] previews = new ImageEditorControl[4];
+    private bool loading;
 
     public GamePreviewsControl()
     {
@@ -48,6 +49,10 @@ public sealed class GamePreviewsControl : UserControl
 
     private void SelectPreview(ImageEditorControl preview)
     {
+        if (loading)
+        {
+            return;
+        }
         var previous = full.Image;
         full.Image = preview.CopyImage();
         previous?.Dispose();
@@ -55,9 +60,17 @@ public sealed class GamePreviewsControl : UserControl
 
     public void LoadImages(string root, int id)
     {
-        for (var index = 0; index < previews.Length; index++)
+        loading = true;
+        try
         {
-            previews[index].LoadImage(Path.Combine(root, $"{id}{Settings.Default.PreviewSuffix}{index + 1}"));
+            for (var index = 0; index < previews.Length; index++)
+            {
+                previews[index].LoadImage(Path.Combine(root, $"{id}{Settings.Default.PreviewSuffix}{index + 1}"));
+            }
+        }
+        finally
+        {
+            loading = false;
         }
         SelectPreview(previews[0]);
     }

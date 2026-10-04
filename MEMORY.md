@@ -112,6 +112,54 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Resume here
 
+2026-10-04: Ariadna 4.1.5 fixes startup after the MainWindow designer was saved.
+The designer had added four untagged field-backed pages beside four inline
+runtime-created pages and duplicated the Selecting handler. MainWindow now maps
+four named designer page references to CatalogKind in runtime code. Themes,
+selection, preloading, and view attachment no longer read page.Tag or captions.
+The designer creates each page once and subscribes each navigation handler once.
+Visible order and the user's unrelated toolbar/resource edits are preserved.
+
+Four new initial-catalog regressions reproduced the NullReferenceException before
+the fix. All 251 Release tests (204 desktop, 42 storage, 5 migration), locked
+restore, and zero-warning/error Debug/Release builds passed. The fifth regression
+clears tags and changes captions/order before showing the window, then checks
+identity, palette, retained views, and visible-order shortcuts. It intentionally
+does not exercise removal of live permanent tabs.
+
+Native synthetic SQLite/image checks confirmed startup with exactly four tabs,
+mouse Games selection, Ctrl+3 to Library, Ctrl+Tab to Documentaries, and Ctrl+1
+returning to Movies with its title/director filters and result count retained.
+No personal catalog/images or Storage/Migration implementation changed. A new
+Visual Studio designer save/reopen round trip and publishing were not performed.
+PLAN remains user-owned and unchanged. Next: user startup/design-save acceptance.
+
+2026-10-04: Ariadna 4.1.4 mitigates the initial Details white flash. All four
+independent forms compose a container-owned DetailFormPresentation: runtime
+construction sets opacity to zero, and a callback after Shown refreshes the form
+and child windows before revealing them. Local fields/images load first; pending
+file inspection/TMDb does not gate visibility. Closing/disposal suppresses the
+queued reveal, and designer construction skips transparency. People/genre loads
+use BeginUpdate/EndUpdate; loading four game previews replaces the selected full
+image once rather than five times, with later clicks/edits unchanged.
+
+Before the fix, new regressions showed all four forms visible before their first
+poster paint and five full-preview replacements. Locked restore, zero-warning/
+error Debug and Release builds, and all 246 Release tests (199 desktop, 42 storage,
+5 migration) passed. Tests cover existing-entry local content/paint ordering,
+pending metadata, modal reveal, early close/disposal, preview selection/editing,
+and existing save/reopen/relationship/image/cancellation behavior.
+
+A native synthetic SQLite/image harness confirmed opacity 0 at Shown and first
+poster paint, then opacity 1 for all four forms. Mouse preview selection and Movie
+edit/save/reopen, initial text focus, and Escape cancellation worked. Native
+interaction used modeless test windows with ShowInTaskbar enabled solely so the
+UI tool could target them; the unchanged owned Game modal also rendered, but its
+inputs could not be targeted. Automated modal message-loop checks passed. No
+personal catalog/images or Storage/Migration implementation changed. No updated
+high-frame-rate recording comparison or publishing check is claimed. PLAN remains
+user-owned and unchanged. Next: personal cold-open acceptance of the flash fix.
+
 2026-10-04: Ariadna 4.1.3 fixes slow filter rendering in MainPanel. The previous
 update cleared/refilled the grid with intermediate paints and disposed/recreated
 every quick-navigation button without suspending layout. Updates now suspend

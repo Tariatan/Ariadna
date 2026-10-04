@@ -13,6 +13,18 @@ Versioning rule:
 
 ## Ariadna
 
+### [4.1.5] - 2026-10-04
+
+#### Fixed
+
+- Fix startup after saving MainWindow in the designer: retain exactly four named tab pages, remove duplicate page creation/event subscription, and map catalog identities in runtime code instead of relying on designer-serialized `Tag` values. Catalog selection, preloading, and themes retain the same identities when captions or tab order change.
+
+### [4.1.4] - 2026-10-04
+
+#### Fixed
+
+- Mitigate the white flash when opening Details: paint local fields and images while the form is transparent, then reveal it after `Shown` without a fixed delay or waiting for background file inspection/TMDb. Batch people/genre list updates and select the first game preview once after loading all four images.
+
 ### [4.1.3] - 2026-10-04
 
 #### Fixed

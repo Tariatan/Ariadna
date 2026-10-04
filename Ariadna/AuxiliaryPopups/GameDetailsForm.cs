@@ -28,6 +28,7 @@ public partial class GameDetailsForm : Form, IEntryDetailsDialog
         InitializeComponent();
         session = new EntryEditorSession(components, this, saveButton, CatalogKind.Game, logger, SaveEntry, genres.DismissPicker);
         DetailTheme.Apply(this, Theme.Create(CatalogKind.Game));
+        _ = new DetailFormPresentation(components, this);
         fileSize.Configure(logger);
         genres.Configure(Utilities.GameGenres.Keys.ToArray(), Utilities.GetGameGenreBySynonym, Utilities.GetGameGenreImage);
     }

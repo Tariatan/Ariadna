@@ -49,6 +49,72 @@ public sealed class EntryDetailsDialogTests
     [DataRow(CatalogKind.Documentary)]
     [DataRow(CatalogKind.Game)]
     [DataRow(CatalogKind.Library)]
+    public void Show_ExistingEntry_RevealsAfterLocalContentPaints(CatalogKind kind)
+    {
+        UiTest.Run(() =>
+        {
+            // Arrange
+            var path = Path.Combine(directory, "first-paint.mp4");
+            using var bitmap = new Bitmap(16, 16);
+            bitmap.SetPixel(0, 0, Color.Coral);
+            using var encoder = new ImageEditorControl();
+            encoder.SetImage(bitmap);
+            var id = CatalogServices.CreateStore().Save(kind,
+                new CatalogDetails(new CatalogEntry { Title = "Ready", Path = path }, ["Drama"], [], []),
+                new CatalogAssets(CatalogServices.GetPosterRoot(kind), new Dictionary<string, byte[]> { [string.Empty] = encoder.GetPngBytes() }));
+            using var form = CreateForm(kind, path);
+            var picture = UiTest.Field<PictureBox>(Field<ImageEditorControl>(form, "poster"), "picture");
+            double? shownOpacity = null;
+            double? firstPaintOpacity = null;
+            form.Shown += (_, _) =>
+            {
+                shownOpacity = form.Opacity;
+                Assert.AreEqual("Ready", Field<TextBox>(form, "titleText").Text);
+                Assert.AreEqual(id, ((IEntryDetailsDialog)form).StoredDbEntryId);
+                Assert.AreEqual(Color.Coral.ToArgb(), ((Bitmap)picture.Image!).GetPixel(0, 0).ToArgb());
+            };
+            picture.Paint += (_, _) => firstPaintOpacity ??= form.Opacity;
+
+            // Act
+            form.Show();
+            UiTest.PumpUntil(() => form.Opacity == 1 && firstPaintOpacity != null);
+
+            // Assert
+            Assert.AreEqual(0d, shownOpacity);
+            Assert.AreEqual(0d, firstPaintOpacity);
+            Assert.IsTrue(form.Visible);
+            form.Close();
+        });
+    }
+
+    [TestMethod]
+    public void Show_MetadataRequestPending_RevealsWithoutWaitingForNetwork()
+    {
+        UiTest.Run(() =>
+        {
+            // Arrange
+            var service = new ControlledMetadata();
+            using var form = new MovieDetailsForm(Path.Combine(directory, "pending.mp4"), loggerFactory.CreateLogger("FormTest"), service) { TmdbMovieIndex = 1 };
+
+            // Act
+            form.Show();
+            UiTest.PumpUntil(() => form.Opacity == 1);
+
+            // Assert
+            Assert.IsFalse(service.Completion.Task.IsCompleted);
+            Assert.IsTrue(form.Visible);
+            Assert.AreEqual("pending", Field<TextBox>(form, "titleText").Text);
+            form.Close();
+            service.Completion.SetResult(null);
+            UiTest.PumpUntil(() => service.Returned);
+        });
+    }
+
+    [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Documentary)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Library)]
     public void SaveCatalogEntry_ConfirmButtonThenReopen_PersistsMetadataRelationsAndImages(CatalogKind kind)
     {
         RunInSta(() =>

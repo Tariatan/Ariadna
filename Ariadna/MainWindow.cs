@@ -26,6 +26,7 @@ public partial class MainWindow : Form
     private readonly HashSet<CatalogKind> preloadingCatalogs = [];
     private readonly Icon? movieIcon;
     private readonly Dictionary<CatalogKind, MainPanel> views = [];
+    private readonly Dictionary<CatalogKind, TabPage> catalogPages;
     private bool loaded;
     private bool preloadingStarted;
     private bool resourcesDisposed;
@@ -49,10 +50,17 @@ public partial class MainWindow : Form
         });
         this.logger = logger ?? NullLogger.Instance;
         InitializeComponent();
-        movieIcon = Icon;
-        foreach (TabPage page in catalogTabs.TabPages)
+        catalogPages = new Dictionary<CatalogKind, TabPage>
         {
-            var theme = Theme.Create((CatalogKind)page.Tag!);
+            [CatalogKind.Movie] = moviesPage,
+            [CatalogKind.Game] = gamesPage,
+            [CatalogKind.Library] = libraryPage,
+            [CatalogKind.Documentary] = documentariesPage,
+        };
+        movieIcon = Icon;
+        foreach (var (kind, page) in catalogPages)
+        {
+            var theme = Theme.Create(kind);
             page.BackColor = theme.MainBackColor;
             page.ForeColor = theme.MainForeColor;
             page.Padding = Padding.Empty;
@@ -60,7 +68,7 @@ public partial class MainWindow : Form
         SelectCatalog(initialCatalog);
     }
 
-    internal CatalogKind ActiveCatalog => (CatalogKind)catalogTabs.SelectedTab!.Tag!;
+    internal CatalogKind ActiveCatalog => catalogPages.Single(pair => pair.Value == catalogTabs.SelectedTab).Key;
     internal MainPanel? ActiveView => views.GetValueOrDefault(ActiveCatalog);
     internal Task PreloadCompletion { get; private set; } = Task.CompletedTask;
     private static bool ModalDialogOpen => Application.OpenForms.Cast<Form>().Any(form => form.Modal);
@@ -93,7 +101,7 @@ public partial class MainWindow : Form
 
     internal void SelectCatalog(CatalogKind kind)
     {
-        catalogTabs.SelectedTab = catalogTabs.TabPages.Cast<TabPage>().Single(page => (CatalogKind)page.Tag! == kind);
+        catalogTabs.SelectedTab = catalogPages[kind];
     }
 
     internal void ActivateExisting(CatalogKind? kind)
@@ -167,8 +175,7 @@ public partial class MainWindow : Form
         {
             return;
         }
-        var remaining = catalogTabs.TabPages.Cast<TabPage>()
-            .Select(page => (CatalogKind)page.Tag!).Where(kind => !views.ContainsKey(kind)).ToArray();
+        var remaining = catalogPages.Keys.Where(kind => !views.ContainsKey(kind)).ToArray();
         preloadingCatalogs.UnionWith(remaining);
         PreloadCompletion = Task.WhenAll(remaining.Select(kind => PreloadCatalogAsync(kind, cancellationToken)));
     }
@@ -241,7 +248,7 @@ public partial class MainWindow : Form
 
     private void AttachView(CatalogKind kind, MainPanel view)
     {
-        var page = catalogTabs.TabPages.Cast<TabPage>().Single(tab => (CatalogKind)tab.Tag! == kind);
+        var page = catalogPages[kind];
         page.Size = catalogTabs.DisplayRectangle.Size;
         view.Visible = false;
         view.Dock = DockStyle.Fill;
@@ -258,7 +265,7 @@ public partial class MainWindow : Form
 
     private void ShowLoadingMessage(CatalogKind kind, string message)
     {
-        var page = catalogTabs.TabPages.Cast<TabPage>().Single(tab => (CatalogKind)tab.Tag! == kind);
+        var page = catalogPages[kind];
         if (page.Controls.Count == 0)
         {
             page.Controls.Add(new Label

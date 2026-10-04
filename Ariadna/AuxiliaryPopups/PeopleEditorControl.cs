@@ -52,11 +52,19 @@ public sealed class PeopleEditorControl : UserControl
 
     public void LoadPeople(IEnumerable<PersonPhoto> people)
     {
-        list.Items.Clear();
-        photos.Images.Clear();
-        foreach (var person in people)
+        list.BeginUpdate();
+        try
         {
-            AddItem(person);
+            list.Items.Clear();
+            photos.Images.Clear();
+            foreach (var person in people)
+            {
+                AddItem(person);
+            }
+        }
+        finally
+        {
+            list.EndUpdate();
         }
     }
 

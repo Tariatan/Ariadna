@@ -29,6 +29,7 @@ public partial class DocumentaryDetailsForm : Form, IEntryDetailsDialog
         InitializeComponent();
         session = new EntryEditorSession(components, this, saveButton, CatalogKind.Documentary, logger, SaveEntry, genres.DismissPicker);
         DetailTheme.Apply(this, Theme.Create(CatalogKind.Documentary));
+        _ = new DetailFormPresentation(components, this);
         fileSize.Configure(logger);
         videoInfo.Configure(logger);
         genres.Configure(Utilities.DocumentaryGenres.Keys.ToArray(), Utilities.GetDocumentaryGenreBySynonym, Utilities.GetDocumentaryGenreImage);

@@ -43,6 +43,7 @@ public partial class MovieDetailsForm : Form, IEntryDetailsDialog
         InitializeComponent();
         session = new EntryEditorSession(components, this, saveButton, CatalogKind.Movie, logger, SaveEntry, genres.DismissPicker);
         DetailTheme.Apply(this, Theme.Create(CatalogKind.Movie));
+        _ = new DetailFormPresentation(components, this);
         fileSize.Configure(logger);
         videoInfo.Configure(logger);
         this.metadataService = metadataService;
