@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna
 
+### [4.1.1] - 2026-10-04
+
+#### Fixed
+
+- Show the splash before catalog recovery and retain it through initial catalog initialization. Dismiss it only after the main window is shown and rendered, before inactive-tab preloading, rather than during the Load event. Startup cancellation, recovery failure, and early window closure also release the splash.
+
 ### [4.1.0] - 2026-10-04
 
 #### Added

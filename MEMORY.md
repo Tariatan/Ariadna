@@ -130,7 +130,22 @@ Reviewed the synthetic grid render. No personal catalog/image data was used.
 Personal-size responsiveness acceptance remains open; no latency benchmark or
 new publishing verification is claimed for this slice.
 
-Next: user acceptance of tab readiness/responsiveness on the personal catalog,
+2026-10-04: Ariadna 4.1.1 corrects splash lifetime. CatalogApplication waits for
+the splash to render before recovery and supplies MainForm before the application
+model's OnRun to bypass its premature Load-event dismissal. After Shown, a queued
+callback renders the initial window and dismisses the splash before inactive-tab
+preloading. No artificial minimum delay is used. Canceled startup, recovery errors,
+and early window closure also release the splash.
+
+Zero-warning/error Debug and Release builds and 234 tests (187 desktop, 42 storage,
+5 migration) passed. Three new splash workflow tests cover load/display/render
+ordering, early closure, and no-splash operation. A native synthetic harness using
+the real splash thread confirmed cold-start ordering, Ctrl+2/Ctrl+1 afterward,
+and cancellation cleanup. No personal catalog or image data was used. Personal
+startup acceptance, recovery-error dialog interaction, and new publishing checks
+remain unverified for this patch. Storage/Migration implementations are unchanged.
+
+Next: user acceptance of splash lifetime and tab readiness on the personal catalog,
 then remaining integration review in PLAN. The preload does not warm an entire
 collection or perform background form/control construction.
 

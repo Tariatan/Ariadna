@@ -69,7 +69,11 @@ dependency.
 `Program` runs `CatalogApplication`, which enforces one instance through the
 WinForms application model and opens `MainWindow`. The shell hosts Movies,
 Games, Library, and Documentaries as permanent tabs in that order. The initial
-catalog loads under the splash screen. After the window is shown, the remaining
+catalog loads under the splash screen. Startup waits for the splash to render
+before catalog recovery; the splash remains through initial catalog initialization
+and closes only after the main window is shown and rendered. Its lifetime follows
+readiness, not a fixed display delay. Failed/canceled startup and early window
+closure also dispose it. After the window is shown, the remaining
 catalog reads run on worker threads; their `MainPanel` controls, strategies,
 palettes, quick navigation, and initial random selections are prepared on the UI
 thread and retained for the window lifetime. Existing thumbnail workers warm
