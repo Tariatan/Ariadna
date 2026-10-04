@@ -1,56 +1,53 @@
-<UserControl x:Class="Ariadna.Wpf.CatalogView"
+<UserControl
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Ariadna.Wpf"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Ariadna.Wpf.CatalogView"
              Background="{Binding Theme.Background}" Foreground="White"
-             Loaded="OnLoaded" Unloaded="OnUnloaded">
-    <DockPanel>
+             Loaded="OnLoaded" Unloaded="OnUnloaded" d:DesignWidth="1601.853">
+    <DockPanel RenderTransformOrigin="0.5,0.5">
         <StackPanel DockPanel.Dock="Top">
             <WrapPanel Margin="6">
                 <Label Content="Title" />
-                <TextBox x:Name="TitleSearch" Width="220" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox x:Name="TitleSearch" Width="152" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
                 <Button Content="X" Tag="Title" Click="ClearFilter" />
+                <CheckBox Content="Wishlist" IsChecked="{Binding Wish}" />
+                <CheckBox Content="Recent" IsChecked="{Binding Recent}" />
+                <CheckBox Content="New" IsChecked="{Binding New}" />
+                <CheckBox Content="Series" IsChecked="{Binding Series}" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}" />
+                <CheckBox Content="Movies" IsChecked="{Binding Movies}" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}" />
+                <CheckBox Content="VR" IsChecked="{Binding Vr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
+                <CheckBox Content="Non-VR" IsChecked="{Binding NonVr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
                 <StackPanel Orientation="Horizontal" Visibility="{Binding HasPeople, Converter={StaticResource Visibility}}">
                     <Label Content="{Binding PersonLabel}" />
-                    <ComboBox x:Name="PersonSearch" Width="170" IsEditable="True" Text="{Binding Person, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="People" />
+                    <ComboBox x:Name="PersonSearch" Width="28" IsEditable="True" Text="{Binding Person, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="People" />
                     <Button Content="X" Tag="Person" Click="ClearFilter" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}">
                     <Label Content="Actors" />
-                    <ComboBox x:Name="ActorSearch" Width="160" IsEditable="True" Text="{Binding Actor, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="Actors" />
+                    <ComboBox x:Name="ActorSearch" Width="36" IsEditable="True" Text="{Binding Actor, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="Actors" />
                     <Button Content="X" Tag="Actor" Click="ClearFilter" />
                 </StackPanel>
-            </WrapPanel>
-            <WrapPanel Margin="6,0">
+                <StackPanel Orientation="Horizontal" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}"/>
                 <Label Content="Genre" />
-                <ComboBox Width="170" ItemsSource="{Binding Genres}" IsEditable="True" Text="{Binding Genre, UpdateSourceTrigger=PropertyChanged}" />
+                <ComboBox Width="46" ItemsSource="{Binding Genres}" IsEditable="True" Text="{Binding Genre, UpdateSourceTrigger=PropertyChanged}" />
                 <Button Content="X" Tag="Genre" Click="ClearFilter" />
-                <StackPanel Orientation="Horizontal" Visibility="{Binding IsLibrary, Converter={StaticResource Visibility}}">
+                <StackPanel Orientation="Horizontal" Visibility="{Binding HasSubgenre, Converter={StaticResource Visibility}}">
                     <Label Content="Subgenre" />
-                    <ComboBox Width="170" ItemsSource="{Binding Subgenres}" IsEditable="True" Text="{Binding Subgenre, UpdateSourceTrigger=PropertyChanged}" />
+                    <ComboBox Width="28" ItemsSource="{Binding Subgenres}" IsEditable="True" Text="{Binding Subgenre, UpdateSourceTrigger=PropertyChanged}" />
                     <Button Content="X" Tag="Subgenre" Click="ClearFilter" />
                 </StackPanel>
-                <CheckBox Content="Wishlist" IsChecked="{Binding Wish}" />
-                <CheckBox Content="Recent" IsChecked="{Binding Recent}" />
-                <CheckBox Content="New" IsChecked="{Binding New}" />
-                <StackPanel Orientation="Horizontal" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}">
-                    <CheckBox Content="Series" IsChecked="{Binding Series}" /><CheckBox Content="Movies" IsChecked="{Binding Movies}" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}">
-                    <CheckBox Content="VR" IsChecked="{Binding Vr}" /><CheckBox Content="Non-VR" IsChecked="{Binding NonVr}" />
-                </StackPanel>
             </WrapPanel>
             <WrapPanel Margin="6,0">
-                <Button Content="Add file…" Click="AddFile" /><Button Content="Add folder…" Click="AddFolder" />
-                <Button Content="Discover next" Click="Discover" /><Button Content="Details" Click="Details" />
-                <Button Content="Open" Click="Execute" /><Button Content="Remove" Click="Remove" />
-                <Button Content="Random" Click="Random" /><Button Content="Refresh" Click="Refresh" />
+                <StackPanel Orientation="Horizontal" Visibility="{Binding IsLibrary, Converter={StaticResource Visibility}}"/>
+                <StackPanel Orientation="Horizontal" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}"/>
             </WrapPanel>
         </StackPanel>
-        <TextBlock DockPanel.Dock="Bottom" Margin="10,5" Text="{Binding Status}" />
         <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding Letters}" Margin="3" Width="34">
             <ItemsControl.ItemTemplate>
-                <DataTemplate><Button Content="{Binding}" Padding="2,0" Margin="0,1" Click="QuickJump" /></DataTemplate>
+                <DataTemplate>
+                    <Button Content="{Binding}" Padding="2,0" Margin="0,1" Click="QuickJump" />
+                </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
         <ListBox x:Name="PosterRows" ItemsSource="{Binding Rows}" BorderThickness="0" Background="Transparent"
@@ -59,18 +56,31 @@
                  VirtualizingPanel.ScrollUnit="Pixel" VirtualizingPanel.CacheLength="1"
                  SizeChanged="OnGridSizeChanged" PreviewKeyDown="OnGridKeyDown" PreviewMouseWheel="OnGridMouseWheel">
             <ListBox.ItemContainerStyle>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="Padding" Value="0" /><Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Style TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     <Setter Property="Focusable" Value="False" />
-                    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem"><ContentPresenter /></ControlTemplate></Setter.Value></Setter>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <ItemsControl ItemsSource="{Binding Items}">
-                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="{Binding DataContext.Columns, RelativeSource={RelativeSource AncestorType=ListBox}}" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1" Columns="{Binding DataContext.Columns, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate><local:PosterCard MouseLeftButtonDown="SelectPoster" MouseRightButtonUp="EditPoster" /></DataTemplate>
+                            <DataTemplate>
+                                <local:PosterCard MouseLeftButtonDown="SelectPoster" MouseRightButtonUp="EditPoster" />
+                            </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </DataTemplate>

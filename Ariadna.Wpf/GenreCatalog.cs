@@ -19,9 +19,12 @@ internal static class GenreCatalog
         CatalogKind.Library => LibraryGenres.Concat(LibraryLanguagesGenres).Concat(LibraryLiteratureGenres).Concat(LibraryProgrammingGenres).Concat(LibraryMiscGenres).Distinct().ToArray(),
         _ => [],
     };
+    internal static IEnumerable<string> FilterGenres(CatalogKind kind, IEnumerable<string> storedGenres) =>
+        kind == CatalogKind.Library ? LibraryGenres : For(kind).Concat(storedGenres);
+
     internal static IReadOnlyCollection<string> Subgenres(string genre)
     {
-        var values = genre.Contains("English", StringComparison.InvariantCultureIgnoreCase) ? LibraryLanguagesGenres : genre.Contains("Literature", StringComparison.InvariantCultureIgnoreCase) ? LibraryLiteratureGenres : genre.Contains("Programming", StringComparison.InvariantCultureIgnoreCase) ? LibraryProgrammingGenres : LibraryMiscGenres;
+        var values = genre.Contains("Languages", StringComparison.InvariantCultureIgnoreCase) ? LibraryLanguagesGenres : genre.Contains("Literature", StringComparison.InvariantCultureIgnoreCase) ? LibraryLiteratureGenres : genre.Contains("Programming", StringComparison.InvariantCultureIgnoreCase) ? LibraryProgrammingGenres : LibraryMiscGenres;
         return values.Prepend(string.Empty).ToArray();
     }
 

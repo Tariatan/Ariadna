@@ -33,6 +33,7 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
     public bool IsGame => Kind == CatalogKind.Game;
     public bool IsLibrary => Kind == CatalogKind.Library;
     public bool HasPeople => IsMovie || IsLibrary;
+    public bool HasSubgenre => IsLibrary && !string.IsNullOrWhiteSpace(Genre);
     public string PersonLabel => IsLibrary ? "Authors" : "Directors";
     public IReadOnlyList<PosterItem> Entries => entries;
     public IReadOnlyList<PosterRow> Rows => rows;
@@ -89,6 +90,7 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
                 subgenre = string.Empty;
                 Notify(nameof(Subgenre));
                 Notify(nameof(Subgenres));
+                Notify(nameof(HasSubgenre));
                 ScheduleRefresh();
             }
         }
@@ -276,7 +278,7 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
             request.Token.ThrowIfCancellationRequested();
             var selectedId = Selected?.Entry.Id;
             entries = result.Entries.Select(entry => new PosterItem(entry, Path.Combine(configuration.PosterRoot(Kind), entry.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)), thumbnails)).ToList();
-            genres = GenreCatalog.For(Kind).Concat(result.Genres).Distinct(StringComparer.OrdinalIgnoreCase).Order().Prepend(string.Empty).ToArray();
+            genres = GenreCatalog.FilterGenres(Kind, result.Genres).Distinct(StringComparer.OrdinalIgnoreCase).Order().Prepend(string.Empty).ToArray();
             letters = entries.Where(entry => entry.Entry.Title.Length > 0).Select(entry => entry.Entry.Title[..1].ToUpperInvariant()).Where(letter => letter is not ("}" or "«") && (!IsLibrary || letter is not ("(" or "9"))).Distinct().ToArray();
             BuildRows();
             Selected = entries.FirstOrDefault(entry => entry.Entry.Id == selectedId) ?? (selectedId == null && entries.Count > 0 ? entries[Random.Shared.Next(entries.Count)] : entries.FirstOrDefault());

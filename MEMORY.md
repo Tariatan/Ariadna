@@ -31,6 +31,37 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-04: Ariadna.Wpf 1.1.2 separates Library filter categories from
+  subjects. Genre offers Languages, Literature, Programming and Misc; Subgenre
+  offers the chosen category's subjects (Programming -> C++). Stored flat tags
+  no longer enter Library's category choices. The details editor still offers
+  all categories, subjects and custom stored tags; storage/query behavior and
+  saved values are unchanged. Languages now supplies its language subjects.
+- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
+  all 52 Release WPF tests passed. Four hierarchy regressions failed before the
+  fix and now cover every category, subject filtering and editor tag retention;
+  another case protects custom Movie genre choices. An isolated native Debug
+  WPF window with disposable SQLite/posters confirmed the four-item Genre menu,
+  mouse selection of Programming then C++ from Subgenre, ten matching synthetic
+  entries and retained values after Ctrl+4/3. Personal data, the user-staged XAML,
+  WinForms, Storage/Migration and user-owned PLAN were untouched by this fix.
+  Next: user acceptance of Library's category/subject dropdowns in normal WPF.
+- 2026-10-04: Ariadna.Wpf 1.1.1 preserves the user's revised filter layout
+  and restores collection-specific visibility: Series/Movies only in Movies,
+  VR/Non-VR only in Games, Directors/Actors in Movies and Authors in Library.
+  Subgenre's label, selector and X form one collapsed group, shown only for
+  Library with a nonblank Genre. Genre changes notify visibility and retain the
+  existing Subgenre reset; clearing Genre hides the group. User-staged XAML,
+  sizes, ordering and removed toolbar/status controls were preserved.
+- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
+  all 47 Release WPF tests passed. Eight added cases cover every collection and
+  Library clearing/retention with Programming, Literature, Misc and a custom
+  genre. Native checks used an isolated Debug WPF window and disposable SQLite/
+  posters: all four filter sets, Genre popup selection, Subgenre editing, keyboard
+  Title entry and Ctrl+3/4 tab retention. Clicking Genre X cleared both genre
+  values, hid Subgenre and retained Title. Personal data was not used; WinForms,
+  Storage/Migration implementation and user-owned PLAN remain unchanged.
+  Next: user acceptance of the revised panel in the normal WPF executable.
 - 2026-10-04: Ariadna.Wpf 1.1.0 scrolls the poster grid to an adjacent row
   boundary per wheel notch in all four catalogs. Smaller deltas accumulate,
   rapid input retains every step, and offsets clamp at the content ends.

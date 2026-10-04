@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Ariadna.Storage;
@@ -11,6 +12,100 @@ namespace Ariadna.Wpf.Tests;
 [TestClass]
 public sealed class CatalogViewTests
 {
+    [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies", "Wishlist|Recent|New|Series|Movies")]
+    [DataRow(CatalogKind.Game, "games", "Wishlist|Recent|New|VR|Non-VR")]
+    [DataRow(CatalogKind.Library, "library", "Wishlist|Recent|New")]
+    [DataRow(CatalogKind.Documentary, "documentaries", "Wishlist|Recent|New")]
+    public async Task Show_CollectionFilters_OnlyShowsApplicableControls(CatalogKind kind, string argument, string expectedFlags) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        fixture.Add(kind, "Entry");
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var subgenre = Filter(view, "Subgenre");
+            var initiallyVisible = subgenre.IsVisible;
+
+            // Act
+            view.Model.Genre = "Programming";
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            CollectionAssert.AreEqual(expectedFlags.Split('|'), Descendants<CheckBox>(view).Where(control => control.IsVisible).Select(control => (string)control.Content).ToArray());
+            Assert.AreEqual(kind is CatalogKind.Movie or CatalogKind.Library, ((ComboBox)view.FindName("PersonSearch")).IsVisible);
+            Assert.AreEqual(kind == CatalogKind.Movie, ((ComboBox)view.FindName("ActorSearch")).IsVisible);
+            Assert.IsTrue(Filter(view, "Genre").IsVisible);
+            Assert.IsFalse(initiallyVisible);
+            Assert.AreEqual(kind == CatalogKind.Library, subgenre.IsVisible);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
+    [DataRow("Programming", "C#")]
+    [DataRow("Literature", "Fantasy")]
+    [DataRow("Misc", "Misc")]
+    [DataRow("Custom genre", "Misc")]
+    public async Task ClearFilter_LibraryGenreCleared_HidesAndResetsSubgenreWhilePreservingOtherFilters(string genre, string selectedSubgenre) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Library, "Entry", true);
+        fixture.Store.Save(CatalogKind.Library, new CatalogDetails(entry, [genre, selectedSubgenre], [], []));
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, "library");
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            view.Model.Title = "Entry";
+            view.Model.Wish = true;
+            view.Model.Genre = genre;
+            view.Model.Subgenre = selectedSubgenre;
+            await view.Model.RefreshAsync(CancellationToken.None);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var subgenre = Filter(view, "Subgenre");
+            var visibleBeforeClear = subgenre.IsVisible;
+
+            // Act
+            window.ActivateCatalog("movies");
+            window.ActivateCatalog("library");
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var visibleAfterReturn = subgenre.IsVisible;
+            var retainedSubgenre = view.Model.Subgenre;
+            Descendants<Button>(view).Single(button => (string?)button.Tag == "Genre").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await view.Model.RefreshAsync(CancellationToken.None);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.IsTrue(visibleBeforeClear);
+            Assert.IsTrue(visibleAfterReturn);
+            Assert.AreEqual(selectedSubgenre, retainedSubgenre);
+            Assert.IsFalse(subgenre.IsVisible);
+            Assert.IsFalse(Descendants<Label>(view).Single(label => (string?)label.Content == "Subgenre").IsVisible);
+            Assert.IsFalse(Descendants<Button>(view).Single(button => (string?)button.Tag == "Subgenre").IsVisible);
+            Assert.AreEqual(string.Empty, view.Model.Genre);
+            Assert.AreEqual(string.Empty, view.Model.Subgenre);
+            Assert.AreEqual("Entry", view.Model.Title);
+            Assert.IsTrue(view.Model.Wish);
+            Assert.HasCount(1, view.Model.Entries);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
     [TestMethod]
     [DataRow(CatalogKind.Movie, "movies")]
     [DataRow(CatalogKind.Game, "games")]
@@ -187,6 +282,26 @@ public sealed class CatalogViewTests
             window.Close();
         }
     });
+
+    private static ComboBox Filter(CatalogView view, string property) => Descendants<ComboBox>(view)
+        .Single(control => BindingOperations.GetBinding(control, ComboBox.TextProperty)?.Path.Path == property);
+
+    private static IEnumerable<T> Descendants<T>(DependencyObject parent)
+        where T : DependencyObject
+    {
+        foreach (var child in LogicalTreeHelper.GetChildren(parent).OfType<DependencyObject>())
+        {
+            if (child is T match)
+            {
+                yield return match;
+            }
+
+            foreach (var descendant in Descendants<T>(child))
+            {
+                yield return descendant;
+            }
+        }
+    }
 
     private static MouseWheelEventArgs Wheel(UIElement target, int delta)
     {

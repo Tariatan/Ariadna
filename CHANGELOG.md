@@ -13,6 +13,20 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.1.2] - 2026-10-04
+
+#### Fixed
+
+- Separate Library filter choices: Genre offers Languages, Literature, Programming and Misc; Subgenre offers the chosen category's subjects, such as C++ under Programming. Keep the combined tag list in the details editor and stored tags intact.
+- Populate language subjects when the Languages category is selected.
+
+### [1.1.1] - 2026-10-04
+
+#### Fixed
+
+- Restore collection-specific filters in the revised panel: Series/Movies only for Movies, VR/Non-VR only for Games, Directors/Actors for Movies and Authors for Library. Keep the user's layout and sizing.
+- Show Library's Subgenre label, selector and clear button only after a Genre is chosen. Clearing or changing Genre resets Subgenre; clearing Genre hides the entire Subgenre group.
+
 ### [1.1.0] - 2026-10-04
 
 #### Added

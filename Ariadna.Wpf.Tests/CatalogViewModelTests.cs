@@ -8,6 +8,57 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogViewModelTests
 {
     [TestMethod]
+    [DataRow("Programming", "C++")]
+    [DataRow("Literature", "Fantasy")]
+    [DataRow("Languages", "German")]
+    [DataRow("Misc", "Misc")]
+    public async Task RefreshAsync_LibraryGenreHierarchy_KeepsCategoryAndSubjectChoicesSeparate(string genre, string subgenre) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Library, "Library entry");
+        fixture.Store.Save(CatalogKind.Library, new CatalogDetails(entry, [genre, subgenre, "Custom saved tag"], [], []));
+        using var model = Model(fixture, CatalogKind.Library);
+        await model.RefreshAsync(CancellationToken.None);
+        var editor = new EntryEditorModel(fixture.Actions, CatalogKind.Library, entry.Path);
+        string[] expectedGenres = [string.Empty, "Languages", "Literature", "Misc", "Programming"];
+
+        // Act
+        model.Genre = genre;
+        var subjects = model.Subgenres;
+        model.Subgenre = subgenre;
+        await model.RefreshAsync(CancellationToken.None);
+
+        // Assert
+        CollectionAssert.AreEqual(expectedGenres, model.Genres.ToArray());
+        CollectionAssert.Contains(subjects.ToArray(), subgenre);
+        Assert.AreEqual(genre, model.Genre);
+        Assert.AreEqual(subgenre, model.Subgenre);
+        Assert.HasCount(1, model.Entries);
+        Assert.AreEqual(entry.Id, model.Entries[0].Entry.Id);
+        CollectionAssert.Contains(editor.AvailableGenres.ToArray(), genre);
+        CollectionAssert.Contains(editor.AvailableGenres.ToArray(), subgenre);
+        CollectionAssert.Contains(editor.AvailableGenres.ToArray(), "Custom saved tag");
+    });
+
+    [TestMethod]
+    public async Task RefreshAsync_MovieWithCustomGenre_RetainsStoredGenreInFilterChoices() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Movie, "Movie entry");
+        fixture.Store.Save(CatalogKind.Movie, new CatalogDetails(entry, ["Custom saved genre"], [], []));
+        using var model = Model(fixture, CatalogKind.Movie);
+
+        // Act
+        await model.RefreshAsync(CancellationToken.None);
+
+        // Assert
+        CollectionAssert.Contains(model.Genres.ToArray(), "Custom saved genre");
+        CollectionAssert.Contains(model.Genres.ToArray(), "Комедия");
+    });
+
+    [TestMethod]
     public async Task RefreshAsync_RealProviderFiltersAndQuickJump_PreservesExpectedResults() => await WpfThread.RunAsync(async () =>
     {
         // Arrange

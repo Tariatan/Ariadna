@@ -253,6 +253,18 @@ accumulating smaller wheel deltas; the last viewport is clamped to the content e
 Wheel scrolling preserves selection and each tab's retained position. Row stepping,
 Page Up/Page Down and resize anchoring use the rendered row height, while scrollbar
 dragging retains pixel scrolling and rows remain virtualized.
+The shared filter panel retains its layout while showing only applicable fields:
+Title, Wishlist, Recent, New and Genre in all catalogs; Series/Movies and
+Directors/Actors in Movies; VR/Non-VR in Games; Authors in Library.
+Library alone reveals the Subgenre label, selector and clear button after any
+nonblank Genre is chosen. Changing Genre resets Subgenre; clearing Genre also
+collapses that group. Filters and conditional visibility persist across tabs.
+Library's Genre dropdown contains the categories Languages, Literature,
+Programming and Misc. Its Subgenre dropdown contains subjects for the selected
+category (for example, Programming -> C++); stored subject tags are not added to
+the category dropdown. The details editor retains the combined category/subject
+tag list and custom stored tags. Storage and existing genre-query semantics are
+unchanged.
 It uses the same direct SQLite storage, schema, IDs and image files. XAML and
 observable models replace the shell, browser and editor controls; no WinForms
 controls are hosted. Row virtualization, asynchronous bounded thumbnail caching,
