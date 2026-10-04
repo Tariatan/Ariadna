@@ -6,11 +6,31 @@
              Background="{Binding Theme.Background}" Foreground="White"
              Loaded="OnLoaded" Unloaded="OnUnloaded" d:DesignWidth="1601.853">
     <DockPanel RenderTransformOrigin="0.5,0.5">
-        <StackPanel DockPanel.Dock="Top">
-            <WrapPanel Margin="6">
-                <Label Content="Title" />
-                <TextBox x:Name="TitleSearch" Width="152" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
-                <Button Content="X" Tag="Title" Click="ClearFilter" />
+        <Border DockPanel.Dock="Top" BorderBrush="#DDFFFFFF" BorderThickness="1,0,1,1" Padding="1,0" TextElement.FontSize="14">
+            <Border.Resources>
+                <ResourceDictionary>
+                    <ResourceDictionary.MergedDictionaries>
+                        <ResourceDictionary Source="FilterPanelStyles.xaml" />
+                    </ResourceDictionary.MergedDictionaries>
+                </ResourceDictionary>
+            </Border.Resources>
+            <WrapPanel>
+                <StackPanel Orientation="Horizontal" Height="34">
+                    <Button x:Name="AddEntryButton" Style="{StaticResource FilterIconButton}" Click="Discover"
+                            ToolTip="Discover the next entry. Right-click to add a file or folder." AutomationProperties.Name="Add entry">
+                        <Path Data="M 0,12 L 24,12 M 12,0 L 12,24" Stroke="White" StrokeThickness="5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="28" Height="28" Stretch="Uniform" />
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add file…" Click="AddFile" />
+                                <MenuItem Header="Add folder…" Click="AddFolder" />
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                    <Border Style="{StaticResource FilterSeparator}" />
+                    <Label Content="Title" Target="{Binding ElementName=TitleSearch}" />
+                    <TextBox x:Name="TitleSearch" Width="190" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Title filter" />
+                    <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Title" Click="ClearFilter" ToolTip="Clear title" AutomationProperties.Name="Clear title" />
+                </StackPanel>
                 <CheckBox Content="Wishlist" IsChecked="{Binding Wish}" />
                 <CheckBox Content="Recent" IsChecked="{Binding Recent}" />
                 <CheckBox Content="New" IsChecked="{Binding New}" />
@@ -18,33 +38,37 @@
                 <CheckBox Content="Movies" IsChecked="{Binding Movies}" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}" />
                 <CheckBox Content="VR" IsChecked="{Binding Vr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
                 <CheckBox Content="Non-VR" IsChecked="{Binding NonVr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
-                <StackPanel Orientation="Horizontal" Visibility="{Binding HasPeople, Converter={StaticResource Visibility}}">
-                    <Label Content="{Binding PersonLabel}" />
-                    <ComboBox x:Name="PersonSearch" Width="28" IsEditable="True" Text="{Binding Person, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="People" />
-                    <Button Content="X" Tag="Person" Click="ClearFilter" />
+                <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding HasPeople, Converter={StaticResource Visibility}}">
+                    <Border Style="{StaticResource FilterSeparator}" />
+                    <Label Content="{Binding PersonLabel}" Target="{Binding ElementName=PersonSearch}" />
+                    <ComboBox x:Name="PersonSearch" Width="140" IsEditable="True" Text="{Binding Person, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="People" AutomationProperties.Name="{Binding PersonLabel}" />
+                    <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Person" Click="ClearFilter" ToolTip="Clear director or author" AutomationProperties.Name="Clear director or author" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}">
-                    <Label Content="Actors" />
-                    <ComboBox x:Name="ActorSearch" Width="36" IsEditable="True" Text="{Binding Actor, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="Actors" />
-                    <Button Content="X" Tag="Actor" Click="ClearFilter" />
+                <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}">
+                    <Border Style="{StaticResource FilterSeparator}" />
+                    <Label Content="Actor" Target="{Binding ElementName=ActorSearch}" />
+                    <ComboBox x:Name="ActorSearch" Width="140" IsEditable="True" Text="{Binding Actor, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="Actors" AutomationProperties.Name="Actor filter" />
+                    <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Actor" Click="ClearFilter" ToolTip="Clear actor" AutomationProperties.Name="Clear actor" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}"/>
-                <Label Content="Genre" />
-                <ComboBox Width="46" ItemsSource="{Binding Genres}" IsEditable="True" Text="{Binding Genre, UpdateSourceTrigger=PropertyChanged}" />
-                <Button Content="X" Tag="Genre" Click="ClearFilter" />
-                <StackPanel Orientation="Horizontal" Visibility="{Binding HasSubgenre, Converter={StaticResource Visibility}}">
-                    <Label Content="Subgenre" />
-                    <ComboBox Width="28" ItemsSource="{Binding Subgenres}" IsEditable="True" Text="{Binding Subgenre, UpdateSourceTrigger=PropertyChanged}" />
-                    <Button Content="X" Tag="Subgenre" Click="ClearFilter" />
+                <StackPanel Orientation="Horizontal" Height="34">
+                    <Border Style="{StaticResource FilterSeparator}" />
+                    <Label Content="Genre" Target="{Binding ElementName=GenreSearch}" />
+                    <ComboBox x:Name="GenreSearch" Width="140" Tag="Genre" ItemsSource="{Binding Genres}" IsEditable="True" Text="{Binding Genre, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Genre filter" />
+                    <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Genre" Click="ClearFilter" ToolTip="Clear genre" AutomationProperties.Name="Clear genre" />
                 </StackPanel>
-                <TextBlock x:Name="FoundEntriesText" Margin="8,6" VerticalAlignment="Center" FontWeight="Bold"
-                           Text="{Binding Entries.Count, StringFormat='Found entries: {0}'}" />
+                <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding HasSubgenre, Converter={StaticResource Visibility}}">
+                    <Border Style="{StaticResource FilterSeparator}" />
+                    <Label Content="Subgenre" Target="{Binding ElementName=SubgenreSearch}" />
+                    <ComboBox x:Name="SubgenreSearch" Width="110" Tag="Subgenre" ItemsSource="{Binding Subgenres}" IsEditable="True" Text="{Binding Subgenre, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Subgenre filter" />
+                    <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Subgenre" Click="ClearFilter" ToolTip="Clear subgenre" AutomationProperties.Name="Clear subgenre" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Height="34">
+                    <Border Style="{StaticResource FilterSeparator}" />
+                    <TextBlock x:Name="FoundEntriesText" Margin="4,0,8,0" VerticalAlignment="Center" FontWeight="Bold"
+                               Text="{Binding Entries.Count, StringFormat='Found entries: {0}'}" />
+                </StackPanel>
             </WrapPanel>
-            <WrapPanel Margin="6,0">
-                <StackPanel Orientation="Horizontal" Visibility="{Binding IsLibrary, Converter={StaticResource Visibility}}"/>
-                <StackPanel Orientation="Horizontal" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}"/>
-            </WrapPanel>
-        </StackPanel>
+        </Border>
         <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding Letters}" Margin="3" Width="34">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>

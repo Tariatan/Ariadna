@@ -13,6 +13,13 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.2.1] - 2026-10-04
+
+#### Changed
+
+- Match the catalog filters to the compact themed toolbar: white separators, outlined checkboxes after their labels, borderless tinted text fields, white clear icons, genre ellipses and a bold result count. Filter groups wrap together at narrower widths, and editable suggestion menus retain the collection palette.
+- Restore the toolbar's plus button using the existing discovery action, with file and folder choices on its context menu.
+
 ### [1.2.0] - 2026-10-04
 
 #### Added

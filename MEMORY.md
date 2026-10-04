@@ -31,6 +31,22 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-04: Ariadna.Wpf 1.2.1 matches the supplied compact filter toolbar:
+  catalog-colored fields, white separators and clear icons, outlined checkboxes
+  after their labels, genre ellipses and the bold result count. FilterPanelStyles
+  is scoped to the toolbar; editors retain their existing controls. Field groups
+  wrap together at narrower widths. The plus button uses existing discovery;
+  its context menu exposes the existing manual file/folder handlers.
+- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
+  all 52 Release WPF tests passed. An isolated native Debug window with disposable
+  SQLite/posters verified all four palettes/filter sets, keyboard Title filtering
+  and X reset, mouse/Space checkbox toggling, themed Genre/Subgenre popups,
+  Programming/C++ text entry and Genre X clearing/hiding Subgenre. Programming
+  fits the widened field. Right-click plus showed file/folder choices; resize
+  from 1600 to roughly 1100 pixels kept field groups together on two rows.
+  Personal-catalog and changed-DPI acceptance remain open; no personal data was
+  used. Discovery/manual-add saves were not exercised in this visual slice.
+  WinForms, Storage/Migration implementation and user-owned PLAN are unchanged.
 - 2026-10-04: Ariadna.Wpf 1.2.0 adds a bold "Found entries: <count>"
   indicator after each catalog's filters. Its Entries.Count binding uses existing
   refresh notifications, so the count follows the displayed results, including
