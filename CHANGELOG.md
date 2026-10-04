@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna
 
+### [4.1.3] - 2026-10-04
+
+#### Fixed
+
+- Batch filter refreshes so the poster grid renders after both the filtered results and quick navigation are ready. Reuse letter buttons, skip unchanged navigation, and lay out changed letters once instead of disposing and arranging every button individually.
+
 ### [4.1.2] - 2026-10-04
 
 #### Fixed

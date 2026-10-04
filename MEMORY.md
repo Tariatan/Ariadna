@@ -112,6 +112,33 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Resume here
 
+2026-10-04: Ariadna 4.1.3 fixes slow filter rendering in MainPanel. The previous
+update cleared/refilled the grid with intermediate paints and disposed/recreated
+every quick-navigation button without suspending layout. Updates now suspend
+grid painting until both results and navigation are ready, retain surviving
+buttons, skip unchanged navigation, and batch changed letters into one layout.
+One view-owned font replaces per-refresh button-font allocations.
+
+Three shown-control regressions cover one layout for changed letters, reuse
+without layout for unchanged letters, retained/removed button lifecycle, quick
+jumps, and painting only completed results/navigation. The first two reproduced
+the old behavior (28 layouts and recreated buttons) before the fix. Locked
+restore, zero-warning/error Debug/Release solution builds, and all 237 tests
+(190 desktop, 42 storage, 5 migration) passed. Debug executable is version 4.1.3.
+
+A separate native harness used real SQLite and synthetic posters: 3,000 movies
+plus 200 entries in each other collection. Ten alternating Wishlist toggles
+averaged 977.6 ms in 4.1.2 and 227.9 ms in 4.1.3, with identical 1,000/3,000
+result counts. Quick-list layouts fell from 720 to 10; direct SQLite reads
+averaged about 5 ms in both runs. These are local sequential synthetic timings,
+not a personal-catalog or general latency guarantee. Native mouse checks covered
+Wishlist in Movies/Library/Documentaries, Games VR, and Movies quick jump;
+keyboard Title/Enter and tab navigation retained the Movies search/Wishlist.
+The genre picker displayed and Escape closed it, but owned-item selection could
+not be automated, so native genre selection is not claimed. No personal catalog
+or image data and no Storage/Migration implementation changed. PLAN is user-owned
+and was left unchanged. Personal-size filter acceptance is the next check.
+
 2026-10-04: Ariadna 4.1.2 restores the Library Authors X button by removing
 the strategy's duplicate visibility overrides. It reuses the existing Director
 icon and clear handler, preserving other active filters. The existing Library

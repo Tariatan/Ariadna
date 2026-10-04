@@ -28,6 +28,7 @@ public partial class MainPanel : UserControl
 
     private readonly ImageListViewAriadnaRenderer m_ListViewRenderer;
     private readonly Theme theme;
+    private readonly Font quickListFont = new("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
     private readonly bool hasInitialEntries;
     private bool loaded;
     private bool resourcesDisposed;
@@ -196,6 +197,7 @@ public partial class MainPanel : UserControl
             m_FloatingPanel.Deactivate -= OnFloatingPanelClosed;
             m_FloatingPanel.ItemSelected -= OnFloatingPanelItemSelected;
             m_FloatingPanel.Dispose();
+            quickListFont.Dispose();
             components?.Dispose();
         }
         base.Dispose(disposing);
@@ -204,8 +206,6 @@ public partial class MainPanel : UserControl
     private void UpdateImageList(List<EntryDto> entries)
     {
         m_ToolStrip_EntriesCount.Text = entries.Count.ToString();
-
-        m_ImageListView.Items.Clear();
 
         var firstChars = new HashSet<string>(entries.Count);
         var listViewItems = new List<ImageListViewItem>(entries.Count);
@@ -217,9 +217,17 @@ public partial class MainPanel : UserControl
             listViewItems.Add(item);
         }
 
-        m_ImageListView.Items.AddRange(listViewItems.ToArray(), m_DbStrategy.GetPosterImageAdapter());
-
-        FillQuickList(firstChars);
+        m_ImageListView.SuspendLayout();
+        try
+        {
+            m_ImageListView.Items.Clear();
+            m_ImageListView.Items.AddRange(listViewItems.ToArray(), m_DbStrategy.GetPosterImageAdapter());
+            FillQuickList(firstChars);
+        }
+        finally
+        {
+            m_ImageListView.ResumeLayout(true);
+        }
     }
     private void QueryEntries()
     {
@@ -250,41 +258,50 @@ public partial class MainPanel : UserControl
     }
     private void FillQuickList(HashSet<string> firstChars)
     {
-        foreach (var button in m_QuickListFlow.Controls.Cast<Control>().ToArray())
+        var excludedCharacters = m_DbStrategy.QuickListFilter();
+        var letters = firstChars.Where(firstChar => !excludedCharacters.Any(character => firstChar.Contains(character.ToUpper()))).ToArray();
+        var buttons = m_QuickListFlow.Controls.Cast<Button>().ToArray();
+        if (buttons.Select(button => button.Text).SequenceEqual(letters))
         {
-            button.Dispose();
+            return;
         }
 
-        foreach (var firstChar in firstChars)
+        var existingButtons = buttons.ToDictionary(button => button.Text);
+        m_QuickListFlow.SuspendLayout();
+        try
         {
-            var any = false;
-            // Filter out following symbols
-            foreach (var c in m_DbStrategy.QuickListFilter())
+            m_QuickListFlow.Controls.Clear();
+            foreach (var button in buttons)
             {
-                if (firstChar.Contains(c.ToUpper()))
+                if (!letters.Contains(button.Text))
                 {
-                    any = true;
-                    break;
+                    button.Click -= OnQuickListClicked;
+                    button.Dispose();
                 }
             }
 
-            if (any)
+            foreach (var letter in letters)
             {
-                continue;
+                if (!existingButtons.TryGetValue(letter, out var button))
+                {
+                    button = new Button
+                    {
+                        Text = letter,
+                        AutoSize = false,
+                        Size = new Size(40, 40),
+                        BackColor = theme.MainBackColor,
+                        ForeColor = theme.MainForeColor,
+                        FlatStyle = FlatStyle.Flat,
+                        Font = quickListFont,
+                    };
+                    button.Click += OnQuickListClicked;
+                }
+                m_QuickListFlow.Controls.Add(button);
             }
-
-            var btn = new Button
-            {
-                Text = firstChar,
-                AutoSize = false,
-                Size = new Size(40, 40),
-                BackColor = theme.MainBackColor,
-                ForeColor = theme.MainForeColor,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold),
-            };
-            btn.Click += OnQuickListClicked;
-            m_QuickListFlow.Controls.Add(btn);
+        }
+        finally
+        {
+            m_QuickListFlow.ResumeLayout(true);
         }
     }
     private void OnQuickListClicked(object sender, EventArgs e)

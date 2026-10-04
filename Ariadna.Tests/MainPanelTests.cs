@@ -70,6 +70,103 @@ public class MainPanelTests
     }
 
     [TestMethod]
+    public void QueryEntries_ChangedQuickListLetters_UpdatesNavigationInOneLayout()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            var strategy = new TestMainPanelDbStrategy
+            {
+                Entries = Enumerable.Range('A', 26)
+                    .Select(letter => new EntryDto { Id = letter, Title = $"{(char)letter} entry" }).ToList(),
+            };
+            using var testee = CreatePanel(strategy);
+            testee.Show();
+            var quickList = GetQuickListFlow(testee);
+            var retainedButton = quickList.Controls.Cast<Button>().Single(button => button.Text == "B");
+            var removedButton = quickList.Controls.Cast<Button>().Single(button => button.Text == "A");
+            var layouts = 0;
+            quickList.Layout += (_, _) => layouts++;
+            strategy.Entries =
+            [
+                new EntryDto { Id = 2, Title = "Beta" },
+                new EntryDto { Id = 3, Title = "Bravo" },
+                new EntryDto { Id = 4, Title = "Яркий" },
+            ];
+
+            // Act
+            InvokeMainPanelParameterlessMethod(testee, "QueryEntries");
+
+            // Assert
+            CollectionAssert.AreEqual(new[] { "B", "Я" }, quickList.Controls.Cast<Button>().Select(button => button.Text).ToArray());
+            Assert.AreEqual(1, layouts);
+            Assert.AreSame(retainedButton, quickList.Controls.Cast<Button>().Single(button => button.Text == "B"));
+            Assert.IsTrue(removedButton.IsDisposed);
+            Assert.AreEqual(3, GetImageListView(testee).Items.Count);
+            var letterButton = quickList.Controls.Cast<Button>().Single(button => button.Text == "Я");
+            letterButton.PerformClick();
+            Assert.AreEqual("Яркий", GetImageListView(testee).Items.FocusedItem.Text);
+        });
+    }
+
+    [TestMethod]
+    public void QueryEntries_UnchangedQuickListLetters_PreservesButtonsWithoutRelayout()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            var strategy = new TestMainPanelDbStrategy
+            {
+                Entries = [new EntryDto { Id = 1, Title = "Alien" }, new EntryDto { Id = 2, Title = "Beta" }],
+            };
+            using var testee = CreatePanel(strategy);
+            testee.Show();
+            var quickList = GetQuickListFlow(testee);
+            var buttons = quickList.Controls.Cast<Button>().ToArray();
+            var layouts = 0;
+            quickList.Layout += (_, _) => layouts++;
+            strategy.Entries = [new EntryDto { Id = 3, Title = "Alpha" }, new EntryDto { Id = 4, Title = "Bravo" }];
+
+            // Act
+            InvokeMainPanelParameterlessMethod(testee, "QueryEntries");
+
+            // Assert
+            CollectionAssert.AreEqual(buttons, quickList.Controls.Cast<Button>().ToArray());
+            Assert.AreEqual(0, layouts);
+            CollectionAssert.AreEqual(new[] { "Alpha", "Bravo" }, GetImageListView(testee).Items.Select(item => item.Text).ToArray());
+        });
+    }
+
+    [TestMethod]
+    public void QueryEntries_ReplacingVisibleResults_PaintsOnlyCompletedGridAndQuickList()
+    {
+        RunInSta(() =>
+        {
+            // Arrange
+            var strategy = new TestMainPanelDbStrategy
+            {
+                Entries = [new EntryDto { Id = 1, Title = "Alien" }, new EntryDto { Id = 2, Title = "Beta" }],
+            };
+            using var testee = CreatePanel(strategy);
+            testee.Show();
+            var grid = GetImageListView(testee);
+            var quickList = GetQuickListFlow(testee);
+            var frames = new List<(int Entries, string Letters)>();
+            grid.SetRenderer(new FilterUpdateRenderer(() => frames.Add((grid.Items.Count,
+                string.Join(",", quickList.Controls.Cast<Button>().Select(button => button.Text))))));
+            frames.Clear();
+            strategy.Entries = [new EntryDto { Id = 3, Title = "Comedy" }];
+
+            // Act
+            InvokeMainPanelParameterlessMethod(testee, "QueryEntries");
+
+            // Assert
+            Assert.IsNotEmpty(frames);
+            Assert.IsTrue(frames.All(frame => frame.Entries == 1 && frame.Letters == "C"));
+        });
+    }
+
+    [TestMethod]
     public void ToolStripCheckboxedFilterClicked_UncheckedButton_ChecksButtonAndQueriesWithUpdatedParams()
     {
         RunInSta(() =>
@@ -772,6 +869,15 @@ public class MainPanelTests
         if (exception != null)
         {
             ExceptionDispatchInfo.Capture(exception).Throw();
+        }
+    }
+
+    private sealed class FilterUpdateRenderer(Action captureFrame) : ImageListView.ImageListViewRenderer
+    {
+        public override void DrawBackground(Graphics graphics, Rectangle bounds)
+        {
+            captureFrame();
+            base.DrawBackground(graphics, bounds);
         }
     }
 

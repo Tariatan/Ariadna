@@ -130,6 +130,10 @@ differences are recorded in the operations guide.
 - **Filtering & search** — filter by title, director/author, actor, genre, subgenre, and flag-based toggles (wishlist, recently added, new releases, VR-only, series-only)
   The Library Authors field retains the same adjacent X button as Movies Director;
   clearing it refreshes results while preserving the other active filters.
+  Filter refreshes prepare the new entries before replacing the grid, suspend
+  grid painting through the navigation update, and resume with the completed
+  result set. Quick navigation reuses letter buttons, skips unchanged letters,
+  and batches changed letters into one layout; its shared font is owned by the view.
 - **TMDb integration** — fetch movie metadata (title, year, poster, description, cast) from The Movie Database API
 - **MediaInfo analysis** — read video resolution, bitrate, and audio track details from local files via MediaInfo
 - **Quick-navigation bar** — alphabetical letter buttons for instant jump to any section of the list
