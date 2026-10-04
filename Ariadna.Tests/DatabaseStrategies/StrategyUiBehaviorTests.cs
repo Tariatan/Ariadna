@@ -112,6 +112,8 @@ public class StrategyUiBehaviorTests
             Assert.IsFalse(panel.m_ToolStrip_SubgenreName.Visible);
             Assert.IsFalse(panel.m_ToolStrip_ClearSubgenreBtn.Visible);
             Assert.AreEqual("Authors", panel.m_ToolStrip_DirectorLbl.Text);
+            Assert.IsTrue(panel.m_ToolStrip_DirectorName.Visible);
+            Assert.IsTrue(panel.m_ToolStrip_ClearDirectorBtn.Visible);
         });
     }
 

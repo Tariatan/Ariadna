@@ -58,6 +58,7 @@ entries aligned; planned rework belongs in PLAN.md until implemented.
 
 ## Editing Rules
 
+- docs/PLAN.md is maintained exclusively by the user. Read it for context, but never modify it, including task status, completion notes, or formatting.
 - Never add an empty line at the end of a file.
 - If a file ends with an empty line, remove that empty line.
 - Keep documentation links repository-relative. Do not publish machine-specific absolute paths or references to local agent libraries.
@@ -87,7 +88,7 @@ entries aligned; planned rework belongs in PLAN.md until implemented.
 ## Maintain context
 
 Keep this file operational. Update docs/Technical_Design_Description.md when
-behavior or architecture changes, then update docs/PLAN.md's task list. Keep
+behavior or architecture changes. Leave docs/PLAN.md unchanged. Keep
 detailed investigations in their focused documents and link them from the design.
 Update local MEMORY.md with durable facts, evidence dates, limitations, and the
 next concrete step when project context changes. Do not accumulate transcripts,

@@ -164,8 +164,6 @@ public class LibraryDbStrategy : AbstractDbStrategy
         panel.m_ToolStrip_ActorLbl.Visible = false;
         panel.m_ToolStrip_ActorName.Visible = false;
         panel.m_ToolStrip_ClearActorBtn.Visible = false;
-        panel.m_ToolStrip_ClearDirectorBtn.Visible = false;
-        panel.m_ToolStrip_ClearDirectorBtn.Visible = false;
         panel.m_ToolStrip_ActorSprt.Visible = false;
         panel.m_ToolStrip_SeriesBtn.Visible = false;
         panel.m_ToolStrip_SeriesLbl.Visible = false;

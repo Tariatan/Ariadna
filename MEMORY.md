@@ -112,6 +112,18 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Resume here
 
+2026-10-04: Ariadna 4.1.2 restores the Library Authors X button by removing
+the strategy's duplicate visibility overrides. It reuses the existing Director
+icon and clear handler, preserving other active filters. The existing Library
+toolbar test reproduced the missing button before the fix and passes afterward.
+Locked restore, zero-warning/error Release solution build, all 234 tests
+(187 desktop, 42 storage, 5 migration), and diff whitespace checks passed.
+Native Windows checks used disposable synthetic SQLite/poster data: clicking X
+cleared Authors, refreshed one result to two, and retained the Title filter;
+keyboard author typing and Ctrl+1/Ctrl+3 retained the cleared Library state.
+Storage/Migration versions and implementations are unchanged. No personal catalog
+was used. New publishing and personal-catalog acceptance are not claimed.
+
 2026-10-04: Ariadna 4.1.0 preloads the remaining tabs after the initial page
 is shown. Database/default-query configuration is captured before worker reads;
 controls, quick lists, and random selections are prepared on the UI thread.

@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna
 
+### [4.1.2] - 2026-10-04
+
+#### Fixed
+
+- Restore the X button beside the Library Authors filter, using the existing Director clear action to reset the author search and refresh the filtered catalog.
+
 ### [4.1.1] - 2026-10-04
 
 #### Fixed
