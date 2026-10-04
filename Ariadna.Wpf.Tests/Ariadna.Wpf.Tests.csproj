@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows8.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- MediaInfo's unused Linux distribution RIDs do not apply to this Windows application. -->
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.2.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="4.2.1" />
+    <ProjectReference Include="../Ariadna.Wpf/Ariadna.Wpf.csproj" />
+    <None Include="../Ariadna.Tests/Fixtures/media-two-seconds.avi" Link="Fixtures/media-two-seconds.avi" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

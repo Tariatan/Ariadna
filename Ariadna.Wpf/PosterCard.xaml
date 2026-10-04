@@ -1,0 +1,27 @@
+<UserControl x:Class="Ariadna.Wpf.PosterCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Loaded="OnLoaded" Unloaded="OnUnloaded" DataContextChanged="OnDataContextChanged">
+    <Border Margin="5" Padding="4" CornerRadius="4">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Background" Value="#99101010" />
+                <Setter Property="BorderBrush" Value="#555555" />
+                <Setter Property="BorderThickness" Value="2" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Selected}" Value="True">
+                        <Setter Property="BorderBrush" Value="Gold" />
+                        <Setter Property="Background" Value="#CC303030" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+        <Grid ToolTip="{Binding Entry.Path}">
+            <Grid.RowDefinitions><RowDefinition Height="190" /><RowDefinition Height="42" /></Grid.RowDefinitions>
+            <TextBlock Text="No poster" Foreground="#777777" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            <Image x:Name="Poster" Stretch="Uniform" />
+            <TextBlock Grid.Row="1" Text="{Binding Caption}" Foreground="White" TextWrapping="Wrap"
+                       TextTrimming="CharacterEllipsis" TextAlignment="Center" VerticalAlignment="Center" />
+        </Grid>
+    </Border>
+</UserControl>

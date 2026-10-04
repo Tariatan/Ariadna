@@ -16,12 +16,14 @@ handoff evidence belongs in repository MEMORY.md.
 
 ## Scope
 
-This document covers all six projects in `Ariadna.slnx`:
+This document covers all eight projects in `Ariadna.slnx`:
 
 - **Ariadna** — WinForms desktop application, targeting `net10.0-windows8.0`
 - **Ariadna.Storage** — direct SQLite storage, targeting `net10.0`
 - **Ariadna.Storage.Tests** — real-provider integration tests, targeting `net10.0`
 - **Ariadna.Tests** — MSTest characterization/unit tests, targeting `net10.0-windows8.0`
+- **Ariadna.Wpf** — native WPF frontend for acceptance testing, targeting `net10.0-windows8.0`
+- **Ariadna.Wpf.Tests** — WPF/real-provider workflow and virtualization tests
 - **Ariadna.Migration** — standalone migration/recovery CLI, targeting `net10.0`
 - **Ariadna.Migration.Tests** — synthetic import/compare/snapshot tests, targeting `net10.0`
 
@@ -40,6 +42,7 @@ dependency.
 | [PLAN.md](PLAN.md) | Remaining/upcoming tasks and completion gates |
 | [SQLite operation and recovery](SQLITE-OPERATIONS.md) | Implemented storage format, migration evidence, and backup/restore |
 | [SQLite migration investigation](SQLITE-MIGRATION-PLAN.md) | Original rationale and dated source-data investigation |
+| [WPF migration](WPF-MIGRATION.md) | Native frontend implementation, compatibility, launch and acceptance |
 
 ## Abbreviations and Definitions
 
@@ -200,7 +203,7 @@ required path separators. Typed settings are generated from
 Use [README.md](../README.md) for build/test guidance and its verification limits.
 All production projects are SDK-style and use locked NuGet dependencies. The
 legacy DbProvider project, generated/linked models, EF packages, and EDMX/T4
-build tooling have been removed. `Ariadna.slnx` includes all six projects and retains
+build tooling have been removed. `Ariadna.slnx` includes all eight projects and retains
 the Debug/Release and Any CPU/x64/x86 solution configurations. `global.json` pins
 SDK 10.0.401 with `latestPatch` roll-forward within 10.0.4xx and excludes previews.
 Framework-dependent runs and consumers of the storage library now require .NET 10;
@@ -233,6 +236,17 @@ the main window disposes every loaded catalog view and its thumbnail resources.
 ---
 
 ## Architecture
+
+### WPF frontend
+
+The approved WPF migration is implemented as a separate native frontend in
+`Ariadna.Wpf`, alongside the retained WinForms application for acceptance testing.
+It uses the same direct SQLite storage, schema, IDs and image files. XAML and
+observable models replace the shell, browser and editor controls; no WinForms
+controls are hosted. Row virtualization, asynchronous bounded thumbnail caching,
+filter cancellation, retained tabs, native editors and application lifetime are
+described in [WPF migration](WPF-MIGRATION.md). WinForms architecture below remains
+the current fallback; production cutover has not been accepted.
 
 ### Strategy Pattern
 
@@ -305,6 +319,11 @@ entry information avoid loading photos; details and suggestions request them.
 Recovery clears the read-only attribute on its own staging directories before
 cleanup so empty leftovers do not block startup or later writes. Commit/rollback
 decisions are unchanged; other filesystem access failures still propagate.
+
+Complete-entry saves compare loaded genre/people sequences before replacing
+relationships. Unchanged sequences, including legacy duplicates and photo bytes,
+retain their existing relationship rows and IDs. Explicit relationship edits
+retain the previous replacement/normalization behavior. The schema is unchanged.
 
 ### Theming
 

@@ -15,5 +15,7 @@
   <Project Path="Ariadna.Storage.Tests/Ariadna.Storage.Tests.csproj" />
   <Project Path="Ariadna.Storage/Ariadna.Storage.csproj" />
   <Project Path="Ariadna.Tests/Ariadna.Tests.csproj" />
+  <Project Path="Ariadna.Wpf.Tests/Ariadna.Wpf.Tests.csproj" />
+  <Project Path="Ariadna.Wpf/Ariadna.Wpf.csproj" />
   <Project Path="Ariadna/Ariadna.csproj" />
 </Solution>

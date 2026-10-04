@@ -356,9 +356,10 @@ public sealed class CatalogStore(CatalogDatabase database)
 
     private static PersonPhoto ReadPerson(SqliteDataReader reader) => new(reader.GetString(0), reader.IsDBNull(1) ? null : (byte[])reader.GetValue(1));
 
-    private static IReadOnlyCollection<PersonPhoto> ReadPeople(SqliteConnection connection, string table, string relation, string entryKey, string personKey, int id)
+    private static IReadOnlyCollection<PersonPhoto> ReadPeople(SqliteConnection connection, string table, string relation, string entryKey, string personKey, int id, SqliteTransaction? transaction = null)
     {
         using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = $"SELECT p.name,p.photo FROM [{relation}] r JOIN [{table}] p ON p.Id=r.[{personKey}] WHERE r.[{entryKey}]=$id ORDER BY r.Id";
         command.Parameters.AddWithValue("$id", id);
         using var reader = command.ExecuteReader();
@@ -372,8 +373,26 @@ public sealed class CatalogStore(CatalogDatabase database)
 
     private static void ReplaceGenres(SqliteConnection connection, SqliteTransaction transaction, CatalogLayout layout, int id, IEnumerable<string> names)
     {
+        var values = names.ToArray();
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = $"SELECT g.name FROM [{layout.GenreRelation}] r JOIN [{layout.GenreTable}] g ON g.Id=r.genreId WHERE r.[{layout.EntryKey}]=$id ORDER BY r.Id";
+        command.Parameters.AddWithValue("$id", id);
+        var existing = new List<string>();
+        using (var reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                existing.Add(reader.GetString(0));
+            }
+        }
+        // Unedited imported relationships may contain duplicates and retain their original IDs.
+        if (existing.SequenceEqual(values, StringComparer.Ordinal))
+        {
+            return;
+        }
         Execute(connection, transaction, $"DELETE FROM [{layout.GenreRelation}] WHERE [{layout.EntryKey}]=$id", ("$id", id));
-        foreach (var name in names.Distinct(StringComparer.Ordinal))
+        foreach (var name in values.Distinct(StringComparer.Ordinal))
         {
             Execute(connection, transaction, $"INSERT INTO [{layout.GenreTable}](name) SELECT $name WHERE NOT EXISTS (SELECT 1 FROM [{layout.GenreTable}] WHERE name=$name COLLATE ARIADNA)", ("$name", name));
             Execute(connection, transaction, $"INSERT INTO [{layout.GenreRelation}]([{layout.EntryKey}],genreId) SELECT $id,Id FROM [{layout.GenreTable}] WHERE name=$name COLLATE ARIADNA ORDER BY Id LIMIT 1", ("$id", id), ("$name", name));
@@ -382,8 +401,16 @@ public sealed class CatalogStore(CatalogDatabase database)
 
     private static void ReplacePeople(SqliteConnection connection, SqliteTransaction transaction, string table, string relation, string entryKey, string personKey, int id, IEnumerable<PersonPhoto> people)
     {
+        var values = people.ToArray();
+        var existing = ReadPeople(connection, table, relation, entryKey, personKey, id, transaction);
+        if (existing.Count == values.Length && existing.Zip(values).All(pair =>
+            pair.First.Name == pair.Second.Name &&
+            (pair.First.Photo == null ? pair.Second.Photo == null : pair.Second.Photo != null && pair.First.Photo.AsSpan().SequenceEqual(pair.Second.Photo))))
+        {
+            return;
+        }
         Execute(connection, transaction, $"DELETE FROM [{relation}] WHERE [{entryKey}]=$id", ("$id", id));
-        foreach (var person in people.DistinctBy(person => person.Name))
+        foreach (var person in values.DistinctBy(person => person.Name))
         {
             Execute(connection, transaction, $"INSERT INTO [{table}](name,photo) SELECT $name,$photo WHERE NOT EXISTS (SELECT 1 FROM [{table}] WHERE name=$name COLLATE ARIADNA)", ("$name", person.Name), ("$photo", person.Photo));
             Execute(connection, transaction, $"UPDATE [{table}] SET photo=$photo WHERE Id=(SELECT Id FROM [{table}] WHERE name=$name COLLATE ARIADNA ORDER BY Id LIMIT 1)", ("$name", person.Name), ("$photo", person.Photo));

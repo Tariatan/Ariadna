@@ -297,6 +297,49 @@ public sealed class CatalogStoreTests
     }
 
     [TestMethod]
+    public void RecoverAssets_CustomPreviewSuffix_RestoresOriginalImageAfterInterruptedSave()
+    {
+        // Arrange
+        var root = Path.Combine(directory, "images");
+        Directory.CreateDirectory(root);
+        var preview = Path.Combine(root, "42_custom-preview4");
+        File.WriteAllBytes(preview, [9]);
+        var assets = new CatalogAssets(root, new Dictionary<string, byte[]> { ["_custom-preview4"] = [1] }, "_custom-preview");
+        assets.Prepare(directory, 42);
+        assets.Promote();
+
+        // Act
+        database.RecoverAssets();
+
+        // Assert
+        CollectionAssert.AreEqual(new byte[] { 9 }, File.ReadAllBytes(preview));
+        Assert.IsEmpty(Directory.GetDirectories(directory, ".ariadna-save-*"));
+    }
+
+    [TestMethod]
+    [DataRow("../outside")]
+    [DataRow("_../outside")]
+    [DataRow("_preview\\outside")]
+    [DataRow("_preview:outside")]
+    public void Save_UnsafeConfiguredPreviewSuffix_RejectsBeforeWriting(string suffix)
+    {
+        // Arrange
+        var id = Save(CatalogKind.Game, "Before");
+        var original = store.GetDetails(CatalogKind.Game, id)!;
+        var root = Path.Combine(directory, "images");
+        var assets = new CatalogAssets(root, new Dictionary<string, byte[]> { [suffix + "1"] = [1] }, suffix);
+
+        // Act
+        Assert.Throws<ArgumentException>(() => store.Save(CatalogKind.Game,
+            original with { Entry = original.Entry with { Title = "After" } }, assets));
+
+        // Assert
+        Assert.AreEqual("Before", store.GetEntry(CatalogKind.Game, id)!.Title);
+        Assert.IsFalse(Directory.Exists(root));
+        Assert.IsEmpty(Directory.GetDirectories(directory, ".ariadna-save-*"));
+    }
+
+    [TestMethod]
     public void RecoverAssets_InterruptedDuringStaging_RemovesIncompleteJournalDirectory()
     {
         // Arrange
@@ -497,4 +540,53 @@ public sealed class CatalogStoreTests
             Year = year,
             Vr = vr,
         }, genres ?? [], directors ?? [], actors ?? []));
+
+    [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Documentary)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Library)]
+    public void Save_UnchangedLegacyRelationships_PreservesDuplicateRowsAndIds(CatalogKind kind)
+    {
+        // Arrange
+        var layout = CatalogLayout.For(kind);
+        var id = Save(kind, "Before", genres: ["Genre"], directors: [new("Person", [1, 2])], actors: [new("Actor", [3, 4])]);
+        using var connection = database.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = $"INSERT INTO [{layout.GenreRelation}]([{layout.EntryKey}],genreId) SELECT [{layout.EntryKey}],genreId FROM [{layout.GenreRelation}] WHERE [{layout.EntryKey}]={id}";
+        command.ExecuteNonQuery();
+        if (kind == CatalogKind.Movie)
+        {
+            command.CommandText = $"INSERT INTO MovieDirector(movieId,directorId) SELECT movieId,directorId FROM MovieDirector WHERE movieId={id}; INSERT INTO MovieCast(movieId,actorId) SELECT movieId,actorId FROM MovieCast WHERE movieId={id}";
+            command.ExecuteNonQuery();
+        }
+        else if (kind == CatalogKind.Library)
+        {
+            command.CommandText = $"INSERT INTO LibraryAuthor(libraryId,authorId) SELECT libraryId,authorId FROM LibraryAuthor WHERE libraryId={id}";
+            command.ExecuteNonQuery();
+        }
+        command.CommandText = $"SELECT group_concat(Id) FROM [{layout.GenreRelation}] WHERE [{layout.EntryKey}]={id}";
+        var relationshipIds = command.ExecuteScalar();
+        var details = store.GetDetails(kind, id)!;
+        details.Entry.Title = "After";
+
+        // Act
+        store.Save(kind, details);
+        var saved = store.GetDetails(kind, id)!;
+
+        // Assert
+        Assert.HasCount(2, saved.Genres);
+        Assert.AreEqual(relationshipIds, command.ExecuteScalar());
+        Assert.AreEqual("After", saved.Entry.Title);
+        if (kind is CatalogKind.Movie or CatalogKind.Library)
+        {
+            Assert.HasCount(2, saved.Directors);
+            CollectionAssert.AreEqual(new byte[] { 1, 2 }, saved.Directors.First().Photo);
+        }
+        if (kind == CatalogKind.Movie)
+        {
+            Assert.HasCount(2, saved.Actors);
+        }
+        database.CheckIntegrity();
+    }
 }

@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Ariadna.Storage;
 
-public sealed class CatalogAssets(string root, IReadOnlyDictionary<string, byte[]> images)
+public sealed class CatalogAssets(string root, IReadOnlyDictionary<string, byte[]> images, string previewSuffix = "_preview")
 {
     internal string Token { get; } = Guid.NewGuid().ToString("N");
     private string? recoveryDirectory;
@@ -10,11 +10,17 @@ public sealed class CatalogAssets(string root, IReadOnlyDictionary<string, byte[
 
     internal void Prepare(string catalogDirectory, int id)
     {
+        if (!previewSuffix.StartsWith('_') || previewSuffix.Length < 2
+            || previewSuffix.Any(character => !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '-')))
+        {
+            throw new ArgumentException("Preview suffix must start with an underscore and contain only letters, digits, underscores, or hyphens.");
+        }
+        var previewKeys = Enumerable.Range(1, 4).Select(index => $"{previewSuffix}{index}").ToHashSet(StringComparer.Ordinal);
         recoveryDirectory = Path.Combine(catalogDirectory, $".ariadna-save-{Token}");
         Directory.CreateDirectory(recoveryDirectory);
         files = images.Select(pair =>
         {
-            if (pair.Key != string.Empty && pair.Key is not ("_preview1" or "_preview2" or "_preview3" or "_preview4"))
+            if (pair.Key != string.Empty && !previewKeys.Contains(pair.Key))
             {
                 throw new ArgumentException("Unknown image suffix.");
             }

@@ -8,11 +8,12 @@ Last updated: 2026-10-04. Scope: this repository only.
   movies/series, documentaries, games, and library. Preserve each tab's fields,
   genres, palette, paths, filters, selection, and scroll position. Legacy arguments
   select a tab initially or activate that tab in the existing window.
-- Current implementation: .NET 10 WinForms and direct SQLite through
+- Current implementation: .NET 10 WinForms plus a native WPF frontend awaiting
+  acceptance, and direct SQLite through
   Ariadna.Storage. Legacy EF6/LocalDB and DbProvider were removed. Only the separate
   migration utility uses a SQL client for legacy export. Dependencies are locked;
   global.json pins stable SDK 10.0.401 with latestPatch updates in 10.0.4xx.
-  Ariadna.slnx contains all six desktop/storage/migration/test projects; the
+  Ariadna.slnx contains all eight desktop/storage/migration/test projects; the
   desktop has no reference to the migration CLI.
 - IDs identify extensionless posters. Game previews use the configured suffix
   and numbers 1 through 4. Preserve existing IDs, NULLs, relationships, ignore
@@ -24,6 +25,42 @@ Last updated: 2026-10-04. Scope: this repository only.
   Repository rules, versioning, and context maintenance are in [AGENTS.md](AGENTS.md).
 
 ## Current evidence
+
+- 2026-10-04: implemented Ariadna.Wpf 1.0.0 alongside Ariadna 4.1.7. The WPF
+  frontend references only Storage and uses native XAML views, four retained tabs,
+  a recycling poster-row browser, bounded background thumbnail decoding, worker
+  queries, collection-specific editors, image staging, people/genres, discovery,
+  MediaInfo, TMDb integration, and deferred single-instance activation. See
+  [WPF migration](docs/WPF-MIGRATION.md) for launch, compatibility, and acceptance.
+  WinForms remains the production fallback; no personal catalog/images were used
+  or modified during implementation and synthetic tests. The database schema,
+  recovery format, catalog IDs, and external asset names did not change.
+- Storage 2.0.2 preserves unchanged relationship rows, including legacy duplicates
+  and genre relationship IDs. Four characterization cases failed before the fix
+  and pass after it; explicitly changed lists retain the existing replacement
+  behavior. Both frontends use this fix. Migration remains 2.0.0.
+- Locked restore, zero-warning/error Debug and Release builds, and 287 tests
+  passed: 204 WinForms, 51 storage, 27 WPF, and 5 migration. WPF cases cover real
+  SQLite filtering, canceled/replaced queries, retained view state, a 3,000-entry
+  virtualized grid, the bounded thumbnail cache, editor save/reopen/cancel for all
+  collections, configured preview suffixes, discovery/removal, and real AVI
+  inspection. Storage cases cover duplicate preservation, custom preview recovery,
+  unsafe suffix rejection, and the existing rollback/recovery workflows. A
+  self-contained Release win-x64 WPF publish succeeded to a disposable directory.
+- Native mouse/keyboard checks used the actual project-built Debug WPF executable
+  with 3,000 synthetic movies and 200 entries in each other collection. Verified
+  wishlist/VR filters, alphabetic jump, F2/details, all collection editor layouts,
+  a title save/reopen, game preview selection, retained movie filter/selection/
+  scroll after switching tabs, Ctrl+1 through Ctrl+4, and second-launch activation
+  deferred until a modal editor closed. Corrected selected-tab caption contrast
+  and inspected the rebuilt browser. No native destructive removal was performed.
+- Remaining acceptance: the personal matched dataset, live TMDb, configured
+  external tools, native image/clipboard/discovery paths, monitor scaling changes,
+  and clean-machine installation. WPF reads copied default configuration without
+  importing legacy per-user settings. Genre pickers are text based and selection
+  uses a fixed border; these visual differences need user acceptance. Next: follow
+  the WPF acceptance sequence on a disposable matched copy, then switch daily use
+  after that succeeds. WinForms retirement has not occurred. PLAN remains unchanged.
 
 - The approved SQLite migration and matched snapshot/restore tooling are
   implemented. PLAN records user acceptance on the copied catalog with 2.0.1 on

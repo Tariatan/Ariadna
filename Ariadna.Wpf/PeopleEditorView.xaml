@@ -1,0 +1,22 @@
+<UserControl x:Class="Ariadna.Wpf.PeopleEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <WrapPanel DockPanel.Dock="Top">
+            <TextBox x:Name="NewName" Width="150" ToolTip="Person name" />
+            <Button Content="Add" Click="Add" /><Button Content="Paste" Click="Paste" />
+            <Button Content="Remove" Click="Remove" /><Button Content="Photo…" Click="ReplacePhoto" />
+            <Button x:Name="DownloadButton" Content="Find photo" Click="DownloadPhoto" />
+        </WrapPanel>
+        <DataGrid x:Name="People" AutoGenerateColumns="False" CanUserAddRows="False" MinHeight="150"
+                  Background="#EEEEEE" Foreground="#222222" SelectionMode="Single" HeadersVisibility="Column"
+                  PreviewKeyDown="OnKeyDown">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Portrait" Width="65" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate><DataTemplate><Image Width="50" Height="65" Source="{Binding Portrait}" Stretch="Uniform" MouseDown="OnPhotoDoubleClick" /></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Name (F2 to edit)" Width="*" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

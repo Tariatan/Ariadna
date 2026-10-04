@@ -1,0 +1,68 @@
+<Window x:Class="Ariadna.Wpf.EntryDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Ariadna.Wpf"
+        Title="{Binding Caption}" Background="{Binding Theme.EditorBackground}" Foreground="White"
+        Width="1040" Height="760" MinWidth="700" MinHeight="500" WindowStartupLocation="CenterOwner"
+        Loaded="OnLoaded" Closed="OnClosed" PreviewKeyDown="OnKeyDown">
+    <DockPanel Margin="12">
+        <Grid DockPanel.Dock="Bottom" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBlock x:Name="FileInfo" Text="Reading file information…" VerticalAlignment="Center" TextWrapping="Wrap" />
+            <Button Grid.Column="1" Content="Ignore path" Click="Ignore" />
+            <Button Grid.Column="2" Content="Cancel" IsCancel="True" />
+            <Button x:Name="SaveButton" Grid.Column="3" Content="Save" Click="Save" MinWidth="100" />
+        </Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,0,12,0">
+                    <Image Source="{Binding Poster}" Height="310" Stretch="Uniform" MouseDown="PosterDoubleClick" />
+                    <WrapPanel><Button Content="Choose poster…" Tag="" Click="ReplaceImage" /><Button Content="Paste image" Tag="" Click="PasteImage" /></WrapPanel>
+                    <GroupBox Header="Genres" Foreground="White" Margin="0,10,0,0">
+                        <StackPanel Margin="4">
+                            <ComboBox x:Name="GenreName" ItemsSource="{Binding AvailableGenres}" IsEditable="True" />
+                            <WrapPanel><Button Content="Add" Click="AddGenre" /><Button Content="Paste" Click="PasteGenres" /><Button Content="Remove" Click="RemoveGenre" /></WrapPanel>
+                            <ListBox x:Name="GenreList" ItemsSource="{Binding Genres}" Height="170" />
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="95" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
+                        <Label Content="Title" /><TextBox x:Name="TitleText" Grid.Column="1" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
+                        <Label Grid.Row="1" Content="Original title" /><TextBox Grid.Row="1" Grid.Column="1" Text="{Binding OriginalTitle, UpdateSourceTrigger=PropertyChanged}" />
+                        <Label Grid.Row="2" Content="Media path" /><TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+                        <Label Grid.Row="3" Content="Year" /><WrapPanel Grid.Row="3" Grid.Column="1">
+                            <TextBox Width="85" Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" />
+                            <CheckBox Content="Wishlist" IsChecked="{Binding Wanted}" />
+                            <CheckBox Content="VR" IsChecked="{Binding Vr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
+                            <Button x:Name="MetadataButton" Content="Find on TMDb…" Click="FindMetadata" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}" />
+                        </WrapPanel>
+                    </Grid>
+                    <StackPanel Visibility="{Binding HasDescription, Converter={StaticResource Visibility}}">
+                        <Label Content="Description" />
+                        <TextBox Height="140" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsGame, Converter={StaticResource Visibility}}">
+                        <WrapPanel><Label Content="Version" /><TextBox Width="200" Text="{Binding Version, UpdateSourceTrigger=PropertyChanged}" /></WrapPanel>
+                        <Image x:Name="SelectedPreview" Height="200" Stretch="Uniform" />
+                        <WrapPanel>
+                            <Button Content="Preview 1" Tag="1" Click="SelectPreview" /><Button Content="Preview 2" Tag="2" Click="SelectPreview" />
+                            <Button Content="Preview 3" Tag="3" Click="SelectPreview" /><Button Content="Preview 4" Tag="4" Click="SelectPreview" />
+                            <Button x:Name="PreviewReplace" Content="Replace preview…" Tag="1" Click="ReplaceImage" />
+                            <Button x:Name="PreviewPaste" Content="Paste preview" Tag="1" Click="PasteImage" />
+                        </WrapPanel>
+                    </StackPanel>
+                    <GroupBox Header="{Binding PeopleLabel}" Foreground="White" Margin="0,10,0,0" Visibility="{Binding HasPeople, Converter={StaticResource Visibility}}">
+                        <local:PeopleEditorView x:Name="PeopleEditor" />
+                    </GroupBox>
+                    <GroupBox Header="Cast" Foreground="White" Margin="0,10,0,0" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}">
+                        <local:PeopleEditorView x:Name="CastEditor" />
+                    </GroupBox>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

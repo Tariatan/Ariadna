@@ -8,6 +8,9 @@ A Windows desktop app for managing a personal media library — movies, document
 
 **Status:** the WinForms catalog now uses SQLite through a focused storage layer.
 Entity Framework, SQL Server LocalDB, and the legacy DbProvider project are removed.
+The native WPF frontend is implemented alongside WinForms for acceptance testing;
+see [WPF migration](docs/WPF-MIGRATION.md). Both use the existing SQLite catalog
+and images without another data conversion.
 See [docs/PLAN.md](docs/PLAN.md) for remaining/upcoming tasks.
 
 ---
@@ -56,7 +59,7 @@ to select Movies, Games, Library, or Documentaries directly, in visible tab orde
 ## Getting started
 
 Open `Ariadna.slnx` in Visual Studio 2026 or an editor with SLNX support. The
-solution contains all six desktop, storage, migration, and test projects.
+solution contains all eight desktop, storage, migration, and test projects.
 The desktop preserves its existing Windows-scaled UI size on high-DPI displays.
 WinForms designers use a fixed 96-DPI baseline through `ForceDesignerDpiUnaware`;
 close and reopen an already open designer after changing project settings.
@@ -70,6 +73,14 @@ dotnet build Ariadna.slnx -c Release --no-restore
 dotnet test Ariadna.slnx -c Release --no-build --no-restore
 dotnet publish Ariadna/Ariadna.csproj -c Release -r win-x64 --self-contained true --no-restore -o publish
 ```
+
+For the WPF frontend, run the project-built executable
+`Ariadna.Wpf/bin/Debug/net10.0-windows8.0/Ariadna.Wpf.exe`, or select
+`Ariadna.Wpf` as the startup project. It uses configuration copied from
+`Ariadna/App.config` and the same disposable catalog/asset environment overrides.
+Close WinForms before using WPF with the live catalog. Start write acceptance on
+a disposable matched copy; see the
+[WPF acceptance sequence](docs/WPF-MIGRATION.md#build-and-test).
 
 Close running instances before rebuilding. Launch
 `Ariadna/bin/Release/net10.0-windows8.0/Ariadna.exe` with a mode above; no argument
@@ -98,6 +109,7 @@ installation test remains open.
 - [Implementation plan](docs/PLAN.md) — remaining/upcoming tasks and completion gates
 - [SQLite operation and recovery](docs/SQLITE-OPERATIONS.md) — implemented format, configuration, verification, and backup/restore
 - [SQLite migration investigation](docs/SQLITE-MIGRATION-PLAN.md) — original dated evidence and migration rationale
+- [WPF migration](docs/WPF-MIGRATION.md) — native frontend, compatibility, launch and acceptance
 - [AGENTS.md](AGENTS.md) / [MEMORY.md](MEMORY.md) — operational instructions and
   compact working handoff for contributors and agents
 

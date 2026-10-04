@@ -11,6 +11,16 @@ Versioning rule:
 - **Minor** - new backward-compatible feature
 - **Patch** - backward-compatible bug fix only
 
+## Ariadna.Wpf
+
+### [1.0.0] - 2026-10-04
+
+#### Added
+
+- Native .NET 10 WPF frontend alongside WinForms for acceptance: four retained catalog tabs, asynchronous SQLite filtering, recycling poster rows, bounded background thumbnails, navigation and single-instance activation.
+- Native collection editors, genre/people/image editing, four game previews, TMDb metadata and portraits, file/MediaInfo inspection, discovery/ignore, configured execution and confirmed removal. Reuse existing catalog IDs, image filenames, complete-entry transactions and recovery.
+- Project-built Debug launch, locked dependencies, synthetic SQLite/image workflow tests, and migration/acceptance documentation. Production acceptance and WinForms retirement remain pending.
+
 ## Ariadna
 
 ### [4.1.7] - 2026-10-04
@@ -126,6 +136,13 @@ Versioning rule:
 - Changelog introduced, tracking the current project version before the planned rework.
 
 ## Ariadna.Storage
+
+### [2.0.2] - 2026-10-04
+
+#### Fixed
+
+- Retain unchanged legacy genre/people relationships, including duplicate rows and their IDs, when saving other entry fields. Compare photo bytes before skipping unchanged people; explicit relationship edits retain their prior behavior.
+- Honor configured game preview suffixes during recoverable image saves, validating filename characters before staging. Existing callers keep the `_preview` default.
 
 ### [2.0.1] - 2026-10-03
 
