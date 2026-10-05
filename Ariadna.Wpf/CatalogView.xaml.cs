@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
@@ -111,6 +112,35 @@ public partial class CatalogView : UserControl, IDisposable
         Model.Selected = (PosterItem)((FrameworkElement)sender).DataContext;
         Details(sender, e);
         e.Handled = true;
+    }
+
+    private void OnTextInput(object sender, TextCompositionEventArgs e)
+    {
+        if (e.Text == "+")
+        {
+            AddEntry(e);
+        }
+    }
+
+    private void OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Add)
+        {
+            AddEntry(e);
+        }
+    }
+
+    private void AddEntry(InputEventArgs e)
+    {
+        if (e.OriginalSource is TextBoxBase or PasswordBox ||
+            (Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt | ModifierKeys.Windows)) != 0 ||
+            !AddEntryButton.IsEnabled)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        AddEntryButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     }
 
     private void OnGridKeyDown(object sender, KeyEventArgs e)

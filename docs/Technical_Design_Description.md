@@ -271,7 +271,10 @@ icons, tinted borderless fields and outlined checkboxes after their labels.
 Each field and its clear button wrap as one group when space is limited. Scoped
 XAML styles preserve editable themed suggestion menus and visible keyboard focus
 without changing editor controls. The plus button invokes existing discovery;
-its context menu offers manual file and folder selection.
+its context menu offers manual file and folder selection. Typing `+` while browsing
+the catalog invokes the same Add entry button, including its disabled-state guard.
+Plus characters in editable fields and Control/Alt/Windows combinations are not
+treated as the shortcut.
 Library's Genre dropdown contains the categories Languages, Literature,
 Programming and Misc. Its Subgenre dropdown contains subjects for the selected
 category (for example, Programming -> C++); stored subject tags are not added to

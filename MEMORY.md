@@ -31,6 +31,19 @@ Last updated: 2026-10-05. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-05: Ariadna.Wpf 1.4.0 maps `+` while browsing to the active
+  catalog's Add entry button. Character input supports the main keyboard;
+  an explicit Key.Add handler supports numpad input. Both reuse the button's
+  discovery/cancellation workflow and disabled guard, preserve editable fields,
+  and ignore Control/Alt/Windows combinations.
+- Locked WPF-test restore, zero-warning/error Release WPF-test build and all
+  81 Release WPF tests passed. Fifteen added cases cover discovery in every
+  catalog through character/numpad input, editable title/genre fields, disabled
+  discovery and unrelated text. An isolated Release window with disposable
+  SQLite data verified numpad and shifted main-keyboard plus trigger the same
+  discovery result as a mouse click; title-field plus remained ordinary text.
+  The preview was closed. Personal data and user-owned PLAN were untouched.
+  Next: user acceptance of the shortcut in the normal WPF executable.
 - 2026-10-05: Ariadna.Wpf 1.3.1 uses WPF item scrolling for virtualized poster
   rows. Startup selection, navigation, scrollbar movement and tab restoration
   keep the first visible row at the viewport top; the bottom row may be partial.

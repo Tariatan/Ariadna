@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.4.0] - 2026-10-05
+
+#### Added
+
+- Map keyboard `+` to the active catalog's Add entry button when browsing. Preserve plus characters in text fields and the button's disabled guard during discovery.
+
 ### [1.3.1] - 2026-10-05
 
 #### Fixed

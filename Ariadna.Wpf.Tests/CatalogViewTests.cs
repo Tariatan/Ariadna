@@ -13,6 +13,119 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogViewTests
 {
     [TestMethod]
+    [DataRow(CatalogKind.Movie, false)]
+    [DataRow(CatalogKind.Game, false)]
+    [DataRow(CatalogKind.Library, false)]
+    [DataRow(CatalogKind.Documentary, false)]
+    [DataRow(CatalogKind.Movie, true)]
+    [DataRow(CatalogKind.Game, true)]
+    [DataRow(CatalogKind.Library, true)]
+    [DataRow(CatalogKind.Documentary, true)]
+    public async Task AddEntry_PlusWhileBrowsing_DiscoversEntryInActiveCatalog(CatalogKind kind, bool numpad) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var root = fixture.Configuration.DiscoveryRoot(kind);
+        var path = System.IO.Path.Combine(root, "Synthetic entry");
+        if (kind == CatalogKind.Game)
+        {
+            System.IO.Directory.CreateDirectory(path);
+        }
+        else
+        {
+            if (kind != CatalogKind.Movie)
+            {
+                root = System.IO.Directory.CreateDirectory(System.IO.Path.Combine(root, "GROUP")).FullName;
+            }
+
+            path = System.IO.Path.Combine(root, "Synthetic entry.mkv");
+            System.IO.File.WriteAllText(path, "Synthetic media");
+        }
+
+        var opened = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thumbnails = new ThumbnailCache(NullLogger.Instance);
+        using var view = new CatalogView(new CatalogViewModel(kind, fixture.Store, fixture.Configuration, thumbnails, NullLogger.Instance), fixture.Actions,
+            (_, entryPath) => opened.TrySetResult(entryPath));
+        var window = new Window { Content = view };
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var grid = (ListBox)view.FindName("PosterRows");
+            var button = (Button)view.FindName("AddEntryButton");
+            InputEventArgs input = numpad ? new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(grid), 0, Key.Add)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            } : new TextCompositionEventArgs(Keyboard.PrimaryDevice, new TextComposition(InputManager.Current, grid, "+"))
+            {
+                RoutedEvent = TextCompositionManager.PreviewTextInputEvent,
+            };
+
+            // Act
+            grid.RaiseEvent(input);
+            var discovered = await opened.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+            // Assert
+            Assert.IsTrue(input.Handled);
+            Assert.AreEqual(path, discovered);
+            Assert.IsTrue(button.IsEnabled);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
+    [DataRow("TitleSearch", true, "+", false)]
+    [DataRow("GenreSearch", true, "+", false)]
+    [DataRow("PosterRows", false, "+", false)]
+    [DataRow("PosterRows", true, "=", false)]
+    [DataRow("TitleSearch", true, "+", true)]
+    [DataRow("GenreSearch", true, "+", true)]
+    [DataRow("PosterRows", false, "+", true)]
+    public async Task AddEntry_EditingOrUnavailableShortcut_DoesNotInvokeAddEntry(string controlName, bool enabled, string text, bool numpad) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var thumbnails = new ThumbnailCache(NullLogger.Instance);
+        using var view = new CatalogView(new CatalogViewModel(CatalogKind.Movie, fixture.Store, fixture.Configuration, thumbnails, NullLogger.Instance), fixture.Actions,
+            (_, _) => Assert.Fail("The shortcut must not open an editor."));
+        var window = new Window { Content = view };
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var button = (Button)view.FindName("AddEntryButton");
+            button.IsEnabled = enabled;
+            var control = (UIElement)view.FindName(controlName);
+            if (control is ComboBox combo)
+            {
+                control = (TextBox)combo.Template.FindName("PART_EditableTextBox", combo);
+            }
+
+            InputEventArgs input = numpad ? new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(control), 0, Key.Add)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            } : new TextCompositionEventArgs(Keyboard.PrimaryDevice, new TextComposition(InputManager.Current, control, text))
+            {
+                RoutedEvent = TextCompositionManager.PreviewTextInputEvent,
+            };
+
+            // Act
+            control.RaiseEvent(input);
+
+            // Assert
+            Assert.IsFalse(input.Handled);
+            Assert.AreEqual(enabled, button.IsEnabled);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     [DataRow(CatalogKind.Movie, "movies")]
     [DataRow(CatalogKind.Game, "games")]
     [DataRow(CatalogKind.Library, "library")]
