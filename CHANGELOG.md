@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.5.2] - 2026-10-05
+
+#### Fixed
+
+- Focus the poster items list at startup and after switching catalog tabs instead of the Add entry button. Preserve selection and scroll restoration, and ignore queued activation callbacks for unloaded tabs.
+
 ### [1.5.1] - 2026-10-05
 
 #### Changed

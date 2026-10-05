@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Ariadna.Storage;
@@ -10,6 +11,64 @@ namespace Ariadna.Wpf.Tests;
 [TestClass]
 public sealed class MainWindowTests
 {
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ActivateCatalog_TabChanged_FocusesItemsListAndRetainsSelection(bool populated) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        if (populated)
+        {
+            foreach (var kind in Enum.GetValues<CatalogKind>())
+            {
+                fixture.Add(kind, "First entry");
+                fixture.Add(kind, "Second entry");
+            }
+        }
+
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, null);
+        try
+        {
+            await window.PreloadAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var tabs = (TabControl)window.FindName("CatalogTabs");
+            var initialView = (CatalogView)((TabItem)tabs.SelectedItem).Content;
+            Assert.AreSame(initialView.FindName("PosterRows"), Keyboard.FocusedElement);
+            string[] arguments = ["games", "library", "documentaries", "movies"];
+            foreach (var argument in arguments)
+            {
+                var previousView = (CatalogView)((TabItem)tabs.SelectedItem).Content;
+                ((TextBox)previousView.FindName("TitleSearch")).Focus();
+
+                // Act
+                window.ActivateCatalog(argument);
+                var view = (CatalogView)((TabItem)tabs.SelectedItem).Content;
+                var selection = view.Model.Selected;
+                await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+                // Assert
+                Assert.AreSame(view.FindName("PosterRows"), Keyboard.FocusedElement);
+                Assert.AreSame(selection, view.Model.Selected);
+            }
+
+            // Act
+            window.ActivateCatalog("games");
+            window.ActivateCatalog("library");
+            window.ActivateCatalog("documentaries");
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            var finalView = (CatalogView)((TabItem)tabs.SelectedItem).Content;
+            Assert.AreSame(finalView.FindName("PosterRows"), Keyboard.FocusedElement);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
     [TestMethod]
     [DataRow(700)]
     [DataRow(1120)]

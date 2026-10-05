@@ -40,6 +40,11 @@ public partial class CatalogView : UserControl, IDisposable
         Model.SetColumns(Math.Max(1, (int)((PosterRows.ActualWidth - 22) / MinimumPosterWidth)));
         Dispatcher.InvokeAsync(() =>
         {
+            if (!IsLoaded)
+            {
+                return;
+            }
+
             if (firstActivation)
             {
                 firstActivation = false;
@@ -49,6 +54,8 @@ public partial class CatalogView : UserControl, IDisposable
             {
                 FindChild<ScrollViewer>(PosterRows)?.ScrollToVerticalOffset(scrollOffset);
             }
+
+            PosterRows.Focus();
         }, System.Windows.Threading.DispatcherPriority.Loaded);
     }
 

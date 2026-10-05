@@ -31,6 +31,19 @@ Last updated: 2026-10-05. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-05: Ariadna.Wpf 1.5.2 focuses PosterRows after startup/tab
+  activation restores the catalog view. Unloaded views skip deferred activation
+  callbacks, preventing stale tabs from taking focus during rapid switching.
+  Selection and scroll-restoration behavior remain unchanged.
+- Two focus regressions failed before the fix and now cover populated/empty
+  catalogs, startup, switching from a filter, all four tabs and rapid switching.
+  Locked WPF-test restore, zero-warning/error Release WPF-test build and all
+  87 Release WPF tests passed. An isolated Release window with disposable SQLite
+  data confirmed mouse Games activation followed immediately by End, keyboard
+  Library/Documentaries/Movies activation followed immediately by Right/End,
+  and retained Movies selection/scroll on return. The preview was closed;
+  personal-catalog and changed-DPI acceptance remain unverified. PLAN is unchanged.
+  Next: user acceptance of list focus in normal WPF tab navigation.
 - 2026-10-05: changes QuickList to two columns in an
   86-DIP sidebar, preserving 24-DIP buttons and the existing styling/navigation.
   Letters read left to right, then down. All 85 Release WPF tests passed; Debug

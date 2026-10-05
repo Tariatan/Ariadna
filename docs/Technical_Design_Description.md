@@ -251,6 +251,9 @@ from the local application-data file `Ariadna/Wpf/window.json`. Normal restore
 bounds are retained when closing minimized or maximized; the existing maximized
 state is also persisted. Canceled closure and unshown windows leave saved geometry
 unchanged. WPF tests initialize application resources without production startup.
+Startup and catalog tab activation focus the poster items list after restoring
+the view state, rather than the Add entry button. Existing selection and scroll
+positions are retained; unloaded views cannot receive deferred activation focus.
 QuickList uses two columns in an 86-DIP sidebar on the active catalog background, with
 24-DIP-high square buttons, thin white outlines and bold white letters.
 Hover, keyboard focus and pressing provide a translucent-white highlight.

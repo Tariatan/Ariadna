@@ -37,7 +37,7 @@
                                 <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsSelected" Value="True"><Setter TargetName="Header" Property="BorderBrush" Value="Gold" /></Trigger>
+                                <Trigger Property="IsSelected" Value="True"><Setter TargetName="Header" Property="BorderBrush" Value="White" /></Trigger>
                                 <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Header" Property="BorderBrush" Value="White" /></Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
