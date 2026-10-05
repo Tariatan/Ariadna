@@ -258,6 +258,15 @@ bottom row may be partial. Each wheel notch moves one row, accumulating smaller
 deltas and retaining selection. Resize anchoring preserves the first visible
 entry's new row. Page Up/Page Down uses the rendered row height to determine how
 many entries to move; row recycling and the final row's reachability are retained.
+The poster grid's vertical scrollbar has a narrow catalog-colored track and a
+rounded white thumb without arrow buttons. Thumb size follows the viewport,
+with a minimum visible height of 50 DIPs. The thumb moves continuously under
+the mouse and posters scroll live during dragging, with a whole top row.
+The thumb retains its fractional drag position independently of WPF's rounded
+content offset, then restores normal offset binding on release or unloading.
+Track clicks retain immediate
+page scrolling, and wheel/keyboard scrolling remains immediate. Its styles are
+scoped to the poster list so editor and filter dropdown scrollbars are unaffected.
 The shared filter panel retains its layout while showing only applicable fields:
 Title, Wishlist, Recent, New and Genre in all catalogs; Series/Movies and
 Directors/Actors in Movies; VR/Non-VR in Games; Authors in Library.

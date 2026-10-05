@@ -78,9 +78,17 @@
         </ItemsControl>
         <ListBox x:Name="PosterRows" ItemsSource="{Binding Rows}" BorderThickness="0" Background="Transparent"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True"
+                 ScrollViewer.IsDeferredScrollingEnabled="False"
                  VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
                  VirtualizingPanel.ScrollUnit="Item" VirtualizingPanel.CacheLength="1"
                  SizeChanged="OnGridSizeChanged" PreviewKeyDown="OnGridKeyDown" PreviewMouseWheel="OnGridMouseWheel">
+            <ListBox.Resources>
+                <ResourceDictionary>
+                    <ResourceDictionary.MergedDictionaries>
+                        <ResourceDictionary Source="PosterScrollBarStyles.xaml" />
+                    </ResourceDictionary.MergedDictionaries>
+                </ResourceDictionary>
+            </ListBox.Resources>
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}">
                     <Setter Property="Padding" Value="0" />

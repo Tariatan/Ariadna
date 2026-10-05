@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.4.1] - 2026-10-05
+
+#### Changed
+
+- Match the reference poster-grid scrollbar with a narrow catalog-colored track, rounded white thumb and no arrow buttons. Retain thumb dragging, track paging, row-aligned scrolling and virtualization; keep the style scoped to the poster grid.
+
 ### [1.4.0] - 2026-10-05
 
 #### Added

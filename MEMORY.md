@@ -31,6 +31,52 @@ Last updated: 2026-10-05. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-05: Ariadna.Wpf 1.4.3 restores live poster scrolling during thumb
+  dragging; the user rejected waiting until release. PosterScrollThumb retains
+  its fractional position separately from WPF's row-offset binding to prevent
+  backwards jumps during small drag movements. It sends live scrolling commands
+  and restores the original binding on drag completion/cancellation or unloading.
+  The 50-DIP thumb minimum, whole leading rows and virtualization are retained.
+- All 85 Release WPF tests passed, including four live-drag cases covering
+  content movement before release, fractional thumb movement, restored binding,
+  minimum height, alignment and selection retention. Initially, simple removal
+  of deferred scrolling reproduced backwards thumb movement in Games and
+  Documentaries; the custom thumb resolves those cases. An isolated Debug native
+  preview with disposable data confirmed dragging to a new row, a 50-DIP thumb
+  and leading-row top zero; track clicks worked after release. The preview was
+  closed. Locked restore and Debug preview/Release WPF builds passed with no
+  warnings/errors. Personal-catalog and changed-DPI acceptance remain
+  open. Next: user acceptance of live dragging in the normal WPF executable.
+- 2026-10-05: Ariadna.Wpf 1.4.2 sets the poster scrollbar's visible thumb
+  minimum to 50 DIPs and enables WPF deferred scrolling. The thumb moves
+  continuously while dragging, posters remain stationary until release, and
+  the destination keeps a whole leading row. Track clicks and wheel/keyboard
+  navigation retain immediate scrolling.
+- Four drag regressions failed before the fix and now pass in every catalog,
+  checking fractional thumb movement, stationary content, release alignment,
+  selection retention and the 50-DIP minimum. Locked WPF-test restore and all
+  85 Release WPF tests passed. Debug preview build and Release WPF build passed
+  without warnings/errors. An isolated native preview with disposable data
+  measured a 50-DIP thumb and unchanged content offset during a real mouse drag;
+  release updated the destination with leading-row top zero. Track paging and
+  one-row wheel input remained immediate. The supplied latest video was not
+  available at its path; diagnosis used the current implementation and native
+  checks. Personal-catalog/changed-DPI acceptance remains open. Next: acceptance
+  of drag-and-release scrolling in the normal WPF executable.
+- 2026-10-05: Ariadna.Wpf 1.4.1 matches the supplied scrollbar video with
+  a 14-DIP catalog-colored track, rounded white thumb and no arrow buttons.
+  PosterScrollBarStyles is scoped to PosterRows; standard WPF Track keeps thumb
+  sizing/dragging and page commands, with a minimum thumb size. Row alignment,
+  wheel stepping and recycling remain in place.
+- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
+  all 81 Release WPF tests passed. An isolated native Debug preview using
+  disposable SQLite/posters confirmed all four track palettes, mouse thumb
+  dragging, track-click paging, one-row wheel input, End reaching the final row
+  and tab-return position/selection retention. Measured leading-row top stayed
+  at zero after scrolling. The preview was closed. Personal-catalog and
+  changed-DPI acceptance remain open; personal data, WinForms/Storage/Migration
+  implementation and user-owned PLAN were untouched. Next: acceptance of the
+  scrollbar appearance in the normal WPF executable.
 - 2026-10-05: Ariadna.Wpf 1.4.0 maps `+` while browsing to the active
   catalog's Add entry button. Character input supports the main keyboard;
   an explicit Key.Add handler supports numpad input. Both reuse the button's

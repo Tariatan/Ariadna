@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -12,6 +13,64 @@ namespace Ariadna.Wpf.Tests;
 [TestClass]
 public sealed class CatalogViewTests
 {
+    [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies")]
+    [DataRow(CatalogKind.Game, "games")]
+    [DataRow(CatalogKind.Library, "library")]
+    [DataRow(CatalogKind.Documentary, "documentaries")]
+    public async Task ScrollBar_ThumbDragged_UpdatesContentDuringDragAndKeepsRowsAligned(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        foreach (var index in Enumerable.Range(0, 120))
+        {
+            fixture.Add(kind, $"Entry {index:D3}");
+        }
+
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var grid = (ListBox)view.FindName("PosterRows");
+            var scroll = CatalogView.FindChild<ScrollViewer>(grid)!;
+            var bar = CatalogView.FindChild<ScrollBar>(grid)!;
+            var thumb = bar.Track.Thumb;
+            var selected = view.Model.Selected;
+            scroll.ScrollToTop();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Act
+            thumb.RaiseEvent(new DragStartedEventArgs(0, 0) { RoutedEvent = Thumb.DragStartedEvent });
+            thumb.RaiseEvent(new DragDeltaEventArgs(0, 80) { RoutedEvent = Thumb.DragDeltaEvent });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var firstValue = bar.Value;
+            var contentWhileDragging = scroll.ContentVerticalOffset;
+            thumb.RaiseEvent(new DragDeltaEventArgs(0, 1) { RoutedEvent = Thumb.DragDeltaEvent });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var secondValue = bar.Value;
+            thumb.RaiseEvent(new DragCompletedEventArgs(0, 81, false) { RoutedEvent = Thumb.DragCompletedEvent });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.AreEqual(firstValue, contentWhileDragging, 0.01, "Posters must scroll before the mouse is released.");
+            Assert.IsTrue(firstValue > 0);
+            Assert.IsTrue(secondValue > firstValue && secondValue - firstValue < 1, $"A small mouse movement must advance the thumb continuously: {firstValue} -> {secondValue}.");
+            Assert.IsTrue(scroll.ContentVerticalOffset > 0);
+            Assert.AreEqual(Math.Floor(secondValue), Math.Floor(scroll.VerticalOffset), 0.01);
+            Assert.IsTrue(thumb.ActualHeight >= 50, "The visible thumb must be at least 50 DIPs high.");
+            Assert.IsTrue(BindingOperations.IsDataBound(bar, ScrollBar.ValueProperty), "Release must restore normal scrollbar synchronization.");
+            AssertFirstRowStartsAtTop(grid);
+            Assert.AreSame(selected, view.Model.Selected);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
     [TestMethod]
     [DataRow(CatalogKind.Movie, false)]
     [DataRow(CatalogKind.Game, false)]

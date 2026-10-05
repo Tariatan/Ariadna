@@ -44,6 +44,15 @@ Wheel input accumulates smaller deltas and advances one row per notch. Scrolling
 stays virtualized; the UI does not construct a card for every entry. See
 [Microsoft's virtualization guidance](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/advanced/optimizing-performance-controls).
 
+`PosterScrollBarStyles.xaml` is merged only into the poster list's resources.
+The vertical scrollbar uses a 14-DIP catalog-colored track, a rounded white thumb
+and no arrow buttons. Its standard WPF Track retains proportional thumb sizing,
+dragging and page commands, with a minimum visible thumb height of 50 DIPs.
+`PosterScrollThumb` keeps its fractional position independent of row-offset
+rounding while sending live scrolling commands. Release or unloading restores
+the scrollbar's original offset binding. Top-row alignment is retained. Wheel,
+keyboard and track-click scrolling remain immediate.
+
 Four workers decode thumbnails off the UI thread. A shared cache retains at most
 256 images, decoded to 240 pixels wide. Images are frozen, source streams close
 after decoding, and unloaded/recycled cards cancel requests and discard stale
