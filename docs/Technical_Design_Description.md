@@ -251,6 +251,11 @@ from the local application-data file `Ariadna/Wpf/window.json`. Normal restore
 bounds are retained when closing minimized or maximized; the existing maximized
 state is also persisted. Canceled closure and unshown windows leave saved geometry
 unchanged. WPF tests initialize application resources without production startup.
+Poster cards use square, one-DIP gray outlines and a vertical highlight gradient
+from translucent white to dark gray. Hover is subtler than selection. Selecting
+a card flashes its outline white three times over 420 ms, then leaves it gray;
+deselection removes the animation. Images, captions and card dimensions remain
+steady throughout highlighting.
 The poster grid uses WPF item scrolling, with each virtualized item representing
 one poster row. Startup selection, navigation, scrollbar movement and restored
 tab positions keep the first visible row aligned to the viewport top; only the

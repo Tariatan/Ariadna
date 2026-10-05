@@ -31,6 +31,16 @@ Last updated: 2026-10-05. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-05: Ariadna.Wpf 1.5.0 matches the reference poster highlights with
+  square one-DIP gray outlines and a translucent-white-to-dark-gray gradient;
+  selection is brighter than hover. The outline flashes white three times over
+  420 ms, settles to gray, and its storyboard is removed on deselection.
+  All 85 Release WPF tests passed. An isolated native Debug preview with
+  disposable SQLite/posters verified mouse selection, keyboard selection with
+  a separate hovered card, Movies/Library palettes, and the three white/gray
+  transitions in timed brush samples. Card height stayed 427 DIPs.
+  Personal-catalog and changed-DPI acceptance remain unverified.
+
 - 2026-10-05: Ariadna.Wpf 1.4.3 restores live poster scrolling during thumb
   dragging; the user rejected waiting until release. PosterScrollThumb retains
   its fractional position separately from WPF's row-offset binding to prevent

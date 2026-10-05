@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.5.0] - 2026-10-05
+
+#### Added
+
+- Redesign item hover and selection highlight.
+
 ### [1.4.1] - 2026-10-05
 
 #### Changed
