@@ -31,6 +31,24 @@ Last updated: 2026-10-05. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-05: changes QuickList to two columns in an
+  86-DIP sidebar, preserving 24-DIP buttons and the existing styling/navigation.
+  Letters read left to right, then down. All 85 Release WPF tests passed; Debug
+  build passed without warnings/errors. An isolated native synthetic-data
+  preview verified two-column ordering, the right-column A mouse jump, and
+  Shift+Tab/Space activation of the final Я with automatic letter scrolling.
+  Personal-catalog and changed-DPI acceptance remain unverified.
+
+- 2026-10-05: Ariadna.Wpf 1.5.1 restyles QuickList as a 54-DIP single column
+  with 24-DIP-high square white-outlined buttons, bold white letters and the
+  active catalog background. Hover/focus/press feedback is scoped to QuickList.
+  The column scrolls independently on short windows. All 85 Release WPF tests
+  passed; Debug build passed without warnings/errors. An isolated native preview
+  with synthetic Latin/digit/Cyrillic titles verified A/Я mouse jumps, Shift+Tab
+  and Space activation of Ю, wheel/scrollbar access to the final letter, and
+  Movies/Library palettes. Personal-catalog and changed-DPI acceptance remain
+  unverified. PLAN remains user-owned.
+
 - 2026-10-05: Ariadna.Wpf 1.5.0 matches the reference poster highlights with
   square one-DIP gray outlines and a translucent-white-to-dark-gray gradient;
   selection is brighter than hover. The outline flashes white three times over

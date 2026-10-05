@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.5.1] - 2026-10-05
+
+#### Changed
+
+- Restyle QuickList.
+
 ### [1.5.0] - 2026-10-05
 
 #### Added

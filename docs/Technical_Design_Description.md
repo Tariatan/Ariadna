@@ -251,6 +251,13 @@ from the local application-data file `Ariadna/Wpf/window.json`. Normal restore
 bounds are retained when closing minimized or maximized; the existing maximized
 state is also persisted. Canceled closure and unshown windows leave saved geometry
 unchanged. WPF tests initialize application resources without production startup.
+QuickList uses two columns in an 86-DIP sidebar on the active catalog background, with
+24-DIP-high square buttons, thin white outlines and bold white letters.
+Hover, keyboard focus and pressing provide a translucent-white highlight.
+Letters read left to right, then downward. Button rows stay compact at the top,
+leaving the catalog background below them. The sidebar scrolls independently
+when letters exceed the available height;
+letter clicks and keyboard activation retain the existing jump behavior.
 Poster cards use square, one-DIP gray outlines and a vertical highlight gradient
 from translucent white to dark gray. Hover is subtler than selection. Selecting
 a card flashes its outline white three times over 420 ms, then leaves it gray;
