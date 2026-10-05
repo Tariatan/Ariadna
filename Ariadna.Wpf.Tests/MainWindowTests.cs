@@ -11,6 +11,57 @@ namespace Ariadna.Wpf.Tests;
 public sealed class MainWindowTests
 {
     [TestMethod]
+    [DataRow(700)]
+    [DataRow(1120)]
+    [DataRow(1600)]
+    public async Task Show_WindowWidths_DisplaysAssemblyVersionBesideAllTabs(int width) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        string[] arguments = ["games", "library", "documentaries", "movies"];
+        using var fixture = new CatalogFixture();
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, null)
+        {
+            Width = width,
+        };
+        try
+        {
+            // Act
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var tabs = (TabControl)window.FindName("CatalogTabs");
+            var label = (TextBlock)tabs.Template.FindName("AppVersionLabel", tabs);
+            var labelPosition = label.TranslatePoint(new Point(), tabs);
+
+            // Assert
+            Assert.AreEqual(typeof(MainWindow).Assembly.GetName().Version!.ToString(3), label.Text);
+            Assert.AreEqual(Colors.Black, ((SolidColorBrush)label.Foreground).Color);
+            Assert.AreEqual(0.5, label.Opacity);
+            Assert.IsFalse(label.Focusable);
+            Assert.IsFalse(label.IsHitTestVisible);
+            Assert.AreEqual(tabs.ActualWidth - 12, labelPosition.X + label.ActualWidth, 1);
+            Assert.HasCount(4, tabs.Items);
+            foreach (TabItem tab in tabs.Items)
+            {
+                Assert.IsTrue(tab.TranslatePoint(new Point(tab.ActualWidth, 0), tabs).X <= labelPosition.X);
+                Assert.IsTrue(labelPosition.Y >= 0 && labelPosition.Y + label.ActualHeight <= tab.ActualHeight);
+            }
+
+            foreach (var argument in arguments)
+            {
+                window.ActivateCatalog(argument);
+                await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+                Assert.IsTrue(label.IsVisible);
+                var contentHost = (ContentPresenter)tabs.Template.FindName("PART_SelectedContentHost", tabs);
+                Assert.AreSame(((TabItem)tabs.SelectedItem).Content, contentHost.Content);
+            }
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     [DataRow(WindowState.Normal)]
     [DataRow(WindowState.Minimized)]
     [DataRow(WindowState.Maximized)]

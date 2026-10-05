@@ -1,6 +1,6 @@
 # Ariadna project memory
 
-Last updated: 2026-10-04. Scope: this repository only.
+Last updated: 2026-10-05. Scope: this repository only.
 
 ## Durable context
 
@@ -31,6 +31,34 @@ Last updated: 2026-10-04. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-05: Ariadna.Wpf 1.3.1 uses WPF item scrolling for virtualized poster
+  rows. Startup selection, navigation, scrollbar movement and tab restoration
+  keep the first visible row at the viewport top; the bottom row may be partial.
+  Wheel input still moves one row per notch and accumulates smaller deltas;
+  resize anchoring retains the first visible entry's new row and selection.
+- Four startup regressions failed before the fix. Locked WPF-test restore,
+  zero-warning/error Debug and Release WPF builds, and all 66 Release WPF tests
+  passed. Tests cover all four catalogs, startup selection, quick jumps, tab
+  retention, fractional offsets, wheel bursts, resize and final-row reachability.
+  An isolated native Debug window with disposable SQLite/posters confirmed
+  startup alignment, wheel input, scrollbar dragging, Home/Page Down/End,
+  all four tab views, return-position retention and a six-to-four-column resize.
+  The first visible row stayed at offset zero within its viewport; selection
+  survived wheel/resize and the final row remained reachable. The preview was
+  closed. Personal-catalog, changed-DPI and physical touchpad acceptance remain
+  open. WinForms/Storage/Migration implementation and user-owned PLAN are
+  unchanged by this fix. Next: acceptance in the normal WPF executable.
+- 2026-10-05: Ariadna.Wpf 1.3.0 displays its assembly version (major.minor.patch)
+  at the far right of the tabs row in black at 50% opacity. A reserved header
+  column prevents overlap; the label is not focusable or mouse-interactive.
+- Locked WPF-test restore, zero-warning/error Debug WPF and Release WPF-test
+  builds, and all 55 Release WPF tests passed. Three added layout cases cover
+  minimum/default/wide windows, all four headers and switched catalog content.
+  An isolated Release native window with disposable SQLite data confirmed the
+  label in every catalog, mouse tab switching, Ctrl+4 and Ctrl+Shift+Tab. The
+  preview was closed. Personal-catalog and changed-DPI acceptance remain open;
+  WinForms/Storage/Migration implementation and user-owned PLAN are unchanged.
+  Next: user acceptance of the version label in the normal WPF executable.
 - 2026-10-04: Ariadna.Wpf 1.2.1 matches the supplied compact filter toolbar:
   catalog-colored fields, white separators and clear icons, outlined checkboxes
   after their labels, genre ellipses and the bold result count. FilterPanelStyles

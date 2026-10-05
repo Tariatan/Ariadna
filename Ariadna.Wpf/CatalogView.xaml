@@ -79,7 +79,7 @@
         <ListBox x:Name="PosterRows" ItemsSource="{Binding Rows}" BorderThickness="0" Background="Transparent"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True"
                  VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
-                 VirtualizingPanel.ScrollUnit="Pixel" VirtualizingPanel.CacheLength="1"
+                 VirtualizingPanel.ScrollUnit="Item" VirtualizingPanel.CacheLength="1"
                  SizeChanged="OnGridSizeChanged" PreviewKeyDown="OnGridKeyDown" PreviewMouseWheel="OnGridMouseWheel">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}">

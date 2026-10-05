@@ -1,6 +1,6 @@
 # Technical Design Description - Ariadna <!-- omit from toc -->
 
-Last reviewed: 2026-10-04. This describes the current implementation unless a
+Last reviewed: 2026-10-05. This describes the current implementation unless a
 section explicitly labels a proposal or an unverified target.
 
 ## Purpose
@@ -243,16 +243,21 @@ The approved WPF migration is implemented as a separate native frontend in
 `Ariadna.Wpf`, alongside the retained WinForms application for acceptance testing.
 The user designated Ariadna.Wpf as the default development target on 2026-10-04;
 new frontend work, builds, runs, and tests focus on WPF unless requested otherwise.
+The tabs row reserves space at its far right for the main application's assembly
+version (major.minor.patch), shown in semi-transparent black text. The label stays
+visible across catalog switches and does not participate in keyboard or mouse input.
 Main-window geometry is saved on accepted Closing and restored on the next launch
 from the local application-data file `Ariadna/Wpf/window.json`. Normal restore
 bounds are retained when closing minimized or maximized; the existing maximized
 state is also persisted. Canceled closure and unshown windows leave saved geometry
 unchanged. WPF tests initialize application resources without production startup.
-The poster grid moves to the adjacent row boundary for each mouse-wheel notch,
-accumulating smaller wheel deltas; the last viewport is clamped to the content end.
-Wheel scrolling preserves selection and each tab's retained position. Row stepping,
-Page Up/Page Down and resize anchoring use the rendered row height, while scrollbar
-dragging retains pixel scrolling and rows remain virtualized.
+The poster grid uses WPF item scrolling, with each virtualized item representing
+one poster row. Startup selection, navigation, scrollbar movement and restored
+tab positions keep the first visible row aligned to the viewport top; only the
+bottom row may be partial. Each wheel notch moves one row, accumulating smaller
+deltas and retaining selection. Resize anchoring preserves the first visible
+entry's new row. Page Up/Page Down uses the rendered row height to determine how
+many entries to move; row recycling and the final row's reachability are retained.
 The shared filter panel retains its layout while showing only applicable fields:
 Title, Wishlist, Recent, New and Genre in all catalogs; Series/Movies and
 Directors/Actors in Movies; VR/Non-VR in Games; Authors in Library.

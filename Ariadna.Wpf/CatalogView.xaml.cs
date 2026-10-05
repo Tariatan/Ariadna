@@ -67,19 +67,15 @@ public partial class CatalogView : UserControl, IDisposable
         }
 
         var scroll = FindChild<ScrollViewer>(PosterRows);
-        var offset = scroll?.VerticalOffset ?? 0;
-        var rowHeight = PosterRowHeight;
-        var firstEntry = rowHeight > 0 ? (int)(offset / rowHeight) * Model.Columns : 0;
-        var rowOffset = rowHeight > 0 ? offset % rowHeight : 0;
+        var firstEntry = (int)(scroll?.VerticalOffset ?? 0) * Model.Columns;
         Model.SetColumns(columns);
-        Dispatcher.InvokeAsync(() => scroll?.ScrollToVerticalOffset(firstEntry / columns * PosterRowHeight + rowOffset), System.Windows.Threading.DispatcherPriority.Loaded);
+        Dispatcher.InvokeAsync(() => scroll?.ScrollToVerticalOffset(firstEntry / columns), System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
     private void OnGridMouseWheel(object sender, MouseWheelEventArgs e)
     {
         var scroll = FindChild<ScrollViewer>(PosterRows);
-        var rowHeight = PosterRowHeight;
-        if (scroll == null || rowHeight <= 0)
+        if (scroll == null)
         {
             return;
         }
@@ -93,9 +89,7 @@ public partial class CatalogView : UserControl, IDisposable
             return;
         }
 
-        var currentRow = scroll.VerticalOffset / rowHeight;
-        var targetRow = rows > 0 ? Math.Ceiling(currentRow) - rows : Math.Floor(currentRow) - rows;
-        scroll.ScrollToVerticalOffset(Math.Clamp(targetRow * rowHeight, 0, scroll.ScrollableHeight));
+        scroll.ScrollToVerticalOffset(Math.Clamp(Math.Floor(scroll.VerticalOffset) - rows, 0, scroll.ScrollableHeight));
         // Apply the queued offset before another wheel event calculates its next row.
         scroll.UpdateLayout();
     }

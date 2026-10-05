@@ -13,6 +13,149 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogViewTests
 {
     [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies")]
+    [DataRow(CatalogKind.Game, "games")]
+    [DataRow(CatalogKind.Library, "library")]
+    [DataRow(CatalogKind.Documentary, "documentaries")]
+    public async Task Show_InitialSelectionOutsideViewport_StartsFirstVisibleRowAtTop(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        foreach (var index in Enumerable.Range(0, 60))
+        {
+            fixture.Add(kind, $"Entry {index:D2}");
+        }
+
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var selected = view.Model.Entries[40];
+            view.Model.Selected = selected;
+
+            // Act
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var grid = (ListBox)view.FindName("PosterRows");
+
+            // Assert
+            AssertFirstRowStartsAtTop(grid);
+            Assert.AreSame(selected, view.Model.Selected);
+            var selectedRow = (ListBoxItem)grid.ItemContainerGenerator.ContainerFromItem(view.Model.Rows.Single(row => row.Items.Contains(selected)));
+            var viewport = CatalogView.FindChild<ScrollContentPresenter>(grid)!;
+            Assert.IsTrue(selectedRow.TranslatePoint(new Point(), viewport).Y >= -0.01);
+            Assert.IsTrue(selectedRow.TranslatePoint(new Point(0, selectedRow.ActualHeight), viewport).Y <= viewport.ActualHeight + 0.01);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    private static void AssertFirstRowStartsAtTop(ListBox grid)
+    {
+        var viewport = CatalogView.FindChild<ScrollContentPresenter>(grid)!;
+        var first = Enumerable.Range(0, grid.Items.Count)
+            .Select(index => grid.ItemContainerGenerator.ContainerFromIndex(index))
+            .OfType<ListBoxItem>()
+            .Select(row => new { Top = row.TranslatePoint(new Point(), viewport).Y, row.ActualHeight })
+            .Where(row => row.Top + row.ActualHeight > 0.01 && row.Top < viewport.ActualHeight)
+            .Min(row => row.Top);
+        Assert.AreEqual(0, first, 0.01, "The first visible row must start at the viewport top.");
+    }
+
+    [TestMethod]
+    [DataRow(700, 500)]
+    [DataRow(1120, 780)]
+    [DataRow(1600, 1000)]
+    public async Task OnGridKeyDown_EndRequested_KeepsTopRowWholeAndLastEntryReachable(int width, int height) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        fixture.AddMany(120);
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, "movies")
+        {
+            Width = width,
+            Height = height,
+        };
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var grid = (ListBox)view.FindName("PosterRows");
+
+            // Act
+            grid.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(grid), 0, Key.End)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            AssertFirstRowStartsAtTop(grid);
+            Assert.AreSame(view.Model.Entries.Last(), view.Model.Selected);
+            var lastRow = (ListBoxItem)grid.ItemContainerGenerator.ContainerFromIndex(grid.Items.Count - 1);
+            var viewport = CatalogView.FindChild<ScrollContentPresenter>(grid)!;
+            var lastTop = lastRow.TranslatePoint(new Point(), viewport).Y;
+            Assert.IsTrue(lastTop >= -0.01 && lastTop < viewport.ActualHeight, "The final row must remain reachable.");
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies")]
+    [DataRow(CatalogKind.Game, "games")]
+    [DataRow(CatalogKind.Library, "library")]
+    [DataRow(CatalogKind.Documentary, "documentaries")]
+    public async Task QuickJump_EntryOutsideViewport_KeepsRowsAlignedAndRetainsPositionAcrossTabs(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        foreach (var index in Enumerable.Range(0, 60))
+        {
+            fixture.Add(kind, $"{(index < 30 ? "A" : "Z")} Entry {index:D2}");
+        }
+
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var grid = (ListBox)view.FindName("PosterRows");
+            var scroll = CatalogView.FindChild<ScrollViewer>(grid)!;
+            var quickList = Descendants<ItemsControl>(view).Single(control => ReferenceEquals(control.ItemsSource, view.Model.Letters));
+            var letter = quickList.ItemContainerGenerator.ContainerFromItem("Z");
+
+            // Act
+            CatalogView.FindChild<Button>(letter)!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var offset = scroll.VerticalOffset;
+            window.ActivateCatalog(argument == "movies" ? "games" : "movies");
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            window.ActivateCatalog(argument);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            AssertFirstRowStartsAtTop(grid);
+            Assert.AreEqual("Z Entry 30", view.Model.Selected!.Entry.Title);
+            Assert.IsTrue(offset > 0);
+            Assert.AreEqual(offset, scroll.VerticalOffset, 0.01);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     [DataRow(CatalogKind.Movie, "movies", "Wishlist|Recent|New|Series|Movies")]
     [DataRow(CatalogKind.Game, "games", "Wishlist|Recent|New|VR|Non-VR")]
     [DataRow(CatalogKind.Library, "library", "Wishlist|Recent|New")]
@@ -111,7 +254,7 @@ public sealed class CatalogViewTests
     [DataRow(CatalogKind.Game, "games")]
     [DataRow(CatalogKind.Library, "library")]
     [DataRow(CatalogKind.Documentary, "documentaries")]
-    public async Task OnGridMouseWheel_PartialRowVisible_AlignsToAdjacentRowWithoutChangingSelection(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
+    public async Task OnGridMouseWheel_FractionalRowRequested_KeepsWholeRowStepsWithoutChangingSelection(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
     {
         // Arrange
         using var fixture = new CatalogFixture();
@@ -129,16 +272,16 @@ public sealed class CatalogViewTests
             var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
             var grid = (ListBox)view.FindName("PosterRows");
             var scroll = CatalogView.FindChild<ScrollViewer>(grid)!;
-            var rowHeight = CatalogView.FindChild<ListBoxItem>(grid)!.ActualHeight;
             var selected = view.Model.Selected;
-            scroll.ScrollToVerticalOffset(rowHeight / 2);
+            scroll.ScrollToVerticalOffset(2.5);
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            AssertFirstRowStartsAtTop(grid);
 
             // Act
             var down = Wheel(CatalogView.FindChild<PosterCard>(grid)!, -120);
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
             var downOffset = scroll.VerticalOffset;
-            scroll.ScrollToVerticalOffset(rowHeight / 2);
+            scroll.ScrollToVerticalOffset(2.5);
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
             var up = Wheel(CatalogView.FindChild<PosterCard>(grid)!, 120);
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
@@ -146,8 +289,9 @@ public sealed class CatalogViewTests
             // Assert
             Assert.IsTrue(down.Handled);
             Assert.IsTrue(up.Handled);
-            Assert.AreEqual(rowHeight, downOffset, 0.01);
-            Assert.AreEqual(0, scroll.VerticalOffset, 0.01);
+            Assert.AreEqual(3, downOffset, 0.01);
+            Assert.AreEqual(1, scroll.VerticalOffset, 0.01);
+            AssertFirstRowStartsAtTop(grid);
             Assert.AreSame(selected, view.Model.Selected);
         }
         finally
@@ -171,7 +315,6 @@ public sealed class CatalogViewTests
             var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
             var grid = (ListBox)view.FindName("PosterRows");
             var scroll = CatalogView.FindChild<ScrollViewer>(grid)!;
-            var rowHeight = CatalogView.FindChild<ListBoxItem>(grid)!.ActualHeight;
             scroll.ScrollToTop();
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
@@ -196,10 +339,11 @@ public sealed class CatalogViewTests
             // Assert
             Assert.IsTrue(partial.Handled);
             Assert.AreEqual(0, partialOffset, 0.01);
-            Assert.AreEqual(rowHeight * 4, burstOffset, 0.01);
+            Assert.AreEqual(4, burstOffset, 0.01);
             Assert.AreEqual(0, topOffset, 0.01);
             Assert.AreEqual(scroll.ScrollableHeight, bottomOffset, 0.01);
             Assert.AreEqual(bottomOffset, scroll.VerticalOffset, 0.01);
+            AssertFirstRowStartsAtTop(grid);
         }
         finally
         {
@@ -233,9 +377,11 @@ public sealed class CatalogViewTests
             {
                 RoutedEvent = Keyboard.PreviewKeyDownEvent,
             });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
             // Assert
             Assert.AreSame(view.Model.Entries[view.Model.Columns * rowsPerPage], view.Model.Selected);
+            AssertFirstRowStartsAtTop(grid);
         }
         finally
         {
@@ -244,7 +390,7 @@ public sealed class CatalogViewTests
     });
 
     [TestMethod]
-    public async Task OnGridSizeChanged_ColumnCountChanges_PreservesFirstVisibleEntryAndPartialRowOffset() => await WpfThread.RunAsync(async () =>
+    public async Task OnGridSizeChanged_ColumnCountChanges_PreservesFirstVisibleEntryAndWholeRowAlignment() => await WpfThread.RunAsync(async () =>
     {
         // Arrange
         using var fixture = new CatalogFixture();
@@ -261,11 +407,9 @@ public sealed class CatalogViewTests
             var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
             var grid = (ListBox)view.FindName("PosterRows");
             var scroll = CatalogView.FindChild<ScrollViewer>(grid)!;
-            var rowHeight = CatalogView.FindChild<ListBoxItem>(grid)!.ActualHeight;
             var oldColumns = view.Model.Columns;
             var selected = view.Model.Selected;
-            var partialOffset = rowHeight / 2;
-            scroll.ScrollToVerticalOffset(5 * rowHeight + partialOffset);
+            scroll.ScrollToVerticalOffset(5);
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
             // Act
@@ -274,7 +418,8 @@ public sealed class CatalogViewTests
 
             // Assert
             Assert.IsGreaterThan(oldColumns, view.Model.Columns);
-            Assert.AreEqual(5 * oldColumns / view.Model.Columns * rowHeight + partialOffset, scroll.VerticalOffset, 0.01);
+            Assert.AreEqual(5 * oldColumns / view.Model.Columns, scroll.VerticalOffset, 0.01);
+            AssertFirstRowStartsAtTop(grid);
             Assert.AreSame(selected, view.Model.Selected);
         }
         finally

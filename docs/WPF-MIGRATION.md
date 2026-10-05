@@ -37,8 +37,11 @@ placement. Invalid or off-desktop placement keeps the startup defaults.
 
 The browser binds rows of poster cards to a recycling VirtualizingStackPanel.
 Each visible row contains a limited number of cards. Resizing changes the column
-count while retaining selection and anchoring the viewport. Pixel scrolling stays
-virtualized; the UI does not construct a card for every entry. See
+count while retaining selection and anchoring the viewport. WPF item scrolling
+keeps the first visible row at the viewport top on startup and throughout
+navigation, scrollbar movement and tab restoration. A bottom row may be partial.
+Wheel input accumulates smaller deltas and advances one row per notch. Scrolling
+stays virtualized; the UI does not construct a card for every entry. See
 [Microsoft's virtualization guidance](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/advanced/optimizing-performance-controls).
 
 Four workers decode thumbnails off the UI thread. A shared cache retains at most

@@ -13,6 +13,18 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.3.1] - 2026-10-05
+
+#### Fixed
+
+- Keep the first visible poster row aligned to the viewport top at startup, during selection/navigation, scrollbar scrolling and tab restoration. Use WPF item scrolling for virtualized rows, retaining one-row wheel steps and resize anchoring while allowing a partial bottom row.
+
+### [1.3.0] - 2026-10-05
+
+#### Added
+
+- Display the main application's assembly version at the far right of the tabs row in semi-transparent black text, with reserved space and no keyboard focus or mouse interception.
+
 ### [1.2.1] - 2026-10-04
 
 #### Changed

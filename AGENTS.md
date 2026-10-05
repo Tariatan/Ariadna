@@ -56,8 +56,10 @@ implementation.
 
 ## Versioning
 
-Bump versions only for projects whose implementation changed. Do not bump an
-unchanged project merely because it references a changed project or ships with it.
+Bump versions for projects whose implementation changed. Whenever any project's
+version changes, also bump the main project Ariadna.Wpf, even if its implementation
+is unchanged. Do not bump other unchanged projects merely because they reference
+or ship with a changed project.
 Record notable implementation changes in [CHANGELOG.md](CHANGELOG.md) under the
 affected project's version, newest first, with a date and the appropriate Keep
 a Changelog category. Use Major for breaking behavior, Minor for compatible

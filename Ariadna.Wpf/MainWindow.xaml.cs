@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 namespace Ariadna.Wpf;
 public partial class MainWindow : Window
 {
+    public string ApplicationVersion { get; } = typeof(MainWindow).Assembly.GetName().Version!.ToString(3);
+
     private readonly List<CatalogView> views = [];
     private readonly CancellationTokenSource lifetime = new();
     private bool modal;
