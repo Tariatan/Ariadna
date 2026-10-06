@@ -311,6 +311,21 @@ category (for example, Programming -> C++); stored subject tags are not added to
 the category dropdown. The details editor retains the combined category/subject
 tag list and custom stored tags. Storage and existing genre-query semantics are
 unchanged.
+The WPF Details editor reserves the left column for a large, uncropped poster
+and image actions. The right column scrolls independently and contains themed
+metadata fields, WinForms genre pictograms, wishlist, description and editable
+portrait cards. Directors and Cast remain separate for Movies; Library uses a
+full-width Authors section. Games retain VR, version and four preview slots;
+Documentaries omit people. Genre editing retains custom tags and existing limits.
+The fixed footer presents the editable path with a file/folder picker, separate
+size, duration, resolution and bitrate icons, and audio language flags plus labels.
+Media inspection runs asynchronously; stale path results and results after close
+are discarded. Non-video entries show size only. Unknown languages retain their
+names with a generic icon. Footer groups wrap when space is limited. Ignore path
+is applied on Save instead of saving the entry; Cancel discards the choice.
+Shift+Enter still ignores immediately. F2 selects a portrait's name for editing;
+Enter commits the name without saving the dialog. Existing image, people, genre,
+TMDb and transactional save workflows remain available.
 It uses the same direct SQLite storage, schema, IDs and image files. XAML and
 observable models replace the shell, browser and editor controls; no WinForms
 controls are hosted. Row virtualization, asynchronous bounded thumbnail caching,

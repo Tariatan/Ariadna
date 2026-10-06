@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace Ariadna.Wpf;
 internal static class FileInspection
 {
-    internal static Task<string> InspectAsync(string path, bool video, ILogger logger, CancellationToken cancellationToken) => Task.Run(() =>
+    internal static Task<FileInspectionResult> InspectAsync(string path, bool video, ILogger logger, CancellationToken cancellationToken) => Task.Run(() =>
     {
         long size = 0;
         var candidate = File.Exists(path) ? path : null;
@@ -30,18 +30,24 @@ internal static class FileInspection
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        var result = $"Size: {size / (1024d * 1024):N1} MB";
+        var sizeText = size >= 1024L * 1024 * 1024 ? $"{size / (1024d * 1024 * 1024):N1} GB" : $"{size / (1024d * 1024):N1} MB";
+        var metrics = new List<MediaMetric> { new(sizeText, MediaMetric.StorageIcon) };
+        IReadOnlyCollection<AudioLanguage> languages = [];
         if (video && candidate != null)
         {
             var info = new MediaInfoWrapper(candidate, logger);
             cancellationToken.ThrowIfCancellationRequested();
             if (info.Success)
             {
-                result += $"   Duration: {TimeSpan.FromMilliseconds(info.Duration):hh\\:mm\\:ss}   {info.Width}×{info.Height}   {info.VideoRate} kbps\n";
-                result += string.Join(", ", info.AudioStreams.Select(stream => stream.Language));
+                var duration = $"{TimeSpan.FromMilliseconds(info.Duration):hh\\:mm\\:ss}";
+                var resolution = $"{info.Width}×{info.Height}";
+                metrics.Add(new MediaMetric(duration, MediaMetric.ClockIcon));
+                metrics.Add(new MediaMetric(resolution, MediaMetric.ScreenIcon));
+                metrics.Add(new MediaMetric($"{info.VideoRate / 1000d:N1} Mbps", MediaMetric.BitrateIcon));
+                languages = info.AudioStreams.Select(stream => new AudioLanguage(string.IsNullOrWhiteSpace(stream.Language) ? "Unknown" : stream.Language)).ToArray();
             }
         }
 
-        return result;
+        return new FileInspectionResult(languages, metrics);
     }, cancellationToken);
 }

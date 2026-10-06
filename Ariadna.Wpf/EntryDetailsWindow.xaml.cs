@@ -16,6 +16,8 @@ public partial class EntryDetailsWindow : Window
     private bool closed;
     private bool saving;
     private int selectedPreview = 1;
+    private string? inspectedPath;
+    private int inspectionRevision;
     internal EntryDetailsWindow(CatalogActions actions, CatalogKind kind, string path)
     {
         this.actions = actions;
@@ -25,6 +27,11 @@ public partial class EntryDetailsWindow : Window
         PeopleEditor.Configure(editor, actions, false, lifetime.Token);
         CastEditor.Configure(editor, actions, true, lifetime.Token);
         SelectedPreview.Source = editor.Previews[0];
+        if (!editor.IsMovie)
+        {
+            PeopleColumn.Width = new GridLength(1, GridUnitType.Star);
+            CastColumn.Width = new GridLength(0);
+        }
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -36,12 +43,29 @@ public partial class EntryDetailsWindow : Window
             _ = FindMetadataAsync(lifetime.Token);
         }
 
+        await InspectPathAsync(path);
+    }
+
+    private async Task InspectPathAsync(string path)
+    {
+        if (closed || inspectedPath == path)
+        {
+            return;
+        }
+
+        inspectedPath = path;
+        var revision = ++inspectionRevision;
+        FileMetrics.ItemsSource = null;
+        AudioLanguages.ItemsSource = null;
+        FileInfo.Text = "Reading file information…";
         try
         {
             var info = await FileInspection.InspectAsync(path, editor.Kind is CatalogKind.Movie or CatalogKind.Documentary, actions.Logger, lifetime.Token);
-            if (!closed && editor.Path == path)
+            if (!closed && editor.Path == path && inspectionRevision == revision)
             {
-                FileInfo.Text = info;
+                FileInfo.Text = string.Empty;
+                FileMetrics.ItemsSource = info.Metrics;
+                AudioLanguages.ItemsSource = info.Languages;
             }
         }
         catch (OperationCanceledException)when (closed)
@@ -49,17 +73,46 @@ public partial class EntryDetailsWindow : Window
         }
         catch (Exception exception)
         {
-            if (!closed)
+            if (!closed && editor.Path == path && inspectionRevision == revision)
             {
+                inspectedPath = null;
                 FileInfo.Text = "File information unavailable";
                 actions.Logger.LogWarning("File inspection failed, error type '{ErrorType}'", exception.GetType().Name);
             }
         }
     }
 
+    private async void InspectChangedPath(object sender, KeyboardFocusChangedEventArgs e) => await InspectPathAsync(editor.Path);
+    private async void BrowsePath(object sender, RoutedEventArgs e)
+    {
+        string? path = null;
+        if (editor.IsGame || Directory.Exists(editor.Path))
+        {
+            var dialog = new OpenFolderDialog { Title = "Choose media folder" };
+            if (dialog.ShowDialog(this) == true)
+            {
+                path = dialog.FolderName;
+            }
+        }
+        else
+        {
+            var dialog = new OpenFileDialog { Title = "Choose media file", Filter = "All files|*.*" };
+            if (dialog.ShowDialog(this) == true)
+            {
+                path = dialog.FileName;
+            }
+        }
+
+        if (path != null)
+        {
+            editor.Path = path;
+            await InspectPathAsync(path);
+        }
+    }
+
     private void Save(object sender, RoutedEventArgs e)
     {
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+        if (IgnorePath.IsChecked == true || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
         {
             Ignore(sender, e);
             return;
@@ -105,7 +158,7 @@ public partial class EntryDetailsWindow : Window
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && e.OriginalSource is not TextBox { AcceptsReturn: true } && !HasAncestor<DataGrid>(e.OriginalSource as DependencyObject) && !HasAncestor<ComboBox>(e.OriginalSource as DependencyObject))
+        if (e.Key == Key.Enter && e.OriginalSource is not TextBox { AcceptsReturn: true } && !HasAncestor<PeopleEditorView>(e.OriginalSource as DependencyObject) && !HasAncestor<ComboBox>(e.OriginalSource as DependencyObject))
         {
             if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
             {

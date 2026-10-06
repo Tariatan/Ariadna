@@ -25,8 +25,10 @@ public partial class PeopleEditorView : UserControl
 
     internal void Commit()
     {
-        People.CommitEdit(DataGridEditingUnit.Cell, true);
-        People.CommitEdit(DataGridEditingUnit.Row, true);
+        if (Keyboard.FocusedElement is TextBox textBox && textBox.IsDescendantOf(this))
+        {
+            textBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+        }
     }
 
     private void Add(object sender, RoutedEventArgs e)
@@ -105,9 +107,32 @@ public partial class PeopleEditorView : UserControl
         }
     }
 
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => People.SelectedItem = ((FrameworkElement)sender).DataContext;
+
+    private void OnNewNameKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            Add(sender, e);
+            e.Handled = true;
+        }
+    }
+
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && People.CurrentCell.IsValid)
+        if (e.Key == Key.F2 && People.SelectedItem != null)
+        {
+            var container = People.ItemContainerGenerator.ContainerFromItem(People.SelectedItem);
+            if (container != null && CatalogView.FindChild<TextBox>(container) is { } name)
+            {
+                name.Focus();
+                name.SelectAll();
+            }
+
+            e.Handled = true;
+        }
+
+        if (e.Key == Key.Enter)
         {
             Commit();
             e.Handled = true;

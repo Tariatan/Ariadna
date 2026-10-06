@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.6.0] - 2026-10-06
+
+#### Added
+
+- Redesign Details form.
+
 ### [1.5.4] - 2026-10-06
 
 #### Removed

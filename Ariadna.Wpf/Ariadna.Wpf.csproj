@@ -5,7 +5,7 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.5.4</Version>
+    <Version>1.6.0</Version>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <AppConfig>../Ariadna/App.config</AppConfig>
@@ -19,5 +19,8 @@
     <PackageReference Include="MediaInfo.Wrapper.Core" Version="26.1.0" />
     <PackageReference Include="TMDbLib" Version="3.0.0" />
     <Resource Include="../Ariadna/Resources/Ariadna.ico" Link="Resources/Ariadna.ico" />
+    <Resource Include="../Ariadna/Resources/genres/*.png" Link="Resources/genres/%(Filename)%(Extension)" />
+    <Resource Include="../Ariadna/Resources/lang/*.png" Link="Resources/lang/%(Filename)%(Extension)" />
+    <Resource Include="../Ariadna/Resources/No_Image.png" Link="Resources/No_Image.png" />
   </ItemGroup>
 </Project>

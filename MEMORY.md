@@ -31,6 +31,24 @@ Last updated: 2026-10-06. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-06: Ariadna.Wpf 1.6.0 implements the approved Option A Details
+  layout: large uncropped poster, scoped themed fields/buttons/checkboxes,
+  legacy genre pictograms, editable portrait cards, full-width Library Authors,
+  and a fixed wrapping media footer. The footer has a file/folder picker,
+  size/duration/resolution/bitrate icons and labeled language flags. Ignore path
+  is applied by Save; Cancel discards the choice; Shift+Enter remains available.
+  Media inspection refreshes changed paths and rejects stale/closed results.
+- Release WPF/test builds succeeded and all 104 WPF tests passed, including
+  portrait-name persistence, packaged icons, native video metrics, ignore
+  confirmation/cancel and minimum-size footer bounds. Native disposable previews
+  covered all four catalog layouts, compact 1000x640 footer wrapping,
+  fixed-footer scrolling, wishlist, F2/name
+  editing, Enter without closing, persisted name/wishlist and file-picker cancel.
+  Preview media values/flags were synthetic; real inspection used the bundled
+  video test fixture. Personal catalog, live TMDb/photo downloads and changed DPI
+  remain unverified. WinForms and storage implementation are unchanged. PLAN
+  remains user-owned and unchanged by this task. Next: user acceptance of Details.
+
 - 2026-10-06: Ariadna.Wpf 1.5.4 removes the startup splash window.
   Recovery and initial catalog preparation still precede the main window;
   remaining catalogs preload after its first render. Single-instance activation

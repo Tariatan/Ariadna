@@ -14,8 +14,9 @@ public sealed class FileInspectionTests
         // Act
         var result = await FileInspection.InspectAsync(file, true, NullLogger.Instance, CancellationToken.None);
         // Assert
-        StringAssert.Contains(result, "00:00:02");
-        StringAssert.Contains(result, "Duration:");
+        Assert.AreEqual(4, result.Metrics.Count);
+        Assert.AreEqual("00:00:02", result.Metrics.ElementAt(1).Value);
+        StringAssert.EndsWith(result.Metrics.Last().Value, "Mbps");
     }
 
     [TestMethod]
