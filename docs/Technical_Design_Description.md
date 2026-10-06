@@ -243,6 +243,9 @@ The approved WPF migration is implemented as a separate native frontend in
 `Ariadna.Wpf`, alongside the retained WinForms application for acceptance testing.
 The user designated Ariadna.Wpf as the default development target on 2026-10-04;
 new frontend work, builds, runs, and tests focus on WPF unless requested otherwise.
+WPF starts without a splash window. Recovery and the initial catalog query finish
+before the main window is shown; remaining catalogs preload after its first render.
+Startup errors retain the existing error dialog and unsuccessful exit code.
 The tabs row reserves space at its far right for the main application's assembly
 version (major.minor.patch), shown in semi-transparent black text. The label stays
 visible across catalog switches and does not participate in keyboard or mouse input.

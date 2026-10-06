@@ -31,6 +31,18 @@ Last updated: 2026-10-06. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-06: Ariadna.Wpf 1.5.4 removes the startup splash window.
+  Recovery and initial catalog preparation still precede the main window;
+  remaining catalogs preload after its first render. Single-instance activation
+  and startup error handling remain unchanged. WinForms is untouched.
+- Locked WPF-test restore, zero-warning/error Debug WPF and Release WPF-test
+  builds, and all 87 Release WPF tests passed. A native harness ran the real App
+  startup with disposable SQLite/assets: only MainWindow was observed (maximum
+  one WPF window), Movies and preloaded Games each showed eight synthetic entries,
+  and normal shutdown returned 0. A missing-catalog run displayed the existing
+  error dialog and returned 1 without a main/splash window. Both runs exited;
+  the harness suppressed personal placement saving and used no personal catalog.
+  PLAN remains unchanged. Next: user acceptance of normal splash-free startup.
 - 2026-10-06: Ariadna.Wpf 1.5.3 reserves a 36-DIP caption area with two
   18-DIP lines, wrapping long titles and retaining second-line ellipsis.
   Short titles stay centered. Poster height remains 380 DIPs; card/row height

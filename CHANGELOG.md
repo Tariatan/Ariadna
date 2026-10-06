@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.5.4] - 2026-10-06
+
+#### Removed
+
+- Remove the WPF startup splash window. Prepare the initial catalog before showing the main window, then preload the remaining catalogs; retain startup recovery and error handling.
+
 ### [1.5.3] - 2026-10-06
 
 #### Fixed

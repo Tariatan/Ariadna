@@ -35,6 +35,10 @@ placement. Invalid or off-desktop placement keeps the startup defaults.
 
 ## Browser and lifecycle
 
+WPF opens without a splash screen. Catalog recovery and the initially selected
+tab's query complete before showing the main window. The other tabs preload after
+the first render; startup failure still displays an error and exits unsuccessfully.
+
 The browser binds rows of poster cards to a recycling VirtualizingStackPanel.
 Each visible row contains a limited number of cards. Resizing changes the column
 count while retaining selection and anchoring the viewport. WPF item scrolling
