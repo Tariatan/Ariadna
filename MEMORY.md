@@ -31,6 +31,25 @@ Last updated: 2026-10-06. Scope: this repository only.
 
 ## Current evidence
 
+- 2026-10-06: Ariadna.Wpf 1.7.0 simplifies Details. Poster buttons, Ignore
+  checkbox, manual TMDb button and people-panel text fields/toolbars are removed.
+  Wishlist moves into the media footer. Shift changes Save to gold Ignore;
+  release or deactivation restores Save. Confirming Ignore uses the same existing
+  path registration as WinForms and does not save edits. Automatic TMDb lookup
+  for new Movies remains. People header `+` adds/selects New Entry; repeated
+  placeholders appear separately while existing storage rules consolidate equal
+  names on save. Portrait double-click, Ctrl+V and Delete remain available.
+- All 105 Release WPF tests passed, including Shift appearance/release,
+  ignore confirmation/cancel, repeated placeholders for Directors/Cast/Authors,
+  preserved existing photos/relationships and compact footer bounds. Native
+  synthetic checks covered all four layouts and confirmed header additions,
+  footer Wishlist and normal Save persistence. Native key-event evidence recorded Shift -> Ignore/Gold followed
+  by release -> Save/White; native Shift+Enter registered the synthetic path
+  in Ignore without saving entry changes. WinForms/storage and personal catalog
+  are untouched;
+  live API and changed-DPI acceptance remain unverified. PLAN remains user-owned.
+  Next: user acceptance of the simplified Details interactions.
+
 - 2026-10-06: Ariadna.Wpf 1.6.0 implements the approved Option A Details
   layout: large uncropped poster, scoped themed fields/buttons/checkboxes,
   legacy genre pictograms, editable portrait cards, full-width Library Authors,

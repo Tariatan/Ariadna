@@ -164,6 +164,8 @@ internal sealed class EntryEditorModel : ObservableObject
         }
     }
 
+    internal void AddPlaceholderPerson(bool actors) => (actors ? Actors : People).Add(new PersonEditorModel(new PersonPhoto("New Entry", null)));
+
     internal void AddPeople(string text, bool actors)
     {
         var target = actors ? Actors : People;

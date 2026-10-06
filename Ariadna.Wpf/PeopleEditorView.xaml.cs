@@ -11,30 +11,21 @@ public partial class PeopleEditorView : UserControl
     private EntryEditorModel? editor;
     private CatalogActions? actions;
     private bool actors;
-    private CancellationToken cancellationToken;
     public PeopleEditorView() => InitializeComponent();
-    internal void Configure(EntryEditorModel model, CatalogActions catalogActions, bool cast, CancellationToken lifetime)
+    internal void Configure(EntryEditorModel model, CatalogActions catalogActions, bool cast)
     {
         editor = model;
         actions = catalogActions;
         actors = cast;
-        cancellationToken = lifetime;
         People.ItemsSource = cast ? model.Actors : model.People;
-        DownloadButton.Visibility = model.IsMovie ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    internal void Commit()
-    {
-        if (Keyboard.FocusedElement is TextBox textBox && textBox.IsDescendantOf(this))
-        {
-            textBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-        }
+        PanelLabel.Text = cast ? "Cast" : model.PeopleLabel;
     }
 
     private void Add(object sender, RoutedEventArgs e)
     {
-        Run(() => editor!.AddPeople(NewName.Text, actors));
-        NewName.Clear();
+        editor!.AddPlaceholderPerson(actors);
+        People.SelectedItem = ((ObservableCollection<PersonEditorModel>)People.ItemsSource).Last();
+        People.ScrollIntoView(People.SelectedItem);
     }
 
     private void Paste(object sender, RoutedEventArgs e) => Run(() => editor!.AddPeople(Clipboard.GetText(), actors));
@@ -72,69 +63,16 @@ public partial class PeopleEditorView : UserControl
         }
     }
 
-    private async void DownloadPhoto(object sender, RoutedEventArgs e)
-    {
-        if (People.SelectedItem is not PersonEditorModel person)
-        {
-            return;
-        }
-
-        var name = person.Name;
-        var previous = person.Photo;
-        DownloadButton.IsEnabled = false;
-        try
-        {
-            using var service = new MetadataService(actions!.Configuration);
-            var photo = await service.PortraitAsync(name, cancellationToken);
-            if (photo != null && !cancellationToken.IsCancellationRequested && person.Name == name && person.Photo == previous)
-            {
-                person.SetPhoto(Images.Resize(photo, actions.Configuration.GetInt("PortraitWidth", 100), actions.Configuration.GetInt("PortraitHeight", 150)));
-            }
-        }
-        catch (OperationCanceledException)when (cancellationToken.IsCancellationRequested)
-        {
-        }
-        catch (Exception exception)
-        {
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                actions!.Report(Window.GetWindow(this), exception);
-            }
-        }
-        finally
-        {
-            DownloadButton.IsEnabled = true;
-        }
-    }
-
-    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => People.SelectedItem = ((FrameworkElement)sender).DataContext;
-
-    private void OnNewNameKeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter)
-        {
-            Add(sender, e);
-            e.Handled = true;
-        }
-    }
-
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.F2 && People.SelectedItem != null)
+        if (e.Key == Key.Delete)
         {
-            var container = People.ItemContainerGenerator.ContainerFromItem(People.SelectedItem);
-            if (container != null && CatalogView.FindChild<TextBox>(container) is { } name)
-            {
-                name.Focus();
-                name.SelectAll();
-            }
-
+            Remove(sender, e);
             e.Handled = true;
         }
 
         if (e.Key == Key.Enter)
         {
-            Commit();
             e.Handled = true;
         }
 

@@ -311,21 +311,28 @@ category (for example, Programming -> C++); stored subject tags are not added to
 the category dropdown. The details editor retains the combined category/subject
 tag list and custom stored tags. Storage and existing genre-query semantics are
 unchanged.
-The WPF Details editor reserves the left column for a large, uncropped poster
-and image actions. The right column scrolls independently and contains themed
-metadata fields, WinForms genre pictograms, wishlist, description and editable
-portrait cards. Directors and Cast remain separate for Movies; Library uses a
-full-width Authors section. Games retain VR, version and four preview slots;
-Documentaries omit people. Genre editing retains custom tags and existing limits.
+The WPF Details editor reserves the left column for a large, uncropped poster.
+Double-clicking the poster opens its image picker; there are no buttons below it.
+The right column scrolls independently and contains themed metadata fields,
+WinForms genre pictograms, description and portrait cards with name labels.
+Directors and Cast remain separate for Movies; Library uses a full-width Authors
+section. Each people section has a header `+` button adding a selected placeholder
+named New Entry. Repeated clicks add separate cards; existing storage rules
+consolidate identical names on save. People have no text fields or toolbars;
+photo double-click and Ctrl+V remain available, and Delete removes a selected card.
+Games retain VR, version and four preview slots; Documentaries omit people.
+Genre editing retains custom tags and existing limits.
 The fixed footer presents the editable path with a file/folder picker, separate
-size, duration, resolution and bitrate icons, and audio language flags plus labels.
-Media inspection runs asynchronously; stale path results and results after close
-are discarded. Non-video entries show size only. Unknown languages retain their
-names with a generic icon. Footer groups wrap when space is limited. Ignore path
-is applied on Save instead of saving the entry; Cancel discards the choice.
-Shift+Enter still ignores immediately. F2 selects a portrait's name for editing;
-Enter commits the name without saving the dialog. Existing image, people, genre,
-TMDb and transactional save workflows remain available.
+size, duration, resolution and bitrate icons, audio language flags plus labels,
+and Wishlist. Media inspection runs asynchronously; stale path results and
+results after close are discarded. Non-video entries show size only. Unknown
+languages retain their names with a generic icon. Footer groups wrap when space
+is limited. Holding either Shift key changes Save to Ignore with gold text.
+Shift release or window deactivation restores Save; confirming Ignore registers
+the path without saving entry changes. Shift+Enter uses the same ignore workflow.
+The manual TMDb button is removed; automatic lookup for newly discovered Movies
+with a configured API key remains. Transactional saves retain existing metadata,
+relationships and image behavior.
 It uses the same direct SQLite storage, schema, IDs and image files. XAML and
 observable models replace the shell, browser and editor controls; no WinForms
 controls are hosted. Row virtualization, asynchronous bounded thumbnail caching,

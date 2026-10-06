@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Ariadna.Storage;
 using Microsoft.Win32;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,7 @@ public partial class EntryDetailsWindow : Window
     private readonly CancellationTokenSource lifetime = new();
     private bool closed;
     private bool saving;
+    private bool shiftPressed;
     private int selectedPreview = 1;
     private string? inspectedPath;
     private int inspectionRevision;
@@ -24,8 +26,8 @@ public partial class EntryDetailsWindow : Window
         editor = new EntryEditorModel(actions, kind, path);
         InitializeComponent();
         DataContext = editor;
-        PeopleEditor.Configure(editor, actions, false, lifetime.Token);
-        CastEditor.Configure(editor, actions, true, lifetime.Token);
+        PeopleEditor.Configure(editor, actions, false);
+        CastEditor.Configure(editor, actions, true);
         SelectedPreview.Source = editor.Previews[0];
         if (!editor.IsMovie)
         {
@@ -112,7 +114,7 @@ public partial class EntryDetailsWindow : Window
 
     private void Save(object sender, RoutedEventArgs e)
     {
-        if (IgnorePath.IsChecked == true || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+        if (shiftPressed || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
         {
             Ignore(sender, e);
             return;
@@ -127,8 +129,6 @@ public partial class EntryDetailsWindow : Window
         SaveButton.IsEnabled = false;
         try
         {
-            PeopleEditor.Commit();
-            CastEditor.Commit();
             editor.Save();
             DialogResult = true;
         }
@@ -158,6 +158,7 @@ public partial class EntryDetailsWindow : Window
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
+        UpdateSaveAction(e.Key is Key.LeftShift or Key.RightShift || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
         if (e.Key == Key.Enter && e.OriginalSource is not TextBox { AcceptsReturn: true } && !HasAncestor<PeopleEditorView>(e.OriginalSource as DependencyObject) && !HasAncestor<ComboBox>(e.OriginalSource as DependencyObject))
         {
             if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
@@ -170,6 +171,19 @@ public partial class EntryDetailsWindow : Window
             }
 
             e.Handled = true;
+        }
+    }
+
+    private void OnKeyUp(object sender, KeyEventArgs e) => UpdateSaveAction(Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
+    private void OnActivated(object? sender, EventArgs e) => UpdateSaveAction(Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
+    private void OnDeactivated(object? sender, EventArgs e) => UpdateSaveAction(false);
+    private void UpdateSaveAction(bool ignore)
+    {
+        shiftPressed = ignore;
+        if (SaveButton != null)
+        {
+            SaveButton.Content = ignore ? "Ignore" : "Save";
+            SaveButton.Foreground = ignore ? Brushes.Gold : Brushes.White;
         }
     }
 
@@ -253,10 +267,8 @@ public partial class EntryDetailsWindow : Window
             editor.AddGenre(genre);
         }
     });
-    private async void FindMetadata(object sender, RoutedEventArgs e) => await FindMetadataAsync(lifetime.Token);
     private async Task FindMetadataAsync(CancellationToken cancellationToken)
     {
-        MetadataButton.IsEnabled = false;
         var revision = editor.Revision;
         try
         {
@@ -282,10 +294,6 @@ public partial class EntryDetailsWindow : Window
             {
                 actions.Report(this, exception);
             }
-        }
-        finally
-        {
-            MetadataButton.IsEnabled = true;
         }
     }
 

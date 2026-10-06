@@ -3,14 +3,10 @@
         <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="DetailsStyles.xaml" /></ResourceDictionary.MergedDictionaries>
     </ResourceDictionary></UserControl.Resources>
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top">
-            <TextBox x:Name="NewName" ToolTip="Person name" Margin="0,0,0,4" FontSize="13" KeyDown="OnNewNameKeyDown" />
-            <WrapPanel>
-                <WrapPanel.Resources><Style TargetType="Button" BasedOn="{StaticResource DetailsButton}"><Setter Property="Padding" Value="7,5" /><Setter Property="FontSize" Value="12" /></Style></WrapPanel.Resources>
-                <Button Content="Add" Click="Add" /><Button Content="Paste" Click="Paste" /><Button Content="Remove" Click="Remove" />
-                <Button Content="Photo…" Click="ReplacePhoto" /><Button x:Name="DownloadButton" Content="Find photo" Click="DownloadPhoto" />
-            </WrapPanel>
-        </StackPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <Button x:Name="AddButton" DockPanel.Dock="Right" Content="+" Click="Add" ToolTip="Add New Entry" FontSize="22" Padding="7,0" Margin="8,0,0,0" />
+            <TextBlock x:Name="PanelLabel" FontSize="18" VerticalAlignment="Center" />
+        </DockPanel>
         <ListBox x:Name="People" Background="Transparent" BorderThickness="0" Foreground="White" Height="230"
                  SelectionMode="Single" ItemContainerStyle="{DynamicResource PortraitItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewKeyDown="OnKeyDown">
             <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
@@ -19,8 +15,7 @@
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="♙" FontSize="48" TextAlignment="Center" Foreground="#80FFFFFF" /><TextBlock Text="No photo" FontSize="12" Foreground="#A0FFFFFF" /></StackPanel>
                     <Image Source="{Binding Portrait}" Stretch="Uniform" />
                 </Grid>
-                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" Padding="2"
-                         Margin="0,6,0,0" BorderThickness="0" Background="Transparent" ToolTip="Edit name" GotKeyboardFocus="OnNameFocus" />
+                <TextBlock Text="{Binding Name}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" Margin="0,6,0,0" />
             </StackPanel></DataTemplate></ListBox.ItemTemplate>
         </ListBox>
     </DockPanel>

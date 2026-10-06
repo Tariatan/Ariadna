@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using System.Windows.Input;
+using System.Windows.Media;
 using Ariadna.Storage;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,15 +13,18 @@ public sealed class EntryDetailsWindowTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public async Task Save_CheckedIgnorePath_AppliesOnlyOnConfirmation(bool confirm) => await WpfThread.RunAsync(() =>
+    public async Task Save_ShiftPressed_IgnoresOnlyOnConfirmation(bool confirm) => await WpfThread.RunAsync(() =>
     {
         // Arrange
         using var fixture = new CatalogFixture();
         var path = System.IO.Path.Combine(fixture.Root, "new-media.mkv");
         var window = new EntryDetailsWindow(fixture.Actions, CatalogKind.Movie, path);
-        ((CheckBox)window.FindName("IgnorePath")).IsChecked = true;
         window.Loaded += (_, _) => window.Dispatcher.BeginInvoke(() =>
         {
+            window.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(window), 0, Key.LeftShift) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+            var save = (Button)window.FindName("SaveButton");
+            Assert.AreEqual("Ignore", save.Content);
+            Assert.AreEqual(Colors.Gold, ((SolidColorBrush)save.Foreground).Color);
             if (confirm)
             {
                 ((Button)window.FindName("SaveButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -54,7 +59,7 @@ public sealed class EntryDetailsWindowTests
             // Act
             window.UpdateLayout();
             // Assert
-            foreach (var name in new[] { "MediaPath", "FileMetrics", "AudioLanguages", "IgnorePath", "SaveButton" })
+            foreach (var name in new[] { "MediaPath", "FileMetrics", "AudioLanguages", "Wishlist", "SaveButton" })
             {
                 var control = (FrameworkElement)window.FindName(name);
                 var point = control.TranslatePoint(new Point(), window);
@@ -62,6 +67,33 @@ public sealed class EntryDetailsWindowTests
                 Assert.IsTrue(point.X + control.ActualWidth <= window.ActualWidth, name);
                 Assert.IsTrue(point.Y + control.ActualHeight <= window.ActualHeight, name);
             }
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
+    public async Task OnKeyUp_ShiftReleased_RestoresSaveAppearance() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Movie, "Shift release");
+        var window = new EntryDetailsWindow(fixture.Actions, CatalogKind.Movie, entry.Path);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var source = PresentationSource.FromVisual(window);
+            var save = (Button)window.FindName("SaveButton");
+            window.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, Key.RightShift) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+            Assert.AreEqual("Ignore", save.Content);
+            // Act
+            window.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, Key.RightShift) { RoutedEvent = Keyboard.PreviewKeyUpEvent });
+            // Assert
+            Assert.AreEqual("Save", save.Content);
+            Assert.AreEqual(Colors.White, ((SolidColorBrush)save.Foreground).Color);
         }
         finally
         {
