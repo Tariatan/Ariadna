@@ -116,4 +116,59 @@ public sealed class EntryDetailsWindowTests
         }
     });
 
+    [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Documentary)]
+    [DataRow(CatalogKind.Library)]
+    public async Task ToggleGenrePicker_ChooseAndDelete_PreservesMetadataAndGenreLimit(CatalogKind kind) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(kind, "Genre picker target");
+        fixture.Store.Save(kind, new CatalogDetails(entry, ["Custom genre"], [], []));
+        var window = new EntryDetailsWindow(fixture.Actions, kind, entry.Path);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var picker = (System.Windows.Controls.Primitives.Popup)window.FindName("GenrePicker");
+            var choices = (ListBox)window.FindName("GenreChoices");
+            var selected = (ListBox)window.FindName("GenreList");
+            var button = (Button)window.FindName("GenrePickerButton");
+            var model = (EntryEditorModel)window.DataContext;
+            // Act
+            button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            Assert.IsTrue(picker.IsOpen);
+            Assert.IsFalse(choices.Items.Contains("Custom genre"));
+            var chosen = (string)choices.Items[0];
+            choices.SelectedItem = chosen;
+            choices.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(choices), 0, Key.Enter) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+            Assert.IsFalse(picker.IsOpen);
+            Assert.IsTrue(model.Genres.Contains(chosen));
+            selected.SelectedItem = chosen;
+            selected.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(window), 0, Key.Delete) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+            button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            choices.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(choices), 0, Key.Escape) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+            Assert.IsFalse(picker.IsOpen);
+            model.AddGenre("Second custom");
+            model.AddGenre("Third custom");
+            model.AddGenre("Fourth custom");
+            button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            model.Save();
+            // Assert
+            Assert.IsFalse(picker.IsOpen);
+            Assert.IsFalse(model.Genres.Contains(chosen));
+            Assert.AreEqual(4, model.Genres.Count);
+            var saved = fixture.Store.GetDetails(kind, entry.Id)!;
+            Assert.AreEqual(entry.Title, saved.Entry.Title);
+            CollectionAssert.AreEqual(model.Genres.ToArray(), saved.Genres.ToArray());
+            Assert.IsNull(window.FindName("GenreName"));
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
 }

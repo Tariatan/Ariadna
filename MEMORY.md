@@ -4,6 +4,19 @@ Last updated: 2026-10-06. Scope: this repository only.
 
 ## Durable context
 
+- 2026-10-06: WPF 1.9.1 orders shared people-header buttons as Paste (`↓`),
+  then Add (`+`). Native Movie preview checked Directors and Cast; six focused
+  people-editor tests passed. Release build and git diff --check passed.
+
+- 2026-10-06: WPF 1.9.0 replaces Edit genres with right-aligned header paste and
+  floating icon-picker buttons. Selected genres are excluded from choices;
+  double-click or Enter adds one, Escape/outside click dismisses, and Delete
+  removes selected genres. Stored custom tags and the existing genre cap remain.
+  Native synthetic Movie checks verified mouse selection, keyboard confirmation,
+  removal and dismissal. Four-catalog tests cover picker filtering, persistence,
+  Escape and the cap. Release WPF tests: 113 passed; git diff --check passed.
+  Personal catalog and changed-DPI checks remain open.
+
 - 2026-10-06: WPF 1.8.2 anchors Wishlist, Cancel and Save to the Details footer's
   right edge; track information stays left-aligned and wraps in its reserved
   column. Native synthetic preview verified alignment and Cancel. Release WPF

@@ -319,12 +319,17 @@ Directors and Cast remain separate for Movies; Library uses a full-width Authors
 section. Details is owned by the main window and has no separate taskbar entry.
 Each people section has a header `↓` button to paste clipboard names, normalize
 word initials as in WinForms, skip duplicates and reuse stored portraits.
-Each people section has a header `+` button adding a selected placeholder
+Each people header orders the buttons `↓`, then `+`. The `+` button adds a selected placeholder
 named New Entry. Repeated clicks add separate cards; existing storage rules
 consolidate identical names on save. People have no text fields or toolbars;
 photo double-click and Ctrl+V remain available, and Delete removes a selected card.
 Games retain VR, version and four preview slots; Documentaries omit people.
-Genre editing retains custom tags and existing limits.
+The Genres header has right-aligned clipboard `↓` and picker `...` buttons.
+The old Edit genres section is removed. The floating icon picker opens beneath
+selected genres, excludes already selected tags and confirms on double-click or
+Enter. Escape or clicking outside dismisses it. Delete removes a selected genre;
+Ctrl+V pastes names. Genre editing retains stored custom tags, clipboard input
+and existing limits.
 The fixed footer presents the editable path with a file/folder picker, separate
 size, duration, resolution and bitrate icons, audio language flags with name
 tooltips,

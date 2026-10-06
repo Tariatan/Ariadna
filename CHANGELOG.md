@@ -13,6 +13,18 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.9.1] - 2026-10-06
+
+#### Changed
+
+- Place the clipboard paste button before Add in Details people headers.
+
+### [1.9.0] - 2026-10-06
+
+#### Changed
+
+- Replace Details' Edit genres section with header paste and picker buttons. The floating icon picker hides selected genres and confirms on double-click or Enter; Delete removes selected genres.
+
 ### [1.8.2] - 2026-10-06
 
 #### Changed

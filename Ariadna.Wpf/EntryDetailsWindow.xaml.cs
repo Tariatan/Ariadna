@@ -158,6 +158,23 @@ public partial class EntryDetailsWindow : Window
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
+        if (GenrePicker.IsOpen && (e.Key is Key.Enter or Key.Escape))
+        {
+            OnGenrePickerKeyDown(sender, e);
+            return;
+        }
+
+        if (e.Key == Key.Enter && (Keyboard.FocusedElement == GenrePickerButton || Keyboard.FocusedElement == PasteGenresButton))
+        {
+            return;
+        }
+
+        if (HasAncestor<ListBox>(e.OriginalSource as DependencyObject) && e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            return;
+        }
+
         UpdateSaveAction(e.Key is Key.LeftShift or Key.RightShift || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
         if (e.Key == Key.Enter && e.OriginalSource is not TextBox { AcceptsReturn: true } && !HasAncestor<PeopleEditorView>(e.OriginalSource as DependencyObject) && !HasAncestor<ComboBox>(e.OriginalSource as DependencyObject))
         {
@@ -251,7 +268,74 @@ public partial class EntryDetailsWindow : Window
 
     private string ImageSuffix(Button button) => (string)button.Tag == string.Empty ? string.Empty : actions.Configuration.PreviewSuffix(int.Parse((string)button.Tag, CultureInfo.InvariantCulture));
     private void UpdatePreview() => SelectedPreview.Source = editor.Previews[selectedPreview - 1];
-    private void AddGenre(object sender, RoutedEventArgs e) => editor.AddGenre(GenreName.Text);
+    private void ToggleGenrePicker(object sender, RoutedEventArgs e)
+    {
+        if (GenrePicker.IsOpen)
+        {
+            GenrePicker.IsOpen = false;
+            return;
+        }
+
+        if (editor.Genres.Count >= actions.Configuration.GetInt("MaxGenresCount", 4))
+        {
+            return;
+        }
+
+        GenreChoices.ItemsSource = editor.AvailableGenres.Where(name => !editor.Genres.Contains(name, StringComparer.OrdinalIgnoreCase)).ToArray();
+        GenrePicker.IsOpen = true;
+        GenreChoices.SelectedIndex = 0;
+        GenreChoices.Focus();
+    }
+
+    private void ConfirmGenreChoice(object sender, RoutedEventArgs e)
+    {
+        if (GenreChoices.SelectedItem is string genre)
+        {
+            editor.AddGenre(genre);
+            GenrePicker.IsOpen = false;
+            e.Handled = true;
+        }
+    }
+
+    private void OnGenrePickerKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            ConfirmGenreChoice(sender, e);
+        }
+        else if (e.Key == Key.Escape)
+        {
+            GenrePicker.IsOpen = false;
+            e.Handled = true;
+        }
+    }
+
+    private void OnGenrePickerClosed(object sender, EventArgs e)
+    {
+        if (!closed)
+        {
+            GenreList.Focus();
+        }
+    }
+
+    private void OnGenresKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete)
+        {
+            RemoveGenre(sender, e);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.V && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        {
+            PasteGenres(sender, e);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+        }
+    }
+
     private void RemoveGenre(object sender, RoutedEventArgs e)
     {
         if (GenreList.SelectedItem is string genre)
@@ -363,6 +447,7 @@ public partial class EntryDetailsWindow : Window
     private void OnClosed(object? sender, EventArgs e)
     {
         closed = true;
+        GenrePicker.IsOpen = false;
         lifetime.Cancel();
         lifetime.Dispose();
     }

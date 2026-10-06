@@ -5,6 +5,12 @@
     <Window.Resources><ResourceDictionary>
         <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="DetailsStyles.xaml" /></ResourceDictionary.MergedDictionaries>
         <local:GenreIconConverter x:Key="GenreIcon" />
+        <DataTemplate x:Key="GenreCard">
+            <StackPanel Width="86">
+                <Border Background="White" CornerRadius="4" Width="62" Height="62" Padding="4"><Image Source="{Binding Converter={StaticResource GenreIcon}}" Stretch="Uniform" /></Border>
+                <TextBlock Text="{Binding}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" Margin="0,5,0,0" />
+            </StackPanel>
+        </DataTemplate>
     </ResourceDictionary></Window.Resources>
     <DockPanel Margin="16">
         <StackPanel DockPanel.Dock="Bottom" Margin="0,14,0,0">
@@ -64,26 +70,31 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="110" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,12,0"><Label Content="Year" /><TextBox Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
                         <StackPanel Grid.Column="1">
-                            <Label Content="Genres" />
+                            <DockPanel Margin="0,0,0,4">
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Button x:Name="PasteGenresButton" Content="↓" Click="PasteGenres" ToolTip="Paste genres from clipboard" FontSize="22" Padding="7,0" Margin="5,0,0,0" />
+                                    <Button x:Name="GenrePickerButton" Content="..." Click="ToggleGenrePicker" ToolTip="Choose genre" FontSize="22" Padding="7,0" Margin="5,0,0,0" />
+                                </StackPanel>
+                                <Label Content="Genres" VerticalAlignment="Center" />
+                            </DockPanel>
                             <ListBox x:Name="GenreList" ItemsSource="{Binding Genres}" Background="Transparent" BorderThickness="0" Foreground="White"
-                                     ItemContainerStyle="{StaticResource PortraitItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" MinHeight="90">
+                                     ItemContainerStyle="{StaticResource PortraitItem}" ItemTemplate="{StaticResource GenreCard}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" MinHeight="90" PreviewKeyDown="OnGenresKeyDown">
                                 <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
-                                <ListBox.ItemTemplate><DataTemplate><StackPanel Width="86">
-                                    <Border Background="White" CornerRadius="4" Width="62" Height="62" Padding="4"><Image Source="{Binding Converter={StaticResource GenreIcon}}" Stretch="Uniform" /></Border>
-                                    <TextBlock Text="{Binding}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" Margin="0,5,0,0" />
-                                </StackPanel></DataTemplate></ListBox.ItemTemplate>
                             </ListBox>
+                            <Popup x:Name="GenrePicker" PlacementTarget="{Binding ElementName=GenreList}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True" Closed="OnGenrePickerClosed">
+                                <Border Background="{Binding Theme.Background}" BorderBrush="#80FFFFFF" BorderThickness="1" Padding="8" Width="{Binding ActualWidth, ElementName=GenreList}">
+                                    <ListBox x:Name="GenreChoices" Background="Transparent" BorderThickness="0" Foreground="White" MaxHeight="450"
+                                             ItemContainerStyle="{StaticResource PortraitItem}" ItemTemplate="{StaticResource GenreCard}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             MouseDoubleClick="ConfirmGenreChoice" PreviewKeyDown="OnGenrePickerKeyDown">
+                                        <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
+                                    </ListBox>
+                                </Border>
+                            </Popup>
                         </StackPanel>
                         <StackPanel Grid.Column="2" VerticalAlignment="Center">
                             <CheckBox Content="VR" IsChecked="{Binding Vr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
                         </StackPanel>
                     </Grid>
-                    <Expander Header="Edit genres" Foreground="White" Margin="0,0,0,12">
-                        <WrapPanel Margin="0,8,0,0">
-                            <ComboBox x:Name="GenreName" ItemsSource="{Binding AvailableGenres}" IsEditable="True" Width="180" />
-                            <Button Content="Add" Click="AddGenre" /><Button Content="Paste" Click="PasteGenres" /><Button Content="Remove selected" Click="RemoveGenre" />
-                        </WrapPanel>
-                    </Expander>
                     <DockPanel Margin="0,0,0,6">
                         <Label Content="Description" VerticalAlignment="Bottom" Visibility="{Binding HasDescription, Converter={StaticResource Visibility}}" />
                     </DockPanel>
