@@ -1,4 +1,5 @@
 using System.IO;
+using MediaInfo;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -16,7 +17,8 @@ public sealed class FileInspectionTests
         // Assert
         Assert.AreEqual(4, result.Metrics.Count);
         Assert.AreEqual("00:00:02", result.Metrics.ElementAt(1).Value);
-        StringAssert.EndsWith(result.Metrics.Last().Value, "Mbps");
+        var info = new MediaInfoWrapper(file, NullLogger.Instance);
+        Assert.AreEqual($"{info.VideoRate / 1000000d:N0} Mbps", result.Metrics.Last().Value);
     }
 
     [TestMethod]

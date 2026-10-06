@@ -13,6 +13,22 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.8.2] - 2026-10-06
+
+#### Changed
+
+- Align Wishlist, Cancel and Save to the Details footer's right edge while keeping media information on the left.
+
+### [1.8.1] - 2026-10-06
+
+#### Fixed
+
+- Correct the Details bitrate conversion to Mbps and round to whole numbers.
+
+#### Changed
+
+- Show audio track flags without text; retain language names in tooltips.
+
 ### [1.8.0] - 2026-10-06
 
 #### Added

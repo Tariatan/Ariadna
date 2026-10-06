@@ -326,12 +326,16 @@ photo double-click and Ctrl+V remain available, and Delete removes a selected ca
 Games retain VR, version and four preview slots; Documentaries omit people.
 Genre editing retains custom tags and existing limits.
 The fixed footer presents the editable path with a file/folder picker, separate
-size, duration, resolution and bitrate icons, audio language flags plus labels,
-and Wishlist followed by Cancel and Save in the same footer group. Details
+size, duration, resolution and bitrate icons, audio language flags with name
+tooltips,
+and Wishlist followed by Cancel and Save in a group anchored to the footer's
+right edge. Media information stays left-aligned and wraps within its available
+space without overlapping the action group. Details
 scrollbars share the main window's rounded white thumb and unobtrusive track,
 with normal continuous pixel scrolling. Media inspection runs asynchronously;
 stale path results and results after close are discarded. Non-video entries show size only. Unknown
-languages retain their names with a generic icon. Footer groups wrap when space
+languages retain their names in tooltips with a generic icon. Bitrate converts
+bits per second to whole-number Mbps. Footer groups wrap when space
 is limited. Holding either Shift key changes Save to Ignore with gold text.
 Shift release or window deactivation restores Save; confirming Ignore registers
 the path without saving entry changes. Shift+Enter uses the same ignore workflow.

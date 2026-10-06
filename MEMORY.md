@@ -4,6 +4,18 @@ Last updated: 2026-10-06. Scope: this repository only.
 
 ## Durable context
 
+- 2026-10-06: WPF 1.8.2 anchors Wishlist, Cancel and Save to the Details footer's
+  right edge; track information stays left-aligned and wraps in its reserved
+  column. Native synthetic preview verified alignment and Cancel. Release WPF
+  tests: 109 passed, including 1000x640 and 1400x950 footer alignment checks;
+  git diff --check passed. Personal catalog and changed-DPI checks remain open.
+
+- 2026-10-06: WPF 1.8.1 corrects bitrate from bits/second to whole-number Mbps
+  (divide by 1,000,000) and makes footer track languages flag-only with names
+  in tooltips. Native synthetic footer preview checked; the bundled video test
+  verifies actual MediaInfo conversion. Release WPF tests: 108 passed;
+  git diff --check passed. Personal media was not inspected.
+
 - 2026-10-06: WPF 1.8.0 keeps Details off the taskbar, groups Cancel and Save
   beside Wishlist in the media footer, and adds header clipboard-paste arrows
   to Directors, Cast and Authors. Names capitalize word initials, deduplicate

@@ -9,7 +9,9 @@
     <DockPanel Margin="16">
         <StackPanel DockPanel.Dock="Bottom" Margin="0,14,0,0">
             <Border BorderBrush="#40FFFFFF" BorderThickness="0,1,0,0" Padding="0,10,0,0">
-                <WrapPanel VerticalAlignment="Center">
+                <Grid x:Name="FooterBar">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <WrapPanel VerticalAlignment="Center">
                     <Border BorderBrush="#60FFFFFF" BorderThickness="1" CornerRadius="5" Margin="0,0,12,8">
                         <Grid Width="340">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>
@@ -31,19 +33,19 @@
                         <ItemsControl x:Name="AudioLanguages">
                             <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate><DataTemplate><StackPanel Orientation="Horizontal" Margin="0,0,16,0" ToolTip="{Binding Name}">
-                                <Image Source="{Binding Icon}" Width="30" Height="21" Stretch="Uniform" Margin="0,0,9,0" />
-                                <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center" />
+                                <Image Source="{Binding Icon}" Width="30" Height="21" Stretch="Uniform" />
                             </StackPanel></DataTemplate></ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Border>
-                    <Border BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="12,0,0,0" Margin="0,0,0,8" VerticalAlignment="Center">
+                    </WrapPanel>
+                    <Border Grid.Column="1" BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="12,0,0,0" Margin="0,0,0,8" VerticalAlignment="Center" HorizontalAlignment="Right">
                         <StackPanel Orientation="Horizontal">
                             <CheckBox x:Name="Wishlist" Content="Wishlist" IsChecked="{Binding Wanted}" Margin="0,0,12,0" />
                             <Button x:Name="CancelButton" Content="Cancel" IsCancel="True" />
                             <Button x:Name="SaveButton" Content="Save" Click="Save" MinWidth="100" Background="#FF7931AA" BorderBrush="#FFA95AD0" />
                         </StackPanel>
                     </Border>
-                </WrapPanel>
+                </Grid>
             </Border>
         </StackPanel>
         <Grid>

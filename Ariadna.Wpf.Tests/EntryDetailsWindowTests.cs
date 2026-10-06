@@ -44,12 +44,14 @@ public sealed class EntryDetailsWindowTests
     });
 
     [TestMethod]
-    public async Task Layout_MinimumWindowSize_KeepsFooterInsideClientArea() => await WpfThread.RunAsync(async () =>
+    [DataRow(1000d, 640d)]
+    [DataRow(1400d, 950d)]
+    public async Task Layout_WindowSize_KeepsInformationLeftAndActionsRight(double width, double height) => await WpfThread.RunAsync(async () =>
     {
         // Arrange
         using var fixture = new CatalogFixture();
         var entry = fixture.Add(CatalogKind.Movie, "Minimum layout");
-        var window = new EntryDetailsWindow(fixture.Actions, CatalogKind.Movie, entry.Path) { Width = 1000, Height = 640 };
+        var window = new EntryDetailsWindow(fixture.Actions, CatalogKind.Movie, entry.Path) { Width = width, Height = height };
         try
         {
             window.Show();
@@ -60,6 +62,11 @@ public sealed class EntryDetailsWindowTests
             window.UpdateLayout();
             // Assert
             Assert.IsFalse(window.ShowInTaskbar);
+            var footer = (FrameworkElement)window.FindName("FooterBar");
+            var save = (FrameworkElement)window.FindName("SaveButton");
+            var path = (FrameworkElement)window.FindName("MediaPath");
+            Assert.AreEqual(footer.ActualWidth - 3, save.TranslatePoint(new Point(save.ActualWidth, 0), footer).X, 1);
+            Assert.AreEqual(1, path.TranslatePoint(new Point(), footer).X, 1);
             var wishlist = (FrameworkElement)window.FindName("Wishlist");
             foreach (var buttonName in new[] { "CancelButton", "SaveButton" })
             {

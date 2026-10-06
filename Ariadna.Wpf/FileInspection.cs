@@ -43,7 +43,7 @@ internal static class FileInspection
                 var resolution = $"{info.Width}×{info.Height}";
                 metrics.Add(new MediaMetric(duration, MediaMetric.ClockIcon));
                 metrics.Add(new MediaMetric(resolution, MediaMetric.ScreenIcon));
-                metrics.Add(new MediaMetric($"{info.VideoRate / 1000d:N1} Mbps", MediaMetric.BitrateIcon));
+                metrics.Add(new MediaMetric($"{info.VideoRate / 1000000d:N0} Mbps", MediaMetric.BitrateIcon));
                 languages = info.AudioStreams.Select(stream => new AudioLanguage(string.IsNullOrWhiteSpace(stream.Language) ? "Unknown" : stream.Language)).ToArray();
             }
         }
