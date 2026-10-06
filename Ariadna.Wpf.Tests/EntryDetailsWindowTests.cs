@@ -59,7 +59,15 @@ public sealed class EntryDetailsWindowTests
             // Act
             window.UpdateLayout();
             // Assert
-            foreach (var name in new[] { "MediaPath", "FileMetrics", "AudioLanguages", "Wishlist", "SaveButton" })
+            Assert.IsFalse(window.ShowInTaskbar);
+            var wishlist = (FrameworkElement)window.FindName("Wishlist");
+            foreach (var buttonName in new[] { "CancelButton", "SaveButton" })
+            {
+                var button = (FrameworkElement)window.FindName(buttonName);
+                Assert.AreEqual(wishlist.TranslatePoint(new Point(0, wishlist.ActualHeight / 2), window).Y,
+                    button.TranslatePoint(new Point(0, button.ActualHeight / 2), window).Y, 1, buttonName);
+            }
+            foreach (var name in new[] { "MediaPath", "FileMetrics", "AudioLanguages", "Wishlist", "CancelButton", "SaveButton" })
             {
                 var control = (FrameworkElement)window.FindName(name);
                 var point = control.TranslatePoint(new Point(), window);

@@ -169,9 +169,10 @@ internal sealed class EntryEditorModel : ObservableObject
     internal void AddPeople(string text, bool actors)
     {
         var target = actors ? Actors : People;
-        foreach (var name in text.Split(['\r', '\n', ';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (var value in text.Split(['\r', '\n', ';', ','], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            if (target.Any(person => person.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            var name = string.Join(" ", value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(word => char.ToUpper(word[0], CultureInfo.CurrentCulture) + word[1..]));
+            if (name == "↓" || target.Any(person => person.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
             {
                 continue;
             }

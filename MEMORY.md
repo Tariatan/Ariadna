@@ -4,6 +4,17 @@ Last updated: 2026-10-06. Scope: this repository only.
 
 ## Durable context
 
+- 2026-10-06: WPF 1.8.0 keeps Details off the taskbar, groups Cancel and Save
+  beside Wishlist in the media footer, and adds header clipboard-paste arrows
+  to Directors, Cast and Authors. Names capitalize word initials, deduplicate
+  and reuse role-specific stored portraits. Scoped Details scrollbars reuse the
+  poster thumb/page-button visuals with standard WPF pixel scrolling.
+  Native synthetic Movie preview verified footer placement, Add, thumb dragging
+  and Cancel. Automated coverage checks the minimum footer layout and paste
+  buttons for all three people roles. Release WPF tests: 108 passed;
+  git diff --check passed. Personal catalog and changed-DPI checks
+  were not performed. Next acceptance step: review these controls in daily use.
+
 - 2026-10-04: user designated Ariadna.Wpf as the default project for future work.
   Prefer its frontend and Ariadna.Wpf.Tests; leave the legacy WinForms Ariadna
   implementation unchanged unless explicitly requested. Shared storage changes

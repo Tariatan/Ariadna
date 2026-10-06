@@ -13,6 +13,16 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.8.0] - 2026-10-06
+
+#### Added
+
+- Add clipboard paste buttons to Details people sections with WinForms name capitalization, duplicate handling and stored portraits.
+
+#### Changed
+
+- Hide Details from the taskbar, place Cancel and Save beside Wishlist in the information bar, and share the main window's rounded white scrollbar appearance.
+
 ### [1.7.0] - 2026-10-06
 
 #### Changed

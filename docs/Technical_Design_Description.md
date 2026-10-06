@@ -316,7 +316,10 @@ Double-clicking the poster opens its image picker; there are no buttons below it
 The right column scrolls independently and contains themed metadata fields,
 WinForms genre pictograms, description and portrait cards with name labels.
 Directors and Cast remain separate for Movies; Library uses a full-width Authors
-section. Each people section has a header `+` button adding a selected placeholder
+section. Details is owned by the main window and has no separate taskbar entry.
+Each people section has a header `↓` button to paste clipboard names, normalize
+word initials as in WinForms, skip duplicates and reuse stored portraits.
+Each people section has a header `+` button adding a selected placeholder
 named New Entry. Repeated clicks add separate cards; existing storage rules
 consolidate identical names on save. People have no text fields or toolbars;
 photo double-click and Ctrl+V remain available, and Delete removes a selected card.
@@ -324,8 +327,10 @@ Games retain VR, version and four preview slots; Documentaries omit people.
 Genre editing retains custom tags and existing limits.
 The fixed footer presents the editable path with a file/folder picker, separate
 size, duration, resolution and bitrate icons, audio language flags plus labels,
-and Wishlist. Media inspection runs asynchronously; stale path results and
-results after close are discarded. Non-video entries show size only. Unknown
+and Wishlist followed by Cancel and Save in the same footer group. Details
+scrollbars share the main window's rounded white thumb and unobtrusive track,
+with normal continuous pixel scrolling. Media inspection runs asynchronously;
+stale path results and results after close are discarded. Non-video entries show size only. Unknown
 languages retain their names with a generic icon. Footer groups wrap when space
 is limited. Holding either Shift key changes Save to Ignore with gold text.
 Shift release or window deactivation restores Save; confirming Ignore registers

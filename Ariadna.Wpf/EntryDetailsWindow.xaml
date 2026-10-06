@@ -1,7 +1,7 @@
 <Window x:Class="Ariadna.Wpf.EntryDetailsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Ariadna.Wpf" Title="{Binding Caption}" Background="{Binding Theme.EditorBackground}" Foreground="White" FontSize="15"
-        Width="1400" Height="950" MinWidth="1000" MinHeight="640" WindowStartupLocation="CenterOwner" Loaded="OnLoaded" Closed="OnClosed" PreviewKeyDown="OnKeyDown" PreviewKeyUp="OnKeyUp" Activated="OnActivated" Deactivated="OnDeactivated">
+        Width="1400" Height="950" MinWidth="1000" MinHeight="640" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="OnLoaded" Closed="OnClosed" PreviewKeyDown="OnKeyDown" PreviewKeyUp="OnKeyUp" Activated="OnActivated" Deactivated="OnDeactivated">
     <Window.Resources><ResourceDictionary>
         <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="DetailsStyles.xaml" /></ResourceDictionary.MergedDictionaries>
         <local:GenreIconConverter x:Key="GenreIcon" />
@@ -37,13 +37,14 @@
                         </ItemsControl>
                     </Border>
                     <Border BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="12,0,0,0" Margin="0,0,0,8" VerticalAlignment="Center">
-                        <CheckBox x:Name="Wishlist" Content="Wishlist" IsChecked="{Binding Wanted}" Margin="0" />
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox x:Name="Wishlist" Content="Wishlist" IsChecked="{Binding Wanted}" Margin="0,0,12,0" />
+                            <Button x:Name="CancelButton" Content="Cancel" IsCancel="True" />
+                            <Button x:Name="SaveButton" Content="Save" Click="Save" MinWidth="100" Background="#FF7931AA" BorderBrush="#FFA95AD0" />
+                        </StackPanel>
                     </Border>
                 </WrapPanel>
             </Border>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Cancel" IsCancel="True" /><Button x:Name="SaveButton" Content="Save" Click="Save" MinWidth="100" Background="#FF7931AA" BorderBrush="#FFA95AD0" />
-            </StackPanel>
         </StackPanel>
         <Grid>
             <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="3.3*" /></Grid.ColumnDefinitions>

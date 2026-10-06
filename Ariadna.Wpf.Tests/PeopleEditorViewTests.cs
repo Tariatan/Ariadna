@@ -49,4 +49,48 @@ public sealed class PeopleEditorViewTests
             window.Close();
         }
     });
+    [TestMethod]
+    [DataRow(CatalogKind.Movie, false)]
+    [DataRow(CatalogKind.Movie, true)]
+    [DataRow(CatalogKind.Library, false)]
+    public async Task AddPeople_ClipboardNames_NormalizesAndReusesStoredPortraits(CatalogKind kind, bool actors) => await WpfThread.RunAsync(() =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var known = fixture.Add(kind, "Known person source");
+        var photo = EntryEditorModelTests.Png(Colors.SteelBlue);
+        var person = new PersonPhoto("Known Person", photo);
+        fixture.Store.Save(kind, new CatalogDetails(known, [], actors ? [] : [person], actors ? [person] : []));
+        var entry = fixture.Add(kind, "Paste target");
+        var window = new EntryDetailsWindow(fixture.Actions, kind, entry.Path);
+        var model = (EntryEditorModel)window.DataContext;
+        var view = (PeopleEditorView)window.FindName(actors ? "CastEditor" : "PeopleEditor");
+        // Act
+        var clipboard = Clipboard.GetDataObject();
+        try
+        {
+            Clipboard.SetText(" known   Person, new person, Known Person, , ↓");
+            ((Button)view.FindName("PasteButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        }
+        finally
+        {
+            if (clipboard is null)
+            {
+                Clipboard.Clear();
+            }
+            else
+            {
+                Clipboard.SetDataObject(clipboard, true);
+            }
+        }
+        model.Save();
+        var saved = fixture.Store.GetDetails(kind, entry.Id)!;
+        // Assert
+        Assert.AreEqual("↓", ((Button)view.FindName("PasteButton")).Content);
+        var people = actors ? saved.Actors : saved.Directors;
+        Assert.AreEqual(2, people.Count);
+        Assert.IsTrue(people.Any(item => item.Name == "New Person"));
+        CollectionAssert.AreEqual(photo, people.Single(item => item.Name == "Known Person").Photo!);
+        return Task.CompletedTask;
+    });
 }
