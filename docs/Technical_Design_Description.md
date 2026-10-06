@@ -261,6 +261,9 @@ Letters read left to right, then downward. Button rows stay compact at the top,
 leaving the catalog background below them. The sidebar scrolls independently
 when letters exceed the available height;
 letter clicks and keyboard activation retain the existing jump behavior.
+Poster titles reserve 36 DIPs for two 18-DIP lines, wrapping with an ellipsis
+when text exceeds two lines. Short titles remain centered in the same caption
+area; poster height stays 380 DIPs and each card's total height is 438 DIPs.
 Poster cards use square, one-DIP gray outlines and a vertical highlight gradient
 from translucent white to dark gray. Hover is subtler than selection. Selecting
 a card flashes its outline white three times over 420 ms, then leaves it gray;

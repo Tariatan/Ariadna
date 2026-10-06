@@ -1,6 +1,6 @@
 # Ariadna project memory
 
-Last updated: 2026-10-05. Scope: this repository only.
+Last updated: 2026-10-06. Scope: this repository only.
 
 ## Durable context
 
@@ -30,6 +30,16 @@ Last updated: 2026-10-05. Scope: this repository only.
   Repository rules, versioning, and context maintenance are in [AGENTS.md](AGENTS.md).
 
 ## Current evidence
+
+- 2026-10-06: Ariadna.Wpf 1.5.3 reserves a 36-DIP caption area with two
+  18-DIP lines, wrapping long titles and retaining second-line ellipsis.
+  Short titles stay centered. Poster height remains 380 DIPs; card/row height
+  becomes 438 DIPs. The existing navigation measures rendered row height.
+  Release build passed without warnings/errors; all 87 Release WPF tests passed.
+  An isolated native Release preview with disposable SQLite/posters confirmed
+  two-line English/Russian titles, ellipsis for an overflowing title, and Down
+  navigation with a 438-DIP row and the first visible row at viewport top.
+  Personal-catalog and changed-DPI acceptance remain unverified. PLAN unchanged.
 
 - 2026-10-05: Ariadna.Wpf 1.5.2 focuses PosterRows after startup/tab
   activation restores the catalog view. Unloaded views skip deferred activation

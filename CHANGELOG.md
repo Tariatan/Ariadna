@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.5.3] - 2026-10-06
+
+#### Fixed
+
+- Allow poster titles to wrap across two lines, with an ellipsis when longer titles still overflow. Reserve the same two-line caption height for every card, retaining poster size and row-aligned scrolling.
+
 ### [1.5.2] - 2026-10-05
 
 #### Fixed
