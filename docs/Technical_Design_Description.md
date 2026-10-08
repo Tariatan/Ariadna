@@ -162,7 +162,7 @@ differences are recorded in the operations guide.
 
 ## Configuration
 
-All paths and keys are set in `Ariadna/App.config`. Update these before building or running:
+All paths and keys are set in `Ariadna.Wpf/App.config` for WPF and `Ariadna/App.config` for WinForms. Update the relevant configuration before building or running:
 
 | Setting | Description |
 |---|---|

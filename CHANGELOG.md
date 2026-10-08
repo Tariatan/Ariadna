@@ -13,6 +13,13 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.9.2] - 2026-10-08
+
+#### Changed
+
+- Copy the application icon, mapped genre icons, audio language flags and fallback image into WPF-owned resources and embed them locally, removing resource links to the legacy project. Exclude unused legacy toolbar, collection and preview assets.
+- Give WPF its own App.config copied from the legacy configuration, preserving existing settings and removing the build dependency on the legacy configuration file.
+
 ### [1.9.1] - 2026-10-06
 
 #### Changed

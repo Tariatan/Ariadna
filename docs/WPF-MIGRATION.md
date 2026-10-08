@@ -21,7 +21,7 @@ relationships and their IDs instead of rebuilding them during a save.
 Configured game preview suffixes are retained; safe filename characters are
 validated before staging, with the existing `_preview` default for old callers.
 
-The build copies configuration from `Ariadna/App.config`. WPF reads application
+The build uses WPF-owned configuration from `Ariadna.Wpf/App.config`. WPF reads application
 settings and default user settings; it does not import the WinForms executable's
 separate per-user configuration file. `ARIADNA_CATALOG_PATH` and
 `ARIADNA_ASSET_ROOT` support disposable testing with the existing collection

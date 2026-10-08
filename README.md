@@ -54,7 +54,7 @@ to select Movies, Games, Library, or Documentaries directly, in visible tab orde
 - Windows 10+ (x64), .NET 10.0
 - .NET 10 SDK 10.0.401 or a newer 10.0.4xx patch for development; the self-contained Windows publish includes its runtime
 - A verified SQLite catalog and its matching image folders
-- Paths to your media folders and a [TMDb API key](https://developer.themoviedb.org/docs/getting-started) configured in `Ariadna/App.config`
+- Paths to your media folders and a [TMDb API key](https://developer.themoviedb.org/docs/getting-started) configured in `Ariadna.Wpf/App.config`
 
 ## Getting started
 
@@ -76,8 +76,8 @@ dotnet publish Ariadna/Ariadna.csproj -c Release -r win-x64 --self-contained tru
 
 For the WPF frontend, run the project-built executable
 `Ariadna.Wpf/bin/Debug/net10.0-windows8.0/Ariadna.Wpf.exe`, or select
-`Ariadna.Wpf` as the startup project. It uses configuration copied from
-`Ariadna/App.config` and the same disposable catalog/asset environment overrides.
+`Ariadna.Wpf` as the startup project. It uses its own configuration in
+`Ariadna.Wpf/App.config` and the same disposable catalog/asset environment overrides.
 Close WinForms before using WPF with the live catalog. Start write acceptance on
 a disposable matched copy; see the
 [WPF acceptance sequence](docs/WPF-MIGRATION.md#build-and-test).
