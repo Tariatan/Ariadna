@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.10.3] - 2026-10-08
+
+#### Fixed
+
+- Preserve the poster list's scroll position, selection and keyboard focus when pressing Escape.
+
 ### [1.10.2] - 2026-10-08
 
 #### Changed

@@ -648,6 +648,57 @@ public sealed class CatalogViewTests
         }
     });
 
+    [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies")]
+    [DataRow(CatalogKind.Game, "games")]
+    [DataRow(CatalogKind.Library, "library")]
+    [DataRow(CatalogKind.Documentary, "documentaries")]
+    public async Task OnGridKeyDown_EscapeAfterScrolling_PreservesViewportSelectionAndFocus(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        foreach (var index in Enumerable.Range(0, 40))
+        {
+            fixture.Add(kind, $"Entry {index:D2}");
+        }
+
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var grid = (ListBox)view.FindName("PosterRows");
+            var scroll = CatalogView.FindChild<ScrollViewer>(grid)!;
+            view.Model.Selected = view.Model.Entries[0];
+            grid.Focus();
+            scroll.ScrollToVerticalOffset(5);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var offset = scroll.VerticalOffset;
+            var selected = view.Model.Selected;
+            var focus = Keyboard.FocusedElement;
+            var escape = new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(grid), 0, Key.Escape)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            };
+
+            // Act
+            grid.RaiseEvent(escape);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.IsTrue(offset > 0);
+            Assert.IsTrue(escape.Handled);
+            Assert.AreEqual(offset, scroll.VerticalOffset, 0.01);
+            Assert.AreSame(selected, view.Model.Selected);
+            Assert.AreSame(focus, Keyboard.FocusedElement);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
     private static ComboBox Filter(CatalogView view, string property) => Descendants<ComboBox>(view)
         .Single(control => BindingOperations.GetBinding(control, ComboBox.TextProperty)?.Path.Path == property);
 

@@ -156,6 +156,13 @@ public partial class CatalogView : UserControl, IDisposable
 
     private void OnGridKeyDown(object sender, KeyEventArgs e)
     {
+        if (e.Key == Key.Escape)
+        {
+            // Prevent ListBox from restoring focus to an off-screen row.
+            e.Handled = true;
+            return;
+        }
+
         var rowHeight = PosterRowHeight;
         var page = Model.Columns * (rowHeight > 0 ? Math.Max(1, (int)(PosterRows.ActualHeight / rowHeight)) : 1);
         var delta = e.Key switch
