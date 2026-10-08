@@ -2,16 +2,19 @@
     <UserControl.Resources><ResourceDictionary>
         <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="DetailsStyles.xaml" /></ResourceDictionary.MergedDictionaries>
         <DataTemplate x:Key="AuthorName">
-            <TextBlock Text="{Binding Name}" TextWrapping="Wrap" FontSize="14" MaxWidth="280" />
+            <Grid MaxWidth="280">
+                <TextBlock Text="{Binding Name}" TextWrapping="Wrap" FontSize="14" MouseLeftButtonDown="OnNameDoubleClick" />
+                <TextBox Visibility="Collapsed" KeyDown="OnNameKeyDown" LostKeyboardFocus="OnNameLostFocus" />
+            </Grid>
         </DataTemplate>
     </ResourceDictionary></UserControl.Resources>
     <DockPanel>
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button x:Name="PasteButton" Content="↓" Click="Paste" ToolTip="Paste people from clipboard" FontSize="22" Padding="7,0" Margin="8,0,0,0" />
-                <Button x:Name="AddButton" Content="+" Click="Add" ToolTip="Add New Entry" FontSize="22" Padding="7,0" Margin="5,0,0,0" />
+                <Button x:Name="PasteButton" Content="↓" Click="Paste" ToolTip="Paste people from clipboard" FontSize="14" Padding="7,0" Margin="8,0,0,0" />
+                <Button x:Name="AddButton" Content="+" Click="Add" ToolTip="Add New Entry" FontSize="14" Padding="7,0" Margin="5,0,0,0" />
             </StackPanel>
-            <TextBlock x:Name="PanelLabel" FontSize="18" VerticalAlignment="Center" />
+            <TextBlock x:Name="PanelLabel" FontSize="14" VerticalAlignment="Center" />
         </DockPanel>
         <ListBox x:Name="People" Background="Transparent" BorderThickness="0" Foreground="White" Height="230"
                  SelectionMode="Single" ItemContainerStyle="{DynamicResource PortraitItem}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewKeyDown="OnKeyDown">
@@ -21,7 +24,10 @@
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="♙" FontSize="48" TextAlignment="Center" Foreground="#80FFFFFF" /><TextBlock Text="No photo" FontSize="12" Foreground="#A0FFFFFF" /></StackPanel>
                     <Image Source="{Binding Portrait}" Stretch="Uniform" />
                 </Grid>
-                <TextBlock Text="{Binding Name}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" Margin="0,6,0,0" />
+                <Grid Margin="0,6,0,0">
+                    <TextBlock Text="{Binding Name}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" MouseLeftButtonDown="OnNameDoubleClick" />
+                    <TextBox Visibility="Collapsed" KeyDown="OnNameKeyDown" LostKeyboardFocus="OnNameLostFocus" />
+                </Grid>
             </StackPanel></DataTemplate></ListBox.ItemTemplate>
         </ListBox>
     </DockPanel>

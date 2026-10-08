@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.10.0] - 2026-10-08
+
+#### Added
+
+- Edit director, cast and author names with F2 or a double-click on the name.
+
 ### [1.9.5] - 2026-10-08
 
 #### Fixed

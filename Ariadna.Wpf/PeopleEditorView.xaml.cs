@@ -69,8 +69,77 @@ public partial class PeopleEditorView : UserControl
         }
     }
 
+    private void OnNameDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            People.SelectedItem = ((FrameworkElement)sender).DataContext;
+            BeginRename();
+            e.Handled = true;
+        }
+    }
+
+    private void BeginRename()
+    {
+        if (People.SelectedItem is not PersonEditorModel person)
+        {
+            return;
+        }
+
+        People.ScrollIntoView(person);
+        People.UpdateLayout();
+        if (People.ItemContainerGenerator.ContainerFromItem(person) is ListBoxItem item &&
+            CatalogView.FindChild<TextBox>(item) is { } input)
+        {
+            input.Text = person.Name;
+            input.Visibility = Visibility.Visible;
+            ((Grid)input.Parent).Children.OfType<TextBlock>().Single().Visibility = Visibility.Collapsed;
+            input.Focus();
+            input.SelectAll();
+        }
+    }
+
+    private void FinishRename(TextBox input, bool commit)
+    {
+        if (input.Visibility != Visibility.Visible)
+        {
+            return;
+        }
+
+        if (commit && input.DataContext is PersonEditorModel person && !string.IsNullOrWhiteSpace(input.Text))
+        {
+            person.Name = input.Text.Trim();
+        }
+
+        input.Visibility = Visibility.Collapsed;
+        ((Grid)input.Parent).Children.OfType<TextBlock>().Single().Visibility = Visibility.Visible;
+    }
+
+    private void OnNameKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.Enter or Key.Escape)
+        {
+            FinishRename((TextBox)sender, e.Key == Key.Enter);
+            People.Focus();
+            e.Handled = true;
+        }
+    }
+
+    private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => FinishRename((TextBox)sender, true);
+
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
+        if (e.OriginalSource is TextBox)
+        {
+            return;
+        }
+
+        if (e.Key == Key.F2)
+        {
+            BeginRename();
+            e.Handled = true;
+        }
+
         if (e.Key == Key.Delete)
         {
             Remove(sender, e);

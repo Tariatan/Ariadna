@@ -175,6 +175,11 @@ public partial class EntryDetailsWindow : Window
             return;
         }
 
+        if (e.OriginalSource is TextBox && HasAncestor<PeopleEditorView>(e.OriginalSource as DependencyObject))
+        {
+            return;
+        }
+
         if (HasAncestor<ListBox>(e.OriginalSource as DependencyObject) && e.Key == Key.Enter)
         {
             e.Handled = true;
