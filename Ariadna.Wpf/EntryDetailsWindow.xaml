@@ -72,7 +72,7 @@
         <Grid>
             <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="3.3*" /></Grid.ColumnDefinitions>
             <Grid Margin="0,0,20,0">
-                <Grid Background="#10000000">
+                <Grid Background="#10000000" MouseDown="PosterDoubleClick">
                     <TextBlock Text="?" FontSize="256" AutomationProperties.Name="Missing poster" Foreground="#A0FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" >
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -85,7 +85,7 @@
                             </Style>
                         </TextBlock.Style>
                     </TextBlock>
-                    <Image x:Name="PosterImage" Source="{Binding Poster}" Stretch="Uniform" MouseDown="PosterDoubleClick" />
+                    <Image x:Name="PosterImage" Source="{Binding Poster}" Stretch="Uniform" />
                 </Grid>
             </Grid>
             <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">

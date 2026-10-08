@@ -54,7 +54,7 @@
         </Border.Style>
         <Grid ToolTip="{Binding Entry.Path}">
             <Grid.RowDefinitions><RowDefinition Height="380" /><RowDefinition Height="36" /></Grid.RowDefinitions>
-            <TextBlock Text="?" FontSize="48" AutomationProperties.Name="Missing poster" Foreground="#777777" VerticalAlignment="Center" HorizontalAlignment="Center" >
+            <TextBlock Text="?" FontSize="256" AutomationProperties.Name="Missing poster" Foreground="#777777" VerticalAlignment="Center" HorizontalAlignment="Center" >
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />
