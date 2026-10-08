@@ -9,3 +9,4 @@ Last updated: 2026-10-04.
     - copy resources...
     - double-click on `no poster`
 - edit fields
+- don't re-focus on Escape

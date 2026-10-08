@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.10.1] - 2026-10-08
+
+#### Fixed
+
+- Fix Library and Documentaries Details background.
+
 ### [1.10.0] - 2026-10-08
 
 #### Added

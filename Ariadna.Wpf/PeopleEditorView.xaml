@@ -3,7 +3,7 @@
         <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="DetailsStyles.xaml" /></ResourceDictionary.MergedDictionaries>
         <DataTemplate x:Key="AuthorName">
             <Grid MaxWidth="280">
-                <TextBlock Text="{Binding Name}" TextWrapping="Wrap" FontSize="14" MouseLeftButtonDown="OnNameDoubleClick" />
+                <TextBlock Text="{Binding Name}" TextWrapping="Wrap" FontSize="13" MouseLeftButtonDown="OnNameDoubleClick" />
                 <TextBox Visibility="Collapsed" KeyDown="OnNameKeyDown" LostKeyboardFocus="OnNameLostFocus" />
             </Grid>
         </DataTemplate>
@@ -24,7 +24,7 @@
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="♙" FontSize="48" TextAlignment="Center" Foreground="#80FFFFFF" /><TextBlock Text="No photo" FontSize="12" Foreground="#A0FFFFFF" /></StackPanel>
                     <Image Source="{Binding Portrait}" Stretch="Uniform" />
                 </Grid>
-                <Grid Margin="0,6,0,0">
+                <Grid Margin="0,2,0,0">
                     <TextBlock Text="{Binding Name}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" MouseLeftButtonDown="OnNameDoubleClick" />
                     <TextBox Visibility="Collapsed" KeyDown="OnNameKeyDown" LostKeyboardFocus="OnNameLostFocus" />
                 </Grid>
