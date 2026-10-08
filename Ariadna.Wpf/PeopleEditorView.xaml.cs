@@ -19,6 +19,12 @@ public partial class PeopleEditorView : UserControl
         actors = cast;
         People.ItemsSource = cast ? model.Actors : model.People;
         PanelLabel.Text = cast ? "Cast" : model.PeopleLabel;
+        if (model.Kind == Ariadna.Storage.CatalogKind.Library)
+        {
+            People.ItemTemplate = (DataTemplate)FindResource("AuthorName");
+            People.Height = double.NaN;
+            People.MaxHeight = 90;
+        }
     }
 
     private void Add(object sender, RoutedEventArgs e)

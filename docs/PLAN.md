@@ -6,7 +6,7 @@ Last updated: 2026-10-04.
 - redesign Details forms
     - genres panel bg
     - documentaries background
-    - copy resources
+    - copy resources...
     - no author posters in Library
     - double-click on `no poster`
 - edit fields

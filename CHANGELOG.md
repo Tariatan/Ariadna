@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.9.4] - 2026-10-08
+
+#### Changed
+
+- Show Library authors as compact name-only items and give the Description field more space, preserving stored author photos and existing author controls.
+
 ### [1.9.3] - 2026-10-08
 
 #### Fixed

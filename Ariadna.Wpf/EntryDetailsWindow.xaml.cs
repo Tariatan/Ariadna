@@ -30,6 +30,11 @@ public partial class EntryDetailsWindow : Window
         PeopleEditor.Configure(editor, actions, false);
         CastEditor.Configure(editor, actions, true);
         SelectedPreview.Source = editor.Previews[0];
+        if (kind == CatalogKind.Library)
+        {
+            DescriptionText.Height = 300;
+        }
+
         if (!editor.IsMovie)
         {
             PeopleColumn.Width = new GridLength(1, GridUnitType.Star);
