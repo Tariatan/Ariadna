@@ -17,9 +17,21 @@ public sealed class GenreIconConverterTests
         // Arrange
         var converter = new GenreIconConverter();
         // Act
-        var images = GenreCatalog.For(kind).Select(genre => new BitmapImage(new Uri((string)converter.Convert(genre, typeof(string), null!, CultureInfo.InvariantCulture)))).ToArray();
+        var images = GenreCatalog.For(kind).Select(genre => new BitmapImage(new Uri((string)converter.Convert(genre, typeof(string), null!, CultureInfo.InvariantCulture)!))).ToArray();
         // Assert
         Assert.IsTrue(images.All(image => image.PixelWidth > 0));
         return Task.CompletedTask;
     });
+    [TestMethod]
+    public void Convert_UnknownGenre_UsesGlyphFallback()
+    {
+        // Arrange
+        var converter = new GenreIconConverter();
+
+        // Act
+        var result = converter.Convert("Custom genre", typeof(string), null!, CultureInfo.InvariantCulture);
+
+        // Assert
+        Assert.IsNull(result);
+    }
 }

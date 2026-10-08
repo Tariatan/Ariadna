@@ -21,7 +21,18 @@
             <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
             <ListBox.ItemTemplate><DataTemplate><StackPanel Width="112">
                 <Grid Height="145" Background="#18000000" MouseDown="OnPhotoDoubleClick">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="♙" FontSize="48" TextAlignment="Center" Foreground="#80FFFFFF" /><TextBlock Text="No photo" FontSize="12" Foreground="#A0FFFFFF" /></StackPanel>
+                    <TextBlock Text="?" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#80FFFFFF" AutomationProperties.Name="Missing portrait" >
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Portrait}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                     <Image Source="{Binding Portrait}" Stretch="Uniform" />
                 </Grid>
                 <Grid Margin="0,2,0,0">

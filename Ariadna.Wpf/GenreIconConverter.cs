@@ -100,12 +100,12 @@ public sealed class GenreIconConverter : IValueConverter
         ["Meditate"] = "meditate",
     };
 
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         var name = value as string ?? string.Empty;
         return Icons.TryGetValue(name, out var icon)
             ? $"pack://application:,,,/Ariadna.Wpf;component/Resources/genres/{icon}.png"
-            : "pack://application:,,,/Ariadna.Wpf;component/Resources/No_Image.png";
+            : null;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();

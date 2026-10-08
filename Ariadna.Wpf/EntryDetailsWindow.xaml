@@ -7,7 +7,23 @@
         <local:GenreIconConverter x:Key="GenreIcon" />
         <DataTemplate x:Key="GenreCard">
             <StackPanel Width="86">
-                <Border Background="White" CornerRadius="4" Width="62" Height="62" Padding="4"><Image Source="{Binding Converter={StaticResource GenreIcon}}" Stretch="Uniform" /></Border>
+                <Border Background="White" CornerRadius="4" Width="62" Height="62" Padding="4">
+                    <Grid>
+                        <TextBlock Text="?" FontSize="256" Foreground="#777777" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Source, ElementName=GenreImage}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Image x:Name="GenreImage" Source="{Binding Converter={StaticResource GenreIcon}}" Stretch="Uniform" />
+                    </Grid>
+                </Border>
                 <TextBlock Text="{Binding}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" Margin="0,5,0,0" />
             </StackPanel>
         </DataTemplate>
@@ -57,7 +73,18 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="3.3*" /></Grid.ColumnDefinitions>
             <Grid Margin="0,0,20,0">
                 <Grid Background="#10000000">
-                    <TextBlock Text="No poster" Foreground="#A0FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <TextBlock Text="?" FontSize="256" AutomationProperties.Name="Missing poster" Foreground="#A0FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" >
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Source, ElementName=PosterImage}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                     <Image x:Name="PosterImage" Source="{Binding Poster}" Stretch="Uniform" MouseDown="PosterDoubleClick" />
                 </Grid>
             </Grid>

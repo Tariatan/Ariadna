@@ -54,7 +54,18 @@
         </Border.Style>
         <Grid ToolTip="{Binding Entry.Path}">
             <Grid.RowDefinitions><RowDefinition Height="380" /><RowDefinition Height="36" /></Grid.RowDefinitions>
-            <TextBlock Text="No poster" Foreground="#777777" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            <TextBlock Text="?" FontSize="48" AutomationProperties.Name="Missing poster" Foreground="#777777" VerticalAlignment="Center" HorizontalAlignment="Center" >
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Source, ElementName=Poster}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
             <Image x:Name="Poster" Stretch="Uniform" />
             <TextBlock Grid.Row="1" Text="{Binding Caption}" Foreground="White" TextWrapping="Wrap"
                        TextTrimming="CharacterEllipsis" LineHeight="18" LineStackingStrategy="BlockLineHeight" TextAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="14" Grid.RowSpan="1" />

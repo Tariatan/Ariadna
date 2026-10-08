@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.10.4] - 2026-10-08
+
+#### Changed
+
+- Use ♙ for missing posters and portraits and unknown genre icons; remove the WPF No_Image.png resource.
+
 ### [1.10.3] - 2026-10-08
 
 #### Fixed
