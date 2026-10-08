@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.9.5] - 2026-10-08
+
+#### Fixed
+
+- Use the active collection palette for the Details Save button instead of a fixed purple background and border.
+
 ### [1.9.4] - 2026-10-08
 
 #### Changed
