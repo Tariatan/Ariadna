@@ -180,6 +180,13 @@ public partial class EntryDetailsWindow : Window
             return;
         }
 
+        if (e.Key == Key.Escape)
+        {
+            DialogResult = false;
+            e.Handled = true;
+            return;
+        }
+
         if (HasAncestor<ListBox>(e.OriginalSource as DependencyObject) && e.Key == Key.Enter)
         {
             e.Handled = true;

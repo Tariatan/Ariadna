@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.10.2] - 2026-10-08
+
+#### Changed
+
+- Cancel Details form on Escape.
+
 ### [1.10.1] - 2026-10-08
 
 #### Fixed

@@ -47,7 +47,6 @@
                     <Border Grid.Column="1" BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="12,0,0,0" Margin="0,0,0,8" VerticalAlignment="Center" HorizontalAlignment="Right">
                         <StackPanel Orientation="Horizontal">
                             <CheckBox x:Name="Wishlist" Content="Wishlist" IsChecked="{Binding Wanted}" Margin="0,0,12,0" />
-                            <Button x:Name="CancelButton" Content="Cancel" IsCancel="True" />
                             <Button x:Name="SaveButton" Content="Save" Click="Save" MinWidth="100" Background="{Binding Theme.Background}" />
                         </StackPanel>
                     </Border>

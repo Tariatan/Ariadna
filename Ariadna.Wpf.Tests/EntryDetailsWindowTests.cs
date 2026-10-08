@@ -11,6 +11,37 @@ namespace Ariadna.Wpf.Tests;
 public sealed class EntryDetailsWindowTests
 {
     [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Documentary)]
+    [DataRow(CatalogKind.Library)]
+    public async Task OnKeyDown_Escape_CancelsWithoutSaving(CatalogKind kind) => await WpfThread.RunAsync(() =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(kind, "Original title");
+        var window = new EntryDetailsWindow(fixture.Actions, kind, entry.Path);
+        window.Loaded += (_, _) => window.Dispatcher.BeginInvoke(() =>
+        {
+            var title = (TextBox)window.FindName("TitleText");
+            title.Text = "Unsaved title";
+            title.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(window), 0, Key.Escape)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
+        }, DispatcherPriority.ApplicationIdle);
+
+        // Act
+        var result = window.ShowDialog();
+
+        // Assert
+        Assert.AreEqual(false, result);
+        Assert.IsNull(window.FindName("CancelButton"));
+        Assert.AreEqual(entry.Title, fixture.Store.GetDetails(kind, entry.Id)!.Entry.Title);
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public async Task Save_ShiftPressed_IgnoresOnlyOnConfirmation(bool confirm) => await WpfThread.RunAsync(() =>
@@ -68,13 +99,13 @@ public sealed class EntryDetailsWindowTests
             Assert.AreEqual(footer.ActualWidth - 3, save.TranslatePoint(new Point(save.ActualWidth, 0), footer).X, 1);
             Assert.AreEqual(1, path.TranslatePoint(new Point(), footer).X, 1);
             var wishlist = (FrameworkElement)window.FindName("Wishlist");
-            foreach (var buttonName in new[] { "CancelButton", "SaveButton" })
+            foreach (var buttonName in new[] { "SaveButton" })
             {
                 var button = (FrameworkElement)window.FindName(buttonName);
                 Assert.AreEqual(wishlist.TranslatePoint(new Point(0, wishlist.ActualHeight / 2), window).Y,
                     button.TranslatePoint(new Point(0, button.ActualHeight / 2), window).Y, 1, buttonName);
             }
-            foreach (var name in new[] { "MediaPath", "FileMetrics", "AudioLanguages", "Wishlist", "CancelButton", "SaveButton" })
+            foreach (var name in new[] { "MediaPath", "FileMetrics", "AudioLanguages", "Wishlist", "SaveButton" })
             {
                 var control = (FrameworkElement)window.FindName(name);
                 var point = control.TranslatePoint(new Point(), window);
