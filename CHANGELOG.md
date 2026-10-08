@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.9.3] - 2026-10-08
+
+#### Fixed
+
+- Select the saved entry after adding or editing.
+
 ### [1.9.2] - 2026-10-08
 
 #### Changed

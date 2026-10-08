@@ -63,7 +63,7 @@ public partial class MainWindow : Window
             };
             if (editor.ShowDialog() == true)
             {
-                view.Reload();
+                _ = view.Reload(editor.SavedEntryId);
             }
         }
         finally

@@ -8,6 +8,32 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogViewModelTests
 {
     [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Library)]
+    [DataRow(CatalogKind.Documentary)]
+    public async Task RefreshAsync_SavedEntryRequested_SelectsSavedEntryAndRetainsItOnRefresh(CatalogKind kind) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        fixture.Add(kind, "Previous entry");
+        using var model = Model(fixture, kind);
+        await model.RefreshAsync(CancellationToken.None);
+        var previous = model.Selected;
+        var added = fixture.Add(kind, "New entry");
+
+        // Act
+        await model.RefreshAsync(CancellationToken.None, selectedEntryId: added.Id);
+
+        // Assert
+        Assert.AreEqual(added.Id, model.Selected!.Entry.Id);
+        Assert.IsTrue(model.Selected.Selected);
+        Assert.IsFalse(previous!.Selected);
+        await model.RefreshAsync(CancellationToken.None);
+        Assert.AreEqual(added.Id, model.Selected!.Entry.Id);
+    });
+
+    [TestMethod]
     [DataRow("Programming", "C++")]
     [DataRow("Literature", "Fantasy")]
     [DataRow("Languages", "German")]

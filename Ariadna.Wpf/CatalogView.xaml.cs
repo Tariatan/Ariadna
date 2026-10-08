@@ -28,11 +28,15 @@ public partial class CatalogView : UserControl, IDisposable
         DataContext = Model;
     }
 
-    internal async void Reload()
+    internal async Task Reload(int? selectedEntryId = null)
     {
         Actions.ThumbnailsInvalidated?.Invoke();
-        await Model.RefreshAsync(CancellationToken.None);
+        await Model.RefreshAsync(lifetime.Token, selectedEntryId: selectedEntryId);
         RevealSelection();
+        if (selectedEntryId != null && IsLoaded)
+        {
+            PosterRows.Focus();
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -307,7 +311,7 @@ public partial class CatalogView : UserControl, IDisposable
         if (MessageBox.Show(Window.GetWindow(this), prompt, "Ariadna", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
         {
             Run(() => Actions.Remove(Model.Kind, Model.Selected.Entry, deleteMedia));
-            Reload();
+            _ = Reload();
         }
     }
 
@@ -317,7 +321,7 @@ public partial class CatalogView : UserControl, IDisposable
         RevealSelection();
     }
 
-    private void Refresh(object sender, RoutedEventArgs e) => Reload();
+    private void Refresh(object sender, RoutedEventArgs e) => _ = Reload();
     private void ClearFilter(object sender, RoutedEventArgs e)
     {
         switch (((Button)sender).Tag)

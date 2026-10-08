@@ -18,6 +18,54 @@ public sealed class CatalogViewTests
     [DataRow(CatalogKind.Game, "games")]
     [DataRow(CatalogKind.Library, "library")]
     [DataRow(CatalogKind.Documentary, "documentaries")]
+    public async Task Reload_SavedEntryOutsideViewport_SelectsRevealsAndFocusesEntry(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        foreach (var index in Enumerable.Range(0, 40))
+        {
+            fixture.Add(kind, $"A Entry {index:D2}");
+        }
+
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var grid = (ListBox)view.FindName("PosterRows");
+            var scroll = CatalogView.FindChild<ScrollViewer>(grid)!;
+            view.Model.Selected = view.Model.Entries[0];
+            scroll.ScrollToTop();
+            ((Button)view.FindName("AddEntryButton")).Focus();
+            var added = fixture.Add(kind, "Z New entry");
+
+            // Act
+            await view.Reload(added.Id);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.AreEqual(added.Id, view.Model.Selected!.Entry.Id);
+            Assert.AreSame(grid, Keyboard.FocusedElement);
+            Assert.IsTrue(scroll.VerticalOffset > 0);
+            var selectedRow = view.Model.Rows.Single(row => row.Items.Contains(view.Model.Selected));
+            var container = (ListBoxItem)grid.ItemContainerGenerator.ContainerFromItem(selectedRow);
+            Assert.IsNotNull(container);
+            var top = container.TranslatePoint(new Point(), grid).Y;
+            Assert.IsTrue(top >= 0 && top < grid.ActualHeight);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies")]
+    [DataRow(CatalogKind.Game, "games")]
+    [DataRow(CatalogKind.Library, "library")]
+    [DataRow(CatalogKind.Documentary, "documentaries")]
     public async Task ScrollBar_ThumbDragged_UpdatesContentDuringDragAndKeepsRowsAligned(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
     {
         // Arrange

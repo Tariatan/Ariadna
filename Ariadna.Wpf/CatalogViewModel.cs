@@ -242,7 +242,7 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
     }
 
     private async void ScheduleRefresh() => await RefreshAsync(CancellationToken.None, true);
-    internal async Task RefreshAsync(CancellationToken cancellationToken, bool debounce = false)
+    internal async Task RefreshAsync(CancellationToken cancellationToken, bool debounce = false, int? selectedEntryId = null)
     {
         if (disposed)
         {
@@ -276,7 +276,7 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
 
             var result = await Task.Run(() => (Entries: store.Query(Kind, query), Genres: store.GetGenres(Kind)), request.Token);
             request.Token.ThrowIfCancellationRequested();
-            var selectedId = Selected?.Entry.Id;
+            var selectedId = selectedEntryId ?? Selected?.Entry.Id;
             entries = result.Entries.Select(entry => new PosterItem(entry, Path.Combine(configuration.PosterRoot(Kind), entry.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)), thumbnails)).ToList();
             genres = GenreCatalog.FilterGenres(Kind, result.Genres).Distinct(StringComparer.OrdinalIgnoreCase).Order().Prepend(string.Empty).ToArray();
             letters = entries.Where(entry => entry.Entry.Title.Length > 0).Select(entry => entry.Entry.Title[..1].ToUpperInvariant()).Where(letter => letter is not ("}" or "«") && (!IsLibrary || letter is not ("(" or "9"))).Distinct().ToArray();

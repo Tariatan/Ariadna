@@ -20,6 +20,7 @@ public partial class EntryDetailsWindow : Window
     private int selectedPreview = 1;
     private string? inspectedPath;
     private int inspectionRevision;
+    internal int SavedEntryId => editor.StoredId;
     internal EntryDetailsWindow(CatalogActions actions, CatalogKind kind, string path)
     {
         this.actions = actions;
@@ -385,7 +386,6 @@ public partial class EntryDetailsWindow : Window
     {
         if (choices.Count == 0)
         {
-            MessageBox.Show(this, "No matching movies or series were found.", "Ariadna");
             return null;
         }
 
