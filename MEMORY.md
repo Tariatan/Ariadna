@@ -1,635 +1,84 @@
 # Ariadna project memory
 
-Last updated: 2026-10-06. Scope: this repository only.
+Last tidied: 2026-10-08. Repository context only; evidence below is dated.
 
-## Durable context
+## Read the authoritative sources
 
-- 2026-10-06: WPF 1.9.1 orders shared people-header buttons as Paste (`↓`),
-  then Add (`+`). Native Movie preview checked Directors and Cast; six focused
-  people-editor tests passed. Release build and git diff --check passed.
+- [AGENTS.md](AGENTS.md): project rules and ownership.
+- [Technical Design Description](docs/Technical_Design_Description.md): product
+  behavior and technical decisions.
+- [PLAN.md](docs/PLAN.md): user-maintained upcoming work.
+- [CHANGELOG.md](CHANGELOG.md): implementation history and project versions.
+- [WPF migration](docs/WPF-MIGRATION.md): compatibility and acceptance sequence.
+- [SQLite operations](docs/SQLITE-OPERATIONS.md): matched recovery and migration
+  evidence; [migration investigation](docs/SQLITE-MIGRATION-PLAN.md): original gates.
 
-- 2026-10-06: WPF 1.9.0 replaces Edit genres with right-aligned header paste and
-  floating icon-picker buttons. Selected genres are excluded from choices;
-  double-click or Enter adds one, Escape/outside click dismisses, and Delete
-  removes selected genres. Stored custom tags and the existing genre cap remain.
-  Native synthetic Movie checks verified mouse selection, keyboard confirmation,
-  removal and dismissal. Four-catalog tests cover picker filtering, persistence,
-  Escape and the cap. Release WPF tests: 113 passed; git diff --check passed.
-  Personal catalog and changed-DPI checks remain open.
+## Decisions and acceptance boundaries
 
-- 2026-10-06: WPF 1.8.2 anchors Wishlist, Cancel and Save to the Details footer's
-  right edge; track information stays left-aligned and wraps in its reserved
-  column. Native synthetic preview verified alignment and Cancel. Release WPF
-  tests: 109 passed, including 1000x640 and 1400x950 footer alignment checks;
-  git diff --check passed. Personal catalog and changed-DPI checks remain open.
+- **2026-10-04 — WPF is the default development target.** The user's designation
+  is recorded in AGENTS.md and the TDD's WPF section. It does not establish
+  production cutover or WinForms retirement; WinForms remains the fallback.
+- **2026-10-03 — copied-catalog acceptance.** The user reported successful
+  browse, details, edit and restart checks across all four collections with
+  version 2.0.1 on an isolated full-data copy, including posters/game previews.
+  See SQLite operations, Verification scope. This is dated acceptance of that
+  copy, not evidence of later WPF or live-data checks.
+- **As recorded through 2026-10-06 — WPF acceptance remains incomplete.** Native
+  checks used disposable synthetic catalogs. Personal matched-dataset use,
+  changed monitor/DPI, physical touchpad behavior, live TMDb, configured external
+  tools and clean-machine installation remain outside the recorded verification.
+  Native destructive removal and exhaustive image/clipboard/discovery checks
+  were not established by the initial WPF implementation.
+- WPF initially copied default configuration without importing legacy per-user
+  settings. Check configured paths before acceptance; see WPF migration.
 
-- 2026-10-06: WPF 1.8.1 corrects bitrate from bits/second to whole-number Mbps
-  (divide by 1,000,000) and makes footer track languages flag-only with names
-  in tooltips. Native synthetic footer preview checked; the bundled video test
-  verifies actual MediaInfo conversion. Release WPF tests: 108 passed;
-  git diff --check passed. Personal media was not inspected.
+## Latest recorded handoff
 
-- 2026-10-06: WPF 1.8.0 keeps Details off the taskbar, groups Cancel and Save
-  beside Wishlist in the media footer, and adds header clipboard-paste arrows
-  to Directors, Cast and Authors. Names capitalize word initials, deduplicate
-  and reuse role-specific stored portraits. Scoped Details scrollbars reuse the
-  poster thumb/page-button visuals with standard WPF pixel scrolling.
-  Native synthetic Movie preview verified footer placement, Add, thumb dragging
-  and Cancel. Automated coverage checks the minimum footer layout and paste
-  buttons for all three people roles. Release WPF tests: 108 passed;
-  git diff --check passed. Personal catalog and changed-DPI checks
-  were not performed. Next acceptance step: review these controls in daily use.
+- **2026-10-06 — WPF 1.9.0/1.9.1.** Details genre-picker mouse/keyboard checks
+  passed with synthetic Movies; the recorded Release WPF suite passed 113 tests.
+  The subsequent Paste (`↓`) before Add (`+`) change passed six focused people
+  tests, a Release build and whitespace checks. Personal-catalog/DPI acceptance
+  remains open. Evidence is historical; no application tests were rerun for this
+  memory cleanup.
+- Current next work is in PLAN.md: remaining Details redesign and edit fields.
+  Acceptance should follow the WPF migration sequence on a disposable matched
+  copy before a daily-use switch. The earlier genre text-picker, deferred-scroll
+  and splash descriptions in history are superseded by the TDD's WPF section.
 
-- 2026-10-04: user designated Ariadna.Wpf as the default project for future work.
-  Prefer its frontend and Ariadna.Wpf.Tests; leave the legacy WinForms Ariadna
-  implementation unchanged unless explicitly requested. Shared storage changes
-  remain task-dependent. This routing decision does not claim completion of the
-  remaining acceptance checks or retirement of WinForms. PLAN is user-owned.
-- Personal Windows catalog with one application instance and four permanent tabs:
-  movies/series, documentaries, games, and library. Preserve each tab's fields,
-  genres, palette, paths, filters, selection, and scroll position. Legacy arguments
-  select a tab initially or activate that tab in the existing window.
-- Current implementation: .NET 10 WinForms plus a native WPF frontend awaiting
-  acceptance, and direct SQLite through
-  Ariadna.Storage. Legacy EF6/LocalDB and DbProvider were removed. Only the separate
-  migration utility uses a SQL client for legacy export. Dependencies are locked;
-  global.json pins stable SDK 10.0.401 with latestPatch updates in 10.0.4xx.
-  Ariadna.slnx contains all eight desktop/storage/migration/test projects; the
-  desktop has no reference to the migration CLI.
-- IDs identify extensionless posters. Game previews use the configured suffix
-  and numbers 1 through 4. Preserve existing IDs, NULLs, relationships, ignore
-  paths, and assets. Database and images form one recovery dataset.
-- [Technical Design Description](docs/Technical_Design_Description.md) owns
-  architecture; [PLAN.md](docs/PLAN.md) owns upcoming work; [SQLite operation and
-  recovery](docs/SQLITE-OPERATIONS.md) owns migration/recovery evidence and limits.
-- Language conventions are supplied by the session's global instructions.
-  Repository rules, versioning, and context maintenance are in [AGENTS.md](AGENTS.md).
+## Incidents worth retaining
 
-## Current evidence
+- **Storage 2.0.1, 2026-10-03:** a read-only empty recovery directory blocked
+  cleanup. The fix clears that directory's read-only flag while preserving
+  recovery decisions and other access errors; four filesystem regressions and
+  a synthetic published startup check passed.
+- **Storage 2.0.2, 2026-10-04:** unchanged relationship saves could replace legacy
+  duplicates/IDs. Four regressions failed before the fix; unchanged sequences
+  now preserve rows, while explicit edits retain replacement behavior.
+- **WPF 1.0.1, 2026-10-04:** saving geometry at Closed encountered empty
+  RestoreBounds and invalid-infinity JSON. Saving after cancellation handlers at
+  Closing fixed it; five regressions and isolated native close/reopen passed.
+  An initial harness accidentally started production startup; it was stopped
+  before editing and corrected. No production recovery outcome was verified.
+- **WPF 1.4.3, 2026-10-05:** simply disabling deferred scrolling caused backward
+  thumb jumps. The user rejected waiting until release; retaining fractional
+  thumb position separately from row offsets enabled live dragging. Four drag
+  cases and synthetic native dragging passed.
+- **WinForms 4.0.1/4.1.5, 2026-10-03/04:** application-model DPI defaults shrank
+  pixel layouts; explicit DpiUnaware restored scaling. A later designer save
+  duplicated tab pages and omitted identity tags, causing startup failure;
+  named designer-page references replaced tag identity. Regressions and synthetic
+  native checks passed; a new designer save/reopen round trip was not verified.
 
-- 2026-10-06: Ariadna.Wpf 1.7.0 simplifies Details. Poster buttons, Ignore
-  checkbox, manual TMDb button and people-panel text fields/toolbars are removed.
-  Wishlist moves into the media footer. Shift changes Save to gold Ignore;
-  release or deactivation restores Save. Confirming Ignore uses the same existing
-  path registration as WinForms and does not save edits. Automatic TMDb lookup
-  for new Movies remains. People header `+` adds/selects New Entry; repeated
-  placeholders appear separately while existing storage rules consolidate equal
-  names on save. Portrait double-click, Ctrl+V and Delete remain available.
-- All 105 Release WPF tests passed, including Shift appearance/release,
-  ignore confirmation/cancel, repeated placeholders for Directors/Cast/Authors,
-  preserved existing photos/relationships and compact footer bounds. Native
-  synthetic checks covered all four layouts and confirmed header additions,
-  footer Wishlist and normal Save persistence. Native key-event evidence recorded Shift -> Ignore/Gold followed
-  by release -> Save/White; native Shift+Enter registered the synthetic path
-  in Ignore without saving entry changes. WinForms/storage and personal catalog
-  are untouched;
-  live API and changed-DPI acceptance remain unverified. PLAN remains user-owned.
-  Next: user acceptance of the simplified Details interactions.
+## Historical evidence on demand
 
-- 2026-10-06: Ariadna.Wpf 1.6.0 implements the approved Option A Details
-  layout: large uncropped poster, scoped themed fields/buttons/checkboxes,
-  legacy genre pictograms, editable portrait cards, full-width Library Authors,
-  and a fixed wrapping media footer. The footer has a file/folder picker,
-  size/duration/resolution/bitrate icons and labeled language flags. Ignore path
-  is applied by Save; Cancel discards the choice; Shift+Enter remains available.
-  Media inspection refreshes changed paths and rejects stale/closed results.
-- Release WPF/test builds succeeded and all 104 WPF tests passed, including
-  portrait-name persistence, packaged icons, native video metrics, ignore
-  confirmation/cancel and minimum-size footer bounds. Native disposable previews
-  covered all four catalog layouts, compact 1000x640 footer wrapping,
-  fixed-footer scrolling, wishlist, F2/name
-  editing, Enter without closing, persisted name/wishlist and file-picker cancel.
-  Preview media values/flags were synthetic; real inspection used the bundled
-  video test fixture. Personal catalog, live TMDb/photo downloads and changed DPI
-  remain unverified. WinForms and storage implementation are unchanged. PLAN
-  remains user-owned and unchanged by this task. Next: user acceptance of Details.
+The previous entries are preserved in these dated archives. Their test counts,
+benchmarks, limitations and incident details belong to their recorded versions;
+stale “next” steps do not override PLAN.md.
 
-- 2026-10-06: Ariadna.Wpf 1.5.4 removes the startup splash window.
-  Recovery and initial catalog preparation still precede the main window;
-  remaining catalogs preload after its first render. Single-instance activation
-  and startup error handling remain unchanged. WinForms is untouched.
-- Locked WPF-test restore, zero-warning/error Debug WPF and Release WPF-test
-  builds, and all 87 Release WPF tests passed. A native harness ran the real App
-  startup with disposable SQLite/assets: only MainWindow was observed (maximum
-  one WPF window), Movies and preloaded Games each showed eight synthetic entries,
-  and normal shutdown returned 0. A missing-catalog run displayed the existing
-  error dialog and returned 1 without a main/splash window. Both runs exited;
-  the harness suppressed personal placement saving and used no personal catalog.
-  PLAN remains unchanged. Next: user acceptance of normal splash-free startup.
-- 2026-10-06: Ariadna.Wpf 1.5.3 reserves a 36-DIP caption area with two
-  18-DIP lines, wrapping long titles and retaining second-line ellipsis.
-  Short titles stay centered. Poster height remains 380 DIPs; card/row height
-  becomes 438 DIPs. The existing navigation measures rendered row height.
-  Release build passed without warnings/errors; all 87 Release WPF tests passed.
-  An isolated native Release preview with disposable SQLite/posters confirmed
-  two-line English/Russian titles, ellipsis for an overflowing title, and Down
-  navigation with a 438-DIP row and the first visible row at viewport top.
-  Personal-catalog and changed-DPI acceptance remain unverified. PLAN unchanged.
+- [WPF Details and previous context](docs/memory/WPF-DETAILS-HISTORY.md).
+- [WPF browsing and frontend introduction](docs/memory/WPF-BROWSING-HISTORY.md).
+- [Legacy frontend and storage incidents](docs/memory/LEGACY-STORAGE-HISTORY.md).
 
-- 2026-10-05: Ariadna.Wpf 1.5.2 focuses PosterRows after startup/tab
-  activation restores the catalog view. Unloaded views skip deferred activation
-  callbacks, preventing stale tabs from taking focus during rapid switching.
-  Selection and scroll-restoration behavior remain unchanged.
-- Two focus regressions failed before the fix and now cover populated/empty
-  catalogs, startup, switching from a filter, all four tabs and rapid switching.
-  Locked WPF-test restore, zero-warning/error Release WPF-test build and all
-  87 Release WPF tests passed. An isolated Release window with disposable SQLite
-  data confirmed mouse Games activation followed immediately by End, keyboard
-  Library/Documentaries/Movies activation followed immediately by Right/End,
-  and retained Movies selection/scroll on return. The preview was closed;
-  personal-catalog and changed-DPI acceptance remain unverified. PLAN is unchanged.
-  Next: user acceptance of list focus in normal WPF tab navigation.
-- 2026-10-05: changes QuickList to two columns in an
-  86-DIP sidebar, preserving 24-DIP buttons and the existing styling/navigation.
-  Letters read left to right, then down. All 85 Release WPF tests passed; Debug
-  build passed without warnings/errors. An isolated native synthetic-data
-  preview verified two-column ordering, the right-column A mouse jump, and
-  Shift+Tab/Space activation of the final Я with automatic letter scrolling.
-  Personal-catalog and changed-DPI acceptance remain unverified.
-
-- 2026-10-05: Ariadna.Wpf 1.5.1 restyles QuickList as a 54-DIP single column
-  with 24-DIP-high square white-outlined buttons, bold white letters and the
-  active catalog background. Hover/focus/press feedback is scoped to QuickList.
-  The column scrolls independently on short windows. All 85 Release WPF tests
-  passed; Debug build passed without warnings/errors. An isolated native preview
-  with synthetic Latin/digit/Cyrillic titles verified A/Я mouse jumps, Shift+Tab
-  and Space activation of Ю, wheel/scrollbar access to the final letter, and
-  Movies/Library palettes. Personal-catalog and changed-DPI acceptance remain
-  unverified. PLAN remains user-owned.
-
-- 2026-10-05: Ariadna.Wpf 1.5.0 matches the reference poster highlights with
-  square one-DIP gray outlines and a translucent-white-to-dark-gray gradient;
-  selection is brighter than hover. The outline flashes white three times over
-  420 ms, settles to gray, and its storyboard is removed on deselection.
-  All 85 Release WPF tests passed. An isolated native Debug preview with
-  disposable SQLite/posters verified mouse selection, keyboard selection with
-  a separate hovered card, Movies/Library palettes, and the three white/gray
-  transitions in timed brush samples. Card height stayed 427 DIPs.
-  Personal-catalog and changed-DPI acceptance remain unverified.
-
-- 2026-10-05: Ariadna.Wpf 1.4.3 restores live poster scrolling during thumb
-  dragging; the user rejected waiting until release. PosterScrollThumb retains
-  its fractional position separately from WPF's row-offset binding to prevent
-  backwards jumps during small drag movements. It sends live scrolling commands
-  and restores the original binding on drag completion/cancellation or unloading.
-  The 50-DIP thumb minimum, whole leading rows and virtualization are retained.
-- All 85 Release WPF tests passed, including four live-drag cases covering
-  content movement before release, fractional thumb movement, restored binding,
-  minimum height, alignment and selection retention. Initially, simple removal
-  of deferred scrolling reproduced backwards thumb movement in Games and
-  Documentaries; the custom thumb resolves those cases. An isolated Debug native
-  preview with disposable data confirmed dragging to a new row, a 50-DIP thumb
-  and leading-row top zero; track clicks worked after release. The preview was
-  closed. Locked restore and Debug preview/Release WPF builds passed with no
-  warnings/errors. Personal-catalog and changed-DPI acceptance remain
-  open. Next: user acceptance of live dragging in the normal WPF executable.
-- 2026-10-05: Ariadna.Wpf 1.4.2 sets the poster scrollbar's visible thumb
-  minimum to 50 DIPs and enables WPF deferred scrolling. The thumb moves
-  continuously while dragging, posters remain stationary until release, and
-  the destination keeps a whole leading row. Track clicks and wheel/keyboard
-  navigation retain immediate scrolling.
-- Four drag regressions failed before the fix and now pass in every catalog,
-  checking fractional thumb movement, stationary content, release alignment,
-  selection retention and the 50-DIP minimum. Locked WPF-test restore and all
-  85 Release WPF tests passed. Debug preview build and Release WPF build passed
-  without warnings/errors. An isolated native preview with disposable data
-  measured a 50-DIP thumb and unchanged content offset during a real mouse drag;
-  release updated the destination with leading-row top zero. Track paging and
-  one-row wheel input remained immediate. The supplied latest video was not
-  available at its path; diagnosis used the current implementation and native
-  checks. Personal-catalog/changed-DPI acceptance remains open. Next: acceptance
-  of drag-and-release scrolling in the normal WPF executable.
-- 2026-10-05: Ariadna.Wpf 1.4.1 matches the supplied scrollbar video with
-  a 14-DIP catalog-colored track, rounded white thumb and no arrow buttons.
-  PosterScrollBarStyles is scoped to PosterRows; standard WPF Track keeps thumb
-  sizing/dragging and page commands, with a minimum thumb size. Row alignment,
-  wheel stepping and recycling remain in place.
-- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
-  all 81 Release WPF tests passed. An isolated native Debug preview using
-  disposable SQLite/posters confirmed all four track palettes, mouse thumb
-  dragging, track-click paging, one-row wheel input, End reaching the final row
-  and tab-return position/selection retention. Measured leading-row top stayed
-  at zero after scrolling. The preview was closed. Personal-catalog and
-  changed-DPI acceptance remain open; personal data, WinForms/Storage/Migration
-  implementation and user-owned PLAN were untouched. Next: acceptance of the
-  scrollbar appearance in the normal WPF executable.
-- 2026-10-05: Ariadna.Wpf 1.4.0 maps `+` while browsing to the active
-  catalog's Add entry button. Character input supports the main keyboard;
-  an explicit Key.Add handler supports numpad input. Both reuse the button's
-  discovery/cancellation workflow and disabled guard, preserve editable fields,
-  and ignore Control/Alt/Windows combinations.
-- Locked WPF-test restore, zero-warning/error Release WPF-test build and all
-  81 Release WPF tests passed. Fifteen added cases cover discovery in every
-  catalog through character/numpad input, editable title/genre fields, disabled
-  discovery and unrelated text. An isolated Release window with disposable
-  SQLite data verified numpad and shifted main-keyboard plus trigger the same
-  discovery result as a mouse click; title-field plus remained ordinary text.
-  The preview was closed. Personal data and user-owned PLAN were untouched.
-  Next: user acceptance of the shortcut in the normal WPF executable.
-- 2026-10-05: Ariadna.Wpf 1.3.1 uses WPF item scrolling for virtualized poster
-  rows. Startup selection, navigation, scrollbar movement and tab restoration
-  keep the first visible row at the viewport top; the bottom row may be partial.
-  Wheel input still moves one row per notch and accumulates smaller deltas;
-  resize anchoring retains the first visible entry's new row and selection.
-- Four startup regressions failed before the fix. Locked WPF-test restore,
-  zero-warning/error Debug and Release WPF builds, and all 66 Release WPF tests
-  passed. Tests cover all four catalogs, startup selection, quick jumps, tab
-  retention, fractional offsets, wheel bursts, resize and final-row reachability.
-  An isolated native Debug window with disposable SQLite/posters confirmed
-  startup alignment, wheel input, scrollbar dragging, Home/Page Down/End,
-  all four tab views, return-position retention and a six-to-four-column resize.
-  The first visible row stayed at offset zero within its viewport; selection
-  survived wheel/resize and the final row remained reachable. The preview was
-  closed. Personal-catalog, changed-DPI and physical touchpad acceptance remain
-  open. WinForms/Storage/Migration implementation and user-owned PLAN are
-  unchanged by this fix. Next: acceptance in the normal WPF executable.
-- 2026-10-05: Ariadna.Wpf 1.3.0 displays its assembly version (major.minor.patch)
-  at the far right of the tabs row in black at 50% opacity. A reserved header
-  column prevents overlap; the label is not focusable or mouse-interactive.
-- Locked WPF-test restore, zero-warning/error Debug WPF and Release WPF-test
-  builds, and all 55 Release WPF tests passed. Three added layout cases cover
-  minimum/default/wide windows, all four headers and switched catalog content.
-  An isolated Release native window with disposable SQLite data confirmed the
-  label in every catalog, mouse tab switching, Ctrl+4 and Ctrl+Shift+Tab. The
-  preview was closed. Personal-catalog and changed-DPI acceptance remain open;
-  WinForms/Storage/Migration implementation and user-owned PLAN are unchanged.
-  Next: user acceptance of the version label in the normal WPF executable.
-- 2026-10-04: Ariadna.Wpf 1.2.1 matches the supplied compact filter toolbar:
-  catalog-colored fields, white separators and clear icons, outlined checkboxes
-  after their labels, genre ellipses and the bold result count. FilterPanelStyles
-  is scoped to the toolbar; editors retain their existing controls. Field groups
-  wrap together at narrower widths. The plus button uses existing discovery;
-  its context menu exposes the existing manual file/folder handlers.
-- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
-  all 52 Release WPF tests passed. An isolated native Debug window with disposable
-  SQLite/posters verified all four palettes/filter sets, keyboard Title filtering
-  and X reset, mouse/Space checkbox toggling, themed Genre/Subgenre popups,
-  Programming/C++ text entry and Genre X clearing/hiding Subgenre. Programming
-  fits the widened field. Right-click plus showed file/folder choices; resize
-  from 1600 to roughly 1100 pixels kept field groups together on two rows.
-  Personal-catalog and changed-DPI acceptance remain open; no personal data was
-  used. Discovery/manual-add saves were not exercised in this visual slice.
-  WinForms, Storage/Migration implementation and user-owned PLAN are unchanged.
-- 2026-10-04: Ariadna.Wpf 1.2.0 adds a bold "Found entries: <count>"
-  indicator after each catalog's filters. Its Entries.Count binding uses existing
-  refresh notifications, so the count follows the displayed results, including
-  zero matches, cleared filters and tab changes.
-- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
-  all 52 Release WPF tests passed. Native mouse/keyboard checks in an isolated
-  Debug WPF window with disposable SQLite/posters confirmed Library counts
-  20 -> 1 -> 0 -> 20 after Title filtering and its X reset, Movies 120, Games 20,
-  Documentaries 20 and Library 20 on return using Ctrl+1/2/4/3. Personal catalog
-  acceptance remains open; no personal data was used. WinForms, Storage/Migration
-  implementation and user-owned PLAN remain unchanged.
-- 2026-10-04: Ariadna.Wpf 1.1.2 separates Library filter categories from
-  subjects. Genre offers Languages, Literature, Programming and Misc; Subgenre
-  offers the chosen category's subjects (Programming -> C++). Stored flat tags
-  no longer enter Library's category choices. The details editor still offers
-  all categories, subjects and custom stored tags; storage/query behavior and
-  saved values are unchanged. Languages now supplies its language subjects.
-- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
-  all 52 Release WPF tests passed. Four hierarchy regressions failed before the
-  fix and now cover every category, subject filtering and editor tag retention;
-  another case protects custom Movie genre choices. An isolated native Debug
-  WPF window with disposable SQLite/posters confirmed the four-item Genre menu,
-  mouse selection of Programming then C++ from Subgenre, ten matching synthetic
-  entries and retained values after Ctrl+4/3. Personal data, the user-staged XAML,
-  WinForms, Storage/Migration and user-owned PLAN were untouched by this fix.
-  Next: user acceptance of Library's category/subject dropdowns in normal WPF.
-- 2026-10-04: Ariadna.Wpf 1.1.1 preserves the user's revised filter layout
-  and restores collection-specific visibility: Series/Movies only in Movies,
-  VR/Non-VR only in Games, Directors/Actors in Movies and Authors in Library.
-  Subgenre's label, selector and X form one collapsed group, shown only for
-  Library with a nonblank Genre. Genre changes notify visibility and retain the
-  existing Subgenre reset; clearing Genre hides the group. User-staged XAML,
-  sizes, ordering and removed toolbar/status controls were preserved.
-- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds and
-  all 47 Release WPF tests passed. Eight added cases cover every collection and
-  Library clearing/retention with Programming, Literature, Misc and a custom
-  genre. Native checks used an isolated Debug WPF window and disposable SQLite/
-  posters: all four filter sets, Genre popup selection, Subgenre editing, keyboard
-  Title entry and Ctrl+3/4 tab retention. Clicking Genre X cleared both genre
-  values, hid Subgenre and retained Title. Personal data was not used; WinForms,
-  Storage/Migration implementation and user-owned PLAN remain unchanged.
-  Next: user acceptance of the revised panel in the normal WPF executable.
-- 2026-10-04: Ariadna.Wpf 1.1.0 scrolls the poster grid to an adjacent row
-  boundary per wheel notch in all four catalogs. Smaller deltas accumulate,
-  rapid input retains every step, and offsets clamp at the content ends.
-  Pixel virtualization, selection, scrollbar dragging and retained tab positions
-  are preserved. Wheel, resize and keyboard page calculations now measure the
-  rendered row height instead of assuming 300 pixels; current card styling is
-  unchanged. WinForms/Storage/Migration and user-owned PLAN are unchanged.
-- Locked WPF-test restore, zero-warning/error Debug and Release WPF builds,
-  and all 39 Release WPF tests passed. Seven added cases cover four-catalog
-  partial-row alignment, fine/rapid wheel input and boundaries, keyboard paging,
-  and resize anchoring. Native checks with an isolated Debug WPF harness and
-  disposable SQLite/posters confirmed 427-DIP wheel steps in every tab, reversal,
-  keyboard Home/Page Down, partial-row alignment and retained Movies selection/
-  offset after Ctrl+2/3/4/1. No personal catalog was used. The supplied video path
-  was unavailable; video inspection, physical touchpad and changed-DPI acceptance
-  are not claimed. Next: user acceptance with the normal project-built executable.
-- 2026-10-04: Ariadna.Wpf 1.0.1 fixes main-window placement persistence. Saving
-  now occurs in OnClosing after cancellation handlers, not Closed (when WPF's
-  RestoreBounds is empty). The existing local application-data JSON store restores
-  normal size/position and retains maximized closure. Unshown windows skip saving;
-  canceled closure preserves the previous file. WinForms/Storage/Migration are
-  unchanged, and PLAN remains user-owned and untouched.
-- The placement regression reproduced invalid-infinity JSON serialization before
-  the fix. Five new cases cover move/resize/reopen, normal/minimized/maximized
-  closure, cancellation, and unshown-window protection. WPF test startup now
-  explicitly loads resources without production startup. An initial native harness
-  inadvertently started the production frontend alongside its synthetic window;
-  it was stopped before UI editing, then corrected to use the isolated startup.
-  No catalog edits were performed; no production recovery outcome is claimed.
-  The corrected native check used disposable catalog and placement files: mouse
-  movement, native keyboard resizing, Alt+F4, and reopening restored identical
-  screenshot bounds. Personal-catalog acceptance, changed-monitor/DPI checks,
-  and new publishing verification remain open for this patch.
-- Final verification for 1.0.1: locked solution restore, zero-warning/error Debug
-  and Release builds, and 292 Release tests passed (204 WinForms, 51 storage,
-  32 WPF, 5 migration). PLAN's content hash is unchanged. Next: user acceptance
-  of WPF move/resize/close/reopen with the normal startup executable.
-- 2026-10-04: implemented Ariadna.Wpf 1.0.0 alongside Ariadna 4.1.7. The WPF
-  frontend references only Storage and uses native XAML views, four retained tabs,
-  a recycling poster-row browser, bounded background thumbnail decoding, worker
-  queries, collection-specific editors, image staging, people/genres, discovery,
-  MediaInfo, TMDb integration, and deferred single-instance activation. See
-  [WPF migration](docs/WPF-MIGRATION.md) for launch, compatibility, and acceptance.
-  WinForms remains the production fallback; no personal catalog/images were used
-  or modified during implementation and synthetic tests. The database schema,
-  recovery format, catalog IDs, and external asset names did not change.
-- Storage 2.0.2 preserves unchanged relationship rows, including legacy duplicates
-  and genre relationship IDs. Four characterization cases failed before the fix
-  and pass after it; explicitly changed lists retain the existing replacement
-  behavior. Both frontends use this fix. Migration remains 2.0.0.
-- Locked restore, zero-warning/error Debug and Release builds, and 287 tests
-  passed: 204 WinForms, 51 storage, 27 WPF, and 5 migration. WPF cases cover real
-  SQLite filtering, canceled/replaced queries, retained view state, a 3,000-entry
-  virtualized grid, the bounded thumbnail cache, editor save/reopen/cancel for all
-  collections, configured preview suffixes, discovery/removal, and real AVI
-  inspection. Storage cases cover duplicate preservation, custom preview recovery,
-  unsafe suffix rejection, and the existing rollback/recovery workflows. A
-  self-contained Release win-x64 WPF publish succeeded to a disposable directory.
-- Native mouse/keyboard checks used the actual project-built Debug WPF executable
-  with 3,000 synthetic movies and 200 entries in each other collection. Verified
-  wishlist/VR filters, alphabetic jump, F2/details, all collection editor layouts,
-  a title save/reopen, game preview selection, retained movie filter/selection/
-  scroll after switching tabs, Ctrl+1 through Ctrl+4, and second-launch activation
-  deferred until a modal editor closed. Corrected selected-tab caption contrast
-  and inspected the rebuilt browser. No native destructive removal was performed.
-- Remaining acceptance: the personal matched dataset, live TMDb, configured
-  external tools, native image/clipboard/discovery paths, monitor scaling changes,
-  and clean-machine installation. WPF reads copied default configuration without
-  importing legacy per-user settings. Genre pickers are text based and selection
-  uses a fixed border; these visual differences need user acceptance. Next: follow
-  the WPF acceptance sequence on a disposable matched copy, then switch daily use
-  after that succeeds. WinForms retirement has not occurred. PLAN remains unchanged.
-
-- The approved SQLite migration and matched snapshot/restore tooling are
-  implemented. PLAN records user acceptance on the copied catalog with 2.0.1 on
-  2026-10-03; retain that dated evidence without inferring new live-data checks.
-- 2026-10-03: implemented the accepted auxiliary popup refactor in Ariadna 2.1.0.
-  Movie, game, documentary, and library detail forms inherit directly from Form,
-  each with its own designer/resources. Focused controls/services provide reuse;
-  EntryEditorSession coordinates commands and the existing atomic storage save.
-  The DetailsForm base, template hooks, and old designer are removed.
-- Locked restore, Release build (zero warnings/errors), and 167 desktop plus 38
-  storage tests passed. Debug desktop build passed. All four forms opened in
-  Visual Studio's WinForms designer; corrected an unsupported movie-icon cast.
-- Characterization/regression tests use disposable real SQLite/image data. They
-  cover four-mode save/reopen, nullable values and original descriptions, clearing
-  relationships, Escape/ignore/validation, role-specific author portraits, image
-  ownership, MediaInfo/file inspection, and cancellation/stale metadata/results.
-- Native Windows checks used a disposable synthetic harness: reviewed all four
-  layouts and save/reopen, author/cast F2 plus Enter, documentary keyboard save,
-  and game version/VR mouse edit. A game layout overlap was corrected and checked.
-  The genre picker displayed, but automation could not confirm its owned-window
-  selection. Automated selection/cancel tests passed; exhaustive native clipboard,
-  image-dialog, live TMDb, and clean-machine acceptance remain open.
-- No personal catalog or image data was used or modified for this refactor.
-  Storage/migration implementation and versions were unchanged by that refactor.
-
-- 2026-10-03: upgraded all six projects to .NET 10 and replaced Ariadna.sln with
-  Ariadna.slnx. Versions are Ariadna 3.0.0, Storage 2.0.0, and Migration 2.0.0
-  because runtime/consumer requirements changed. Schema and recovery formats
-  are unchanged. Direct package versions are unchanged; locks use net10 assets.
-- Locked restore, Debug/Release across Any CPU/x64/x86 (zero warnings/errors),
-  167 desktop + 38 storage + 5 migration tests, and self-contained win-x64
-  publishing passed. Visual Studio 2026 loaded the SLNX with all six projects.
-  ChoicePopup explicitly retains ManagerRenderMode for the changed WinForms
-  status-bar default.
-- Native Windows smoke checks of the published .NET 10 app used disposable
-  synthetic catalogs: all four modes ran concurrently, rendered posters, and
-  opened, saved unchanged, and reopened details; game previews also rendered.
-  A synthetic choice-dialog harness displayed its status bar and Escape closed
-  it. Clean-machine and exhaustive control/integration acceptance remain open.
-
-- 2026-10-03: fixed a startup cleanup failure in Storage 2.0.1. An empty image
-  recovery directory was read-only; cleanup now clears only that directory's
-  read-only flag and retains commit/rollback behavior and other access failures.
-  Four disposable filesystem regressions failed before the fix and pass afterward.
-  Locked restore, Debug/Release builds (zero warnings/errors), 214 total tests,
-  and self-contained win-x64 publishing passed. The reported empty directory's
-  read-only flag was cleared; no catalog records or image contents were changed
-  by this direct repair.
-  The published app opened its native poster grid with a synthetic catalog and
-  removed a deliberately read-only empty recovery directory during startup.
-
-- 2026-10-03: Ariadna 4.0.0 replaces separate catalog processes with one instance
-  and four permanent tabs (user-approved). MainWindow owns the shell, geometry,
-  icons, and Ctrl+Tab / Ctrl+Shift+Tab / Ctrl+1 through Ctrl+4. Each lazy-created
-  MainPanel user control retains its strategy, filters, selection, scroll, and
-  instance palette. Closing disposes loaded views, timers, pickers, and listeners.
-- WindowsFormsApplicationBase handles single-instance startup and splash lifetime.
-  Legacy arguments select an initial tab or request that tab in the running app.
-  Repeated launches without arguments preserve the active tab and restore a
-  minimized window. Modal editors defer switching; the latest request wins.
-- Locked restore, Debug/Release solution builds with zero warnings/errors,
-  179 desktop + 42 storage + 5 migration tests, and self-contained win-x64 publish
-  passed. Real SQLite/shown-form tests cover retained tab state and all four saves.
-- Native Windows checks of the published app used disposable synthetic data:
-  four palettes/filter sets and poster grids; mouse and keyboard tab selection;
-  retained Movies title search and Games scroll; subsequent Library/Games launch
-  requests with only the original process remaining; movie-modal deferral and
-  minimized-window restoration without changing Games. Storage/Migration versions,
-  database schema, and asset formats are unchanged; no personal catalog was used.
-- Every-control, live TMDb/external-tool, and clean-machine acceptance remain open.
-  The earlier concurrent-four-process smoke check is historical .NET 10 evidence,
-  not the current launch behavior.
-
-- 2026-10-03: Ariadna 4.0.1 fixes the reported smaller UI after tab refactoring.
-  WindowsFormsApplicationBase defaults to SystemAware; CatalogApplication now
-  explicitly selects DpiUnaware to preserve Windows scaling of existing pixel
-  layouts and the custom poster grid. ApplicationHighDpiMode matches that policy;
-  ForceDesignerDpiUnaware keeps designer layout serialization at 96 DPI.
-- Locked restore, zero-warning/error Debug/Release builds, 226 tests, and
-  self-contained win-x64 publishing passed. Native inspection at 150% scaling
-  verified all four synthetic catalog grids/filter sets, keyboard tab switching,
-  and the game editor with its poster/previews/save button visible. MSBuild
-  evaluation confirms both DPI properties. Reopening the existing Visual Studio
-  designer remains a user step; automation stopped there after detecting user
-  input. No personal catalog data or storage/migration implementation changed.
-
-## Resume here
-
-2026-10-04: Ariadna 4.1.7 paints the unused tab-header strip green after native
-WM_PAINT/WM_PRINTCLIENT rendering. Header palettes, the user's four-pixel selected
-header inset, native page frame, and existing display scaling are retained.
-Locked restore, zero-warning/error Debug and Release solution builds, all 251
-Release tests (204 desktop, 42 storage, 5 migration), and diff checks passed.
-Native checks used the actual control in an isolated window (including maximize)
-and MainWindow with disposable synthetic SQLite/images: all four catalog colors,
-mouse Games selection, keyboard Library/Documentaries/Movies selection, green
-strip persistence, and retained Movies filters were confirmed. No personal
-catalog data was used. The prior icon-path build block is resolved in the user's
-current checkout. PLAN was left unchanged. Next: user acceptance of the color;
-publishing and a new designer round trip were not checked.
-
-2026-10-04: Ariadna 4.1.6 preserves the native tab frame at the upper-left corner
-when Movies is selected. CatalogTabControl insets only the selected header's
-background by two logical pixels at the top and sides, leaving its bottom joined
-to the page and using the original bounds for caption alignment.
-
-Native Windows checks reproduced the original border overlap and inspected the
-updated control in an isolated window using the actual source and existing
-tab dimensions, palettes, and DpiUnaware setting. Mouse switching to Games and
-Library, keyboard return to Movies, and keyboard selection of Documentaries
-passed. The isolated build and locked solution restore passed. Full application
-build/test verification is blocked by unrelated in-progress icon moves: resource
-entries still reference the removed root icons. No current suite pass or full
-application rendering is claimed. The designer/resource edits and icon moves
-were left intact; PLAN remains user-owned. Next: build/test the solution and
-check the actual shell after the icon references are updated.
-
-2026-10-04: Ariadna 4.1.5 fixes startup after the MainWindow designer was saved.
-The designer had added four untagged field-backed pages beside four inline
-runtime-created pages and duplicated the Selecting handler. MainWindow now maps
-four named designer page references to CatalogKind in runtime code. Themes,
-selection, preloading, and view attachment no longer read page.Tag or captions.
-The designer creates each page once and subscribes each navigation handler once.
-Visible order and the user's unrelated toolbar/resource edits are preserved.
-
-Four new initial-catalog regressions reproduced the NullReferenceException before
-the fix. All 251 Release tests (204 desktop, 42 storage, 5 migration), locked
-restore, and zero-warning/error Debug/Release builds passed. The fifth regression
-clears tags and changes captions/order before showing the window, then checks
-identity, palette, retained views, and visible-order shortcuts. It intentionally
-does not exercise removal of live permanent tabs.
-
-Native synthetic SQLite/image checks confirmed startup with exactly four tabs,
-mouse Games selection, Ctrl+3 to Library, Ctrl+Tab to Documentaries, and Ctrl+1
-returning to Movies with its title/director filters and result count retained.
-No personal catalog/images or Storage/Migration implementation changed. A new
-Visual Studio designer save/reopen round trip and publishing were not performed.
-PLAN remains user-owned and unchanged. Next: user startup/design-save acceptance.
-
-2026-10-04: Ariadna 4.1.4 mitigates the initial Details white flash. All four
-independent forms compose a container-owned DetailFormPresentation: runtime
-construction sets opacity to zero, and a callback after Shown refreshes the form
-and child windows before revealing them. Local fields/images load first; pending
-file inspection/TMDb does not gate visibility. Closing/disposal suppresses the
-queued reveal, and designer construction skips transparency. People/genre loads
-use BeginUpdate/EndUpdate; loading four game previews replaces the selected full
-image once rather than five times, with later clicks/edits unchanged.
-
-Before the fix, new regressions showed all four forms visible before their first
-poster paint and five full-preview replacements. Locked restore, zero-warning/
-error Debug and Release builds, and all 246 Release tests (199 desktop, 42 storage,
-5 migration) passed. Tests cover existing-entry local content/paint ordering,
-pending metadata, modal reveal, early close/disposal, preview selection/editing,
-and existing save/reopen/relationship/image/cancellation behavior.
-
-A native synthetic SQLite/image harness confirmed opacity 0 at Shown and first
-poster paint, then opacity 1 for all four forms. Mouse preview selection and Movie
-edit/save/reopen, initial text focus, and Escape cancellation worked. Native
-interaction used modeless test windows with ShowInTaskbar enabled solely so the
-UI tool could target them; the unchanged owned Game modal also rendered, but its
-inputs could not be targeted. Automated modal message-loop checks passed. No
-personal catalog/images or Storage/Migration implementation changed. No updated
-high-frame-rate recording comparison or publishing check is claimed. PLAN remains
-user-owned and unchanged. Next: personal cold-open acceptance of the flash fix.
-
-2026-10-04: Ariadna 4.1.3 fixes slow filter rendering in MainPanel. The previous
-update cleared/refilled the grid with intermediate paints and disposed/recreated
-every quick-navigation button without suspending layout. Updates now suspend
-grid painting until both results and navigation are ready, retain surviving
-buttons, skip unchanged navigation, and batch changed letters into one layout.
-One view-owned font replaces per-refresh button-font allocations.
-
-Three shown-control regressions cover one layout for changed letters, reuse
-without layout for unchanged letters, retained/removed button lifecycle, quick
-jumps, and painting only completed results/navigation. The first two reproduced
-the old behavior (28 layouts and recreated buttons) before the fix. Locked
-restore, zero-warning/error Debug/Release solution builds, and all 237 tests
-(190 desktop, 42 storage, 5 migration) passed. Debug executable is version 4.1.3.
-
-A separate native harness used real SQLite and synthetic posters: 3,000 movies
-plus 200 entries in each other collection. Ten alternating Wishlist toggles
-averaged 977.6 ms in 4.1.2 and 227.9 ms in 4.1.3, with identical 1,000/3,000
-result counts. Quick-list layouts fell from 720 to 10; direct SQLite reads
-averaged about 5 ms in both runs. These are local sequential synthetic timings,
-not a personal-catalog or general latency guarantee. Native mouse checks covered
-Wishlist in Movies/Library/Documentaries, Games VR, and Movies quick jump;
-keyboard Title/Enter and tab navigation retained the Movies search/Wishlist.
-The genre picker displayed and Escape closed it, but owned-item selection could
-not be automated, so native genre selection is not claimed. No personal catalog
-or image data and no Storage/Migration implementation changed. PLAN is user-owned
-and was left unchanged. Personal-size filter acceptance is the next check.
-
-2026-10-04: Ariadna 4.1.2 restores the Library Authors X button by removing
-the strategy's duplicate visibility overrides. It reuses the existing Director
-icon and clear handler, preserving other active filters. The existing Library
-toolbar test reproduced the missing button before the fix and passes afterward.
-Locked restore, zero-warning/error Release solution build, all 234 tests
-(187 desktop, 42 storage, 5 migration), and diff whitespace checks passed.
-Native Windows checks used disposable synthetic SQLite/poster data: clicking X
-cleared Authors, refreshed one result to two, and retained the Title filter;
-keyboard author typing and Ctrl+1/Ctrl+3 retained the cleared Library state.
-Storage/Migration versions and implementations are unchanged. No personal catalog
-was used. New publishing and personal-catalog acceptance are not claimed.
-
-2026-10-04: Ariadna 4.1.0 preloads the remaining tabs after the initial page
-is shown. Database/default-query configuration is captured before worker reads;
-controls, quick lists, and random selections are prepared on the UI thread.
-Existing image workers warm only the initial viewport. Early selection reuses
-pending work; closure cancels and discards late results. Synchronous reads already
-running finish and release connections. Failed preloads are logged and retried
-on subsequent selection. Storage and Migration implementations/versions are
-unchanged. Preserved the user's local tab styling/order (Movies, Games, Library,
-Documentaries) and resource/designer edits; shortcuts follow that visible order.
-
-Locked restore, zero-warning/error Debug/Release solution builds, and 231 tests
-(184 desktop, 42 storage, 5 migration) passed. Native synthetic harness confirmed
-hidden pages with cached initial posters while Movies stayed active, tab mouse
-messages across all four pages, and SendKeys Ctrl+2 / Ctrl+1 retaining Movies.
-Reviewed the synthetic grid render. No personal catalog/image data was used.
-Personal-size responsiveness acceptance remains open; no latency benchmark or
-new publishing verification is claimed for this slice.
-
-2026-10-04: Ariadna 4.1.1 corrects splash lifetime. CatalogApplication waits for
-the splash to render before recovery and supplies MainForm before the application
-model's OnRun to bypass its premature Load-event dismissal. After Shown, a queued
-callback renders the initial window and dismisses the splash before inactive-tab
-preloading. No artificial minimum delay is used. Canceled startup, recovery errors,
-and early window closure also release the splash.
-
-Zero-warning/error Debug and Release builds and 234 tests (187 desktop, 42 storage,
-5 migration) passed. Three new splash workflow tests cover load/display/render
-ordering, early closure, and no-splash operation. A native synthetic harness using
-the real splash thread confirmed cold-start ordering, Ctrl+2/Ctrl+1 afterward,
-and cancellation cleanup. No personal catalog or image data was used. Personal
-startup acceptance, recovery-error dialog interaction, and new publishing checks
-remain unverified for this patch. Storage/Migration implementations are unchanged.
-
-Next: user acceptance of splash lifetime and tab readiness on the personal catalog,
-then remaining integration review in PLAN. The preload does not warm an entire
-collection or perform background form/control construction.
-
-Complete the remaining native/integration review in [PLAN.md](docs/PLAN.md).
-For an individual detail-form change, edit that form's designer and collection
-mapping; change shared controls only when the behavior should apply to every
-consumer. Keep save/reopen characterization and background-lifetime checks.
-
-Use README's locked restore, Release build/test commands. Changes to storage or
-schema require the matched recovery and comparison gates; build success alone
-does not prove native interaction or recovery.
+Keep this handoff focused on non-obvious decisions, incidents and unresolved
+acceptance. Release narratives belong in CHANGELOG.md; edit memory only when
+requested, as required by AGENTS.md.
