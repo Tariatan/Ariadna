@@ -11,6 +11,7 @@ public partial class PeopleEditorView : UserControl
     private EntryEditorModel? editor;
     private CatalogActions? actions;
     private bool actors;
+    private const double PortraitRowHeight = 156;
     public PeopleEditorView() => InitializeComponent();
     internal void Configure(EntryEditorModel model, CatalogActions catalogActions, bool cast)
     {
@@ -35,6 +36,34 @@ public partial class PeopleEditorView : UserControl
     }
 
     private void Paste(object sender, RoutedEventArgs e) => Run(() => editor!.AddPeople(Clipboard.GetText(), actors));
+
+    private void OnPeopleMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (editor?.Kind == Ariadna.Storage.CatalogKind.Library || e.Delta == 0)
+        {
+            return;
+        }
+
+        if (CatalogView.FindChild<ScrollViewer>(People) is { } scroll)
+        {
+            scroll.ScrollToVerticalOffset(scroll.VerticalOffset - Math.Sign(e.Delta) * PortraitRowHeight);
+            e.Handled = true;
+        }
+    }
+
+    private void OnPeopleScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (editor?.Kind == Ariadna.Storage.CatalogKind.Library || e.OriginalSource is not ScrollViewer scroll || e.VerticalChange == 0)
+        {
+            return;
+        }
+
+        var offset = Math.Round(scroll.VerticalOffset / PortraitRowHeight) * PortraitRowHeight;
+        if (Math.Abs(offset - scroll.VerticalOffset) > 0.01)
+        {
+            scroll.ScrollToVerticalOffset(offset);
+        }
+    }
     private void Remove(object sender, RoutedEventArgs e)
     {
         if (People.SelectedItem is PersonEditorModel person)
@@ -93,7 +122,7 @@ public partial class PeopleEditorView : UserControl
         {
             input.Text = person.Name;
             input.Visibility = Visibility.Visible;
-            ((Grid)input.Parent).Children.OfType<TextBlock>().Single().Visibility = Visibility.Collapsed;
+            ((Grid)input.Parent).Children.OfType<TextBlock>().Single().Visibility = Visibility.Hidden;
             input.Focus();
             input.SelectAll();
         }

@@ -137,14 +137,14 @@
                             <CheckBox Content="VR" IsChecked="{Binding Vr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
                         </StackPanel>
                     </Grid>
-                    <DockPanel Grid.Row="5" Margin="0,0,0,5">
+                    <DockPanel Grid.Row="5" Margin="0,0,0,0">
                         <Label Content="Description" VerticalAlignment="Bottom" Visibility="{Binding HasDescription, Converter={StaticResource Visibility}}" />
                     </DockPanel>
                     <TextBox Grid.Row="6" x:Name="DescriptionText" MinHeight="125" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top"
                              VerticalScrollBarVisibility="Auto" Visibility="{Binding HasDescription, Converter={StaticResource Visibility}}">
                         <TextBox.Style>
                             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-                                <Setter Property="Height" Value="125" />
+                                <Setter Property="Height" Value="190" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Documentary}">
                                         <Setter Property="Height" Value="Auto" />

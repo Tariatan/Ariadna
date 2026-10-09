@@ -13,6 +13,15 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.10.7] - 2026-10-09
+
+#### Fixed
+
+- Move the Details description field up 5px and fit one complete portrait row in the people panels.
+- Scroll portrait panels by whole rows with the wheel, scrollbar and keyboard.
+- Match inline people name editors to the original name's dimensions, font, alignment and wrapping, with a blue outline and no field padding.
+- Keep people names aligned when entering inline editing, including Library authors; remove internal scrolling chrome and compensate for the text renderer's horizontal inset.
+
 ### [1.10.6] - 2026-10-09
 
 #### Fixed

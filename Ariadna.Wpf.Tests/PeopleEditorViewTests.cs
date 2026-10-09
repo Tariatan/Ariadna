@@ -11,6 +11,59 @@ namespace Ariadna.Wpf.Tests;
 public sealed class PeopleEditorViewTests
 {
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task Scroll_PortraitRows_KeepsWholeRowsVisible(bool actors) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Movie, "Row scrolling");
+        var people = Enumerable.Range(0, 30).Select(index => new PersonPhoto($"Person {index}", null)).ToArray();
+        fixture.Store.Save(CatalogKind.Movie, new CatalogDetails(entry, [], actors ? [] : people, actors ? people : []));
+        var window = new EntryDetailsWindow(fixture.Actions, CatalogKind.Movie, entry.Path);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (PeopleEditorView)window.FindName(actors ? "CastEditor" : "PeopleEditor");
+            var list = (ListBox)view.FindName("People");
+            var scroll = CatalogView.FindChild<ScrollViewer>(list)!;
+            var first = (ListBoxItem)list.ItemContainerGenerator.ContainerFromIndex(0);
+
+            // Act
+            list.RaiseEvent(new MouseWheelEventArgs(Mouse.PrimaryDevice, 0, -120)
+            {
+                RoutedEvent = Mouse.PreviewMouseWheelEvent,
+            });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.AreEqual(first.ActualHeight + first.Margin.Top + first.Margin.Bottom, scroll.ViewportHeight, 0.01);
+            Assert.AreEqual(scroll.ViewportHeight, scroll.VerticalOffset, 0.01);
+
+            // Act
+            scroll.ScrollToVerticalOffset(scroll.ViewportHeight * 2.4);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.AreEqual(scroll.ViewportHeight * 2, scroll.VerticalOffset, 0.01);
+
+            // Act
+            list.SelectedIndex = list.Items.Count - 1;
+            list.ScrollIntoView(list.SelectedItem);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.AreEqual(scroll.ScrollableHeight, scroll.VerticalOffset, 0.01);
+            Assert.AreEqual(0, scroll.VerticalOffset % scroll.ViewportHeight, 0.01);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     [DataRow(CatalogKind.Movie, false)]
     [DataRow(CatalogKind.Movie, true)]
     [DataRow(CatalogKind.Library, false)]
@@ -20,7 +73,7 @@ public sealed class PeopleEditorViewTests
         using var fixture = new CatalogFixture();
         var entry = fixture.Add(kind, "Rename target");
         var photo = EntryEditorModelTests.Png(Colors.SteelBlue);
-        var person = new PersonPhoto("Before", photo);
+        var person = new PersonPhoto("Augustin Popa", photo);
         fixture.Store.Save(kind, new CatalogDetails(entry, [], actors ? [] : [person], actors ? [person] : []));
         var window = new EntryDetailsWindow(fixture.Actions, kind, entry.Path);
         try
@@ -38,8 +91,26 @@ public sealed class PeopleEditorViewTests
                 RoutedEvent = Keyboard.PreviewKeyDownEvent,
             });
             var input = CatalogView.FindChild<TextBox>(list)!;
+            list.UpdateLayout();
+            var label = ((Grid)input.Parent).Children.OfType<TextBlock>().Single();
             Assert.AreEqual(Visibility.Visible, input.Visibility);
-            Assert.AreEqual("Before", input.SelectedText);
+            Assert.AreEqual(label.ActualWidth, input.ActualWidth, 0.01);
+            Assert.AreEqual(label.ActualHeight, input.ActualHeight, 0.01);
+            Assert.AreEqual(label.FontSize, input.FontSize);
+            Assert.AreEqual(label.TextAlignment, input.TextAlignment);
+            Assert.AreEqual(label.TextWrapping, input.TextWrapping);
+            Assert.AreEqual(new Thickness(0), input.Padding);
+            Assert.AreEqual(Color.FromRgb(51, 153, 255), ((SolidColorBrush)input.BorderBrush).Color);
+            var textViewport = CatalogView.FindChild<ScrollViewer>(input)!;
+            Assert.AreEqual(input.ActualWidth + 4, textViewport.ViewportWidth, 0.01);
+            Assert.AreEqual(0, textViewport.HorizontalOffset, 0.01);
+            Assert.AreEqual(label.TranslatePoint(new Point(), list), input.TranslatePoint(new Point(), list));
+            if (kind == CatalogKind.Library)
+            {
+                Assert.AreEqual(0, input.GetRectFromCharacterIndex(0).Left, 0.01);
+                Assert.AreEqual(0, input.GetRectFromCharacterIndex(0).Top, 0.01);
+            }
+            Assert.AreEqual("Augustin Popa", input.SelectedText);
             input.Text = "After";
             var enter = new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(input), 0, Key.Enter)
             {
