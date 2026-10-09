@@ -30,7 +30,7 @@ internal sealed class CatalogFixture : IDisposable
             ["DefaultGamesPathVR"] = Path.Combine(Root, "VR"),
             ["DefaultDoocumentariesPath"] = Path.Combine(Root, "DOCUMENTARIES"),
             ["DefaultLibraryPath"] = Path.Combine(Root, "LIBRARY"),
-            ["MaxGenresCount"] = "4",
+            ["MaxGenresCount"] = "5",
             ["PosterWidth"] = "80",
             ["PosterHeight"] = "120",
             ["PreviewWidth"] = "120",

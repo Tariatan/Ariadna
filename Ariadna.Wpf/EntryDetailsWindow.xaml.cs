@@ -68,7 +68,7 @@ public partial class EntryDetailsWindow : Window
         FileInfo.Text = "Reading file information…";
         try
         {
-            var info = await FileInspection.InspectAsync(path, editor.Kind is CatalogKind.Movie or CatalogKind.Documentary, actions.Logger, lifetime.Token);
+            var info = await FileInspection.InspectAsync(path, editor.Kind is CatalogKind.Movie or CatalogKind.Documentary, actions.Logger, lifetime.Token, editor.IsGame);
             if (!closed && editor.Path == path && inspectionRevision == revision)
             {
                 FileInfo.Text = string.Empty;
@@ -238,9 +238,8 @@ public partial class EntryDetailsWindow : Window
         return false;
     }
 
-    private void ReplaceImage(object sender, RoutedEventArgs e)
+    private void ReplaceImage(string suffix)
     {
-        var suffix = ImageSuffix((Button)sender);
         var dialog = new OpenFileDialog
         {
             InitialDirectory = actions.Configuration.Get("BitmapInitialSearchDir"),
@@ -256,35 +255,30 @@ public partial class EntryDetailsWindow : Window
         }
     }
 
-    private void PasteImage(object sender, RoutedEventArgs e)
-    {
-        Run(() =>
-        {
-            if (Clipboard.GetImage()is { } image)
-            {
-                editor.ReplaceImage(ImageSuffix((Button)sender), Images.Png(image));
-                UpdatePreview();
-            }
-        });
-    }
-
     private void PosterDoubleClick(object sender, MouseButtonEventArgs e)
     {
         if (e.ClickCount == 2)
         {
-            ReplaceImage(new Button { Tag = string.Empty }, e);
+            ReplaceImage(string.Empty);
         }
     }
 
     private void SelectPreview(object sender, RoutedEventArgs e)
     {
         selectedPreview = int.Parse((string)((Button)sender).Tag, CultureInfo.InvariantCulture);
-        PreviewReplace.Tag = selectedPreview.ToString(CultureInfo.InvariantCulture);
-        PreviewPaste.Tag = selectedPreview.ToString(CultureInfo.InvariantCulture);
         UpdatePreview();
     }
 
-    private string ImageSuffix(Button button) => (string)button.Tag == string.Empty ? string.Empty : actions.Configuration.PreviewSuffix(int.Parse((string)button.Tag, CultureInfo.InvariantCulture));
+    private void PreviewDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left)
+        {
+            SelectPreview(sender, e);
+            e.Handled = true;
+            ReplaceImage(actions.Configuration.PreviewSuffix(selectedPreview));
+        }
+    }
+
     private void UpdatePreview() => SelectedPreview.Source = editor.Previews[selectedPreview - 1];
     private void ToggleGenrePicker(object sender, RoutedEventArgs e)
     {
@@ -294,7 +288,7 @@ public partial class EntryDetailsWindow : Window
             return;
         }
 
-        if (editor.Genres.Count >= actions.Configuration.GetInt("MaxGenresCount", 4))
+        if (editor.Genres.Count >= actions.Configuration.GetInt("MaxGenresCount", 5))
         {
             return;
         }

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace Ariadna.Wpf;
 internal static class FileInspection
 {
-    internal static Task<FileInspectionResult> InspectAsync(string path, bool video, ILogger logger, CancellationToken cancellationToken) => Task.Run(() =>
+    internal static Task<FileInspectionResult> InspectAsync(string path, bool video, ILogger logger, CancellationToken cancellationToken, bool sizeInGigabytes = false) => Task.Run(() =>
     {
         long size = 0;
         var candidate = File.Exists(path) ? path : null;
@@ -30,7 +30,7 @@ internal static class FileInspection
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        var sizeText = size >= 1024L * 1024 * 1024 ? $"{size / (1024d * 1024 * 1024):N1} GB" : $"{size / (1024d * 1024):N1} MB";
+        var sizeText = sizeInGigabytes || size >= 1024L * 1024 * 1024 ? $"{size / (1024d * 1024 * 1024):N1} GB" : $"{size / (1024d * 1024):N1} MB";
         var metrics = new List<MediaMetric> { new(sizeText, MediaMetric.StorageIcon) };
         IReadOnlyCollection<AudioLanguage> languages = [];
         if (video && candidate != null)

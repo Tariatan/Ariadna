@@ -158,7 +158,7 @@ internal sealed class EntryEditorModel : ObservableObject
     internal void AddGenre(string name)
     {
         name = GenreCatalog.Normalize(Kind, name.Trim());
-        if (name.Length > 0 && !Genres.Contains(name, StringComparer.OrdinalIgnoreCase) && Genres.Count < actions.Configuration.GetInt("MaxGenresCount", 4))
+        if (name.Length > 0 && !Genres.Contains(name, StringComparer.OrdinalIgnoreCase) && Genres.Count < actions.Configuration.GetInt("MaxGenresCount", 5))
         {
             Genres.Add(name);
         }

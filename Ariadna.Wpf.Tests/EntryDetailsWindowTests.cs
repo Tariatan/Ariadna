@@ -11,6 +11,61 @@ namespace Ariadna.Wpf.Tests;
 public sealed class EntryDetailsWindowTests
 {
     [TestMethod]
+    public async Task Layout_Game_PreviewSelectionAndReplacementRefreshImages() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture("_custom");
+        var entry = fixture.Add(CatalogKind.Game, "Preview layout");
+        var window = new EntryDetailsWindow(fixture.Actions, CatalogKind.Game, entry.Path);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var model = (EntryEditorModel)window.DataContext;
+            var thumbnails = FindButtons(window).Where(button => button.Tag is string tag && int.TryParse(tag, out _)).ToArray();
+            byte[] pixels = [255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255];
+            var image = System.Windows.Media.Imaging.BitmapSource.Create(2, 2, 96, 96, PixelFormats.Bgra32, null, pixels, 8);
+
+            // Act
+            model.ReplaceImage(fixture.Configuration.PreviewSuffix(3), Images.Png(image));
+            thumbnails[2].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            window.UpdateLayout();
+
+            // Assert
+            Assert.AreEqual(4, thumbnails.Length);
+            Assert.AreSame(model.Previews[2], ((Image)window.FindName("SelectedPreview")).Source);
+            Assert.IsNotNull(FindImages(thumbnails[2]).Single().Source);
+            var year = (TextBox)window.FindName("YearText");
+            var version = (TextBox)window.FindName("VersionText");
+            Assert.AreEqual(year.ActualWidth, version.ActualWidth, 0.1);
+            Assert.IsTrue(version.TranslatePoint(new Point(), window).Y > year.TranslatePoint(new Point(), window).Y);
+            Assert.AreEqual(year.TranslatePoint(new Point(), window).X, version.TranslatePoint(new Point(), window).X, 0.1);
+            Assert.IsNull(window.FindName("PreviewReplace"));
+            Assert.IsNull(window.FindName("PreviewPaste"));
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    private static IEnumerable<Button> FindButtons(DependencyObject root) => Descendants(root).OfType<Button>();
+    private static IEnumerable<Image> FindImages(DependencyObject root) => Descendants(root).OfType<Image>();
+    private static IEnumerable<DependencyObject> Descendants(DependencyObject root)
+    {
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(root); index++)
+        {
+            var child = VisualTreeHelper.GetChild(root, index);
+            yield return child;
+            foreach (var descendant in Descendants(child))
+            {
+                yield return descendant;
+            }
+        }
+    }
+
+    [TestMethod]
     [DataRow(1000d, 640d)]
     [DataRow(1400d, 950d)]
     public async Task Layout_Documentary_DescriptionFillsRemainingHeight(double width, double height) => await WpfThread.RunAsync(async () =>
@@ -222,12 +277,15 @@ public sealed class EntryDetailsWindowTests
             model.AddGenre("Second custom");
             model.AddGenre("Third custom");
             model.AddGenre("Fourth custom");
+            model.AddGenre("Fifth custom");
+            model.AddGenre("Sixth custom");
             button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             model.Save();
             // Assert
             Assert.IsFalse(picker.IsOpen);
             Assert.IsFalse(model.Genres.Contains(chosen));
-            Assert.AreEqual(4, model.Genres.Count);
+            Assert.AreEqual(5, model.Genres.Count);
+            Assert.IsFalse(model.Genres.Contains("Sixth custom"));
             var saved = fixture.Store.GetDetails(kind, entry.Id)!;
             Assert.AreEqual(entry.Title, saved.Entry.Title);
             CollectionAssert.AreEqual(model.Genres.ToArray(), saved.Genres.ToArray());

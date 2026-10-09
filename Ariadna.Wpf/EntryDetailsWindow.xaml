@@ -109,10 +109,15 @@
                     <Label Content="Title" Target="{Binding ElementName=TitleText}" /><TextBox Grid.Row="1" x:Name="TitleText" FontSize="18" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
                     <Label Grid.Row="2" Content="Original title" /><TextBox Grid.Row="3" FontSize="16" Text="{Binding OriginalTitle, UpdateSourceTrigger=PropertyChanged}" />
                     <Grid Grid.Row="4" Margin="0,2,0,0">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="80" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,12,0"><Label Content="Year" /><TextBox Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,0,0">
+                            <Label Content="Year" /><TextBox x:Name="YearText" HorizontalAlignment="Left" Width="80" Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" />
+                            <StackPanel Visibility="{Binding IsGame, Converter={StaticResource Visibility}}">
+                                <Label Content="Version" /><TextBox x:Name="VersionText" Text="{Binding Version, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </StackPanel>
                         <StackPanel Grid.Column="1">
-                            <DockPanel Margin="0,0,0,4">
+                            <DockPanel Margin="20,0,0,4">
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                                     <Button x:Name="PasteGenresButton" Content="↓" Click="PasteGenres" ToolTip="Paste genres from clipboard" FontSize="14" Padding="7,0" Margin="5,0,0,0" />
                                     <Button x:Name="GenrePickerButton" Content="..." Click="ToggleGenrePicker" ToolTip="Choose genre" FontSize="14" Padding="7,0" Margin="5,0,0,0" />
@@ -154,13 +159,41 @@
                         </TextBox.Style>
                     </TextBox>
                     <StackPanel Grid.Row="7" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}">
-                        <Label Content="Version" /><TextBox Text="{Binding Version, UpdateSourceTrigger=PropertyChanged}" />
-                        <Image x:Name="SelectedPreview" Height="230" Stretch="Uniform" />
-                        <WrapPanel>
-                            <Button Content="Preview 1" Tag="1" Click="SelectPreview" /><Button Content="Preview 2" Tag="2" Click="SelectPreview" />
-                            <Button Content="Preview 3" Tag="3" Click="SelectPreview" /><Button Content="Preview 4" Tag="4" Click="SelectPreview" />
-                            <Button x:Name="PreviewReplace" Content="Replace preview…" Tag="1" Click="ReplaceImage" /><Button x:Name="PreviewPaste" Content="Paste preview" Tag="1" Click="PasteImage" />
-                        </WrapPanel>
+                        <Image x:Name="SelectedPreview" Height="339" Stretch="Uniform" Margin="0,8,0,8" />
+                        <UniformGrid Rows="1" Columns="4">
+                            <Button Tag="1" Click="SelectPreview" PreviewMouseDoubleClick="PreviewDoubleClick" Padding="2" Margin="2" ToolTip="Select preview 1; double-click to replace" AutomationProperties.Name="Preview 1">
+                                <Grid Height="64" Background="#10000000">
+                                    <TextBlock Text="?" Foreground="#A0FFFFFF" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding Previews[0]}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                    <Image Source="{Binding Previews[0]}" Stretch="Uniform" />
+                                </Grid>
+                            </Button>
+                            <Button Tag="2" Click="SelectPreview" PreviewMouseDoubleClick="PreviewDoubleClick" Padding="2" Margin="2" ToolTip="Select preview 2; double-click to replace" AutomationProperties.Name="Preview 2">
+                                <Grid Height="64" Background="#10000000">
+                                    <TextBlock Text="?" Foreground="#A0FFFFFF" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding Previews[1]}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                    <Image Source="{Binding Previews[1]}" Stretch="Uniform" />
+                                </Grid>
+                            </Button>
+                            <Button Tag="3" Click="SelectPreview" PreviewMouseDoubleClick="PreviewDoubleClick" Padding="2" Margin="2" ToolTip="Select preview 3; double-click to replace" AutomationProperties.Name="Preview 3">
+                                <Grid Height="64" Background="#10000000">
+                                    <TextBlock Text="?" Foreground="#A0FFFFFF" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding Previews[2]}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                    <Image Source="{Binding Previews[2]}" Stretch="Uniform" />
+                                </Grid>
+                            </Button>
+                            <Button Tag="4" Click="SelectPreview" PreviewMouseDoubleClick="PreviewDoubleClick" Padding="2" Margin="2" ToolTip="Select preview 4; double-click to replace" AutomationProperties.Name="Preview 4">
+                                <Grid Height="64" Background="#10000000">
+                                    <TextBlock Text="?" Foreground="#A0FFFFFF" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding Previews[3]}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                    </TextBlock>
+                                    <Image Source="{Binding Previews[3]}" Stretch="Uniform" />
+                                </Grid>
+                            </Button>
+                        </UniformGrid>
                     </StackPanel>
                     <Grid Grid.Row="8" Margin="0,2,0,0" Visibility="{Binding HasPeople, Converter={StaticResource Visibility}}">
                         <Grid.ColumnDefinitions><ColumnDefinition x:Name="PeopleColumn" Width="165" /><ColumnDefinition x:Name="CastColumn" Width="*" /></Grid.ColumnDefinitions>

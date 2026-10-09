@@ -13,6 +13,13 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [2.0.1] - 2026-10-09
+
+#### Fixed
+
+- Place Games Details Version directly beneath Year with matching width, and show game sizes in GB.
+- Replace numbered preview buttons with four image thumbnails; selecting shows the large preview and double-clicking opens the image replacement dialog. Remove the separate Replace preview and Paste preview buttons.
+
 ### [2.0.0] - 2026-10-09
 
 #### Changed

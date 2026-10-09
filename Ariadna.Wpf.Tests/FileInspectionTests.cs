@@ -8,6 +8,19 @@ namespace Ariadna.Wpf.Tests;
 public sealed class FileInspectionTests
 {
     [TestMethod]
+    public async Task InspectAsync_GameBelowOneGigabyte_UsesGigabytes()
+    {
+        // Arrange
+        var file = Path.Combine(AppContext.BaseDirectory, "Fixtures", "media-two-seconds.avi");
+
+        // Act
+        var result = await FileInspection.InspectAsync(file, false, NullLogger.Instance, CancellationToken.None, true);
+
+        // Assert
+        Assert.AreEqual($"{new FileInfo(file).Length / (1024d * 1024 * 1024):N1} GB", result.Metrics.Single().Value);
+    }
+
+    [TestMethod]
     public async Task InspectAsync_ExistingVideo_ReadsBundledNativeDuration()
     {
         // Arrange
