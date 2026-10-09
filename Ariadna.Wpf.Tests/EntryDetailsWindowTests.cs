@@ -11,6 +11,42 @@ namespace Ariadna.Wpf.Tests;
 public sealed class EntryDetailsWindowTests
 {
     [TestMethod]
+    [DataRow(1000d, 640d)]
+    [DataRow(1400d, 950d)]
+    public async Task Layout_Documentary_DescriptionFillsRemainingHeight(double width, double height) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Documentary, "Documentary layout");
+        var window = new EntryDetailsWindow(fixture.Actions, CatalogKind.Documentary, entry.Path)
+        {
+            Width = width,
+            Height = height,
+        };
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Act
+            window.UpdateLayout();
+            var description = (TextBox)window.FindName("DescriptionText");
+            var content = (Grid)description.Parent;
+
+            // Assert
+            Assert.IsTrue(description.ActualHeight > 125);
+            Assert.AreEqual(content.ActualHeight - description.Margin.Bottom,
+                description.TranslatePoint(new Point(0, description.ActualHeight), content).Y, 1);
+            Assert.IsTrue(description.TranslatePoint(new Point(0, description.ActualHeight), window).Y <
+                ((FrameworkElement)window.FindName("FooterBar")).TranslatePoint(new Point(), window).Y);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     [DataRow(CatalogKind.Movie)]
     [DataRow(CatalogKind.Game)]
     [DataRow(CatalogKind.Documentary)]

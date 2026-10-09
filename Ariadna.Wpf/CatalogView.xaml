@@ -5,8 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Ariadna.Wpf.CatalogView"
              Background="{Binding Theme.Background}" Foreground="White"
              Loaded="OnLoaded" Unloaded="OnUnloaded" PreviewTextInput="OnTextInput" PreviewKeyDown="OnKeyDown" d:DesignWidth="1601.853">
+    <Grid>
     <DockPanel RenderTransformOrigin="0.5,0.5">
-        <Border DockPanel.Dock="Top" BorderBrush="#DDFFFFFF" BorderThickness="1,0,1,1" Padding="1,0" TextElement.FontSize="14">
+        <Border x:Name="FilterBar" DockPanel.Dock="Top" BorderBrush="#DDFFFFFF" BorderThickness="1,0,1,1" Padding="1,0" TextElement.FontSize="14">
             <Border.Resources>
                 <ResourceDictionary>
                     <ResourceDictionary.MergedDictionaries>
@@ -41,13 +42,13 @@
                 <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding HasPeople, Converter={StaticResource Visibility}}">
                     <Border Style="{StaticResource FilterSeparator}" />
                     <Label Content="{Binding PersonLabel}" Target="{Binding ElementName=PersonSearch}" />
-                    <ComboBox x:Name="PersonSearch" Width="140" IsEditable="True" Text="{Binding Person, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="People" AutomationProperties.Name="{Binding PersonLabel}" />
+                    <TextBox x:Name="PersonSearch" Width="140" Text="{Binding Person, UpdateSourceTrigger=PropertyChanged}" TextChanged="OnPeopleTextChanged" PreviewKeyDown="OnPeopleKeyDown" Tag="People" AutomationProperties.Name="{Binding PersonLabel}" />
                     <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Person" Click="ClearFilter" ToolTip="Clear director or author" AutomationProperties.Name="Clear director or author" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}">
                     <Border Style="{StaticResource FilterSeparator}" />
                     <Label Content="Actor" Target="{Binding ElementName=ActorSearch}" />
-                    <ComboBox x:Name="ActorSearch" Width="140" IsEditable="True" Text="{Binding Actor, UpdateSourceTrigger=PropertyChanged}" DropDownOpened="OnPeopleSuggestions" Tag="Actors" AutomationProperties.Name="Actor filter" />
+                    <TextBox x:Name="ActorSearch" Width="140" Text="{Binding Actor, UpdateSourceTrigger=PropertyChanged}" TextChanged="OnPeopleTextChanged" PreviewKeyDown="OnPeopleKeyDown" Tag="Actors" AutomationProperties.Name="Actor filter" />
                     <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Actor" Click="ClearFilter" ToolTip="Clear actor" AutomationProperties.Name="Clear actor" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Height="34">
@@ -171,4 +172,19 @@
             </ListBox.ItemTemplate>
         </ListBox>
     </DockPanel>
+    <Popup x:Name="PeoplePopup" PlacementTarget="{Binding ElementName=FilterBar}" Placement="Bottom" HorizontalOffset="12" VerticalOffset="8" StaysOpen="True">
+        <Border Background="{Binding Theme.Background}" BorderBrush="#DDFFFFFF" BorderThickness="1" Width="{Binding ActualWidth, ElementName=FilterBar}" Height="300">
+            <ListBox x:Name="PeopleSuggestions" Background="Transparent" Foreground="White" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewKeyDown="OnSuggestionKeyDown" MouseDoubleClick="OnSuggestionDoubleClick">
+                <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
+                <ListBox.ItemTemplate><DataTemplate><StackPanel Width="110" Margin="3">
+                    <Grid Width="64" Height="96" Background="#18000000">
+                        <TextBlock Text="?" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#80FFFFFF" />
+                        <Image Source="{Binding Portrait}" Stretch="Uniform" />
+                    </Grid>
+                    <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,3,0,0" />
+                </StackPanel></DataTemplate></ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+    </Popup>
+    </Grid>
 </UserControl>

@@ -1,7 +1,7 @@
 <Window x:Class="Ariadna.Wpf.EntryDetailsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:Ariadna.Wpf" Title="{Binding Caption}" Background="{Binding Theme.EditorBackground}" Foreground="White" FontSize="15"
-        Width="1400" Height="950" MinWidth="1000" MinHeight="640" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="OnLoaded" Closed="OnClosed" PreviewKeyDown="OnKeyDown" PreviewKeyUp="OnKeyUp" Activated="OnActivated" Deactivated="OnDeactivated">
+        xmlns:storage="clr-namespace:Ariadna.Storage;assembly=Ariadna.Storage" xmlns:local="clr-namespace:Ariadna.Wpf" Title="{Binding Caption}" Background="{Binding Theme.EditorBackground}" Foreground="White" FontSize="15"
+        Width="1240" Height="850" MinWidth="1000" MinHeight="640" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="OnLoaded" Closed="OnClosed" PreviewKeyDown="OnKeyDown" PreviewKeyUp="OnKeyUp" Activated="OnActivated" Deactivated="OnDeactivated">
     <Window.Resources><ResourceDictionary>
         <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="DetailsStyles.xaml" /></ResourceDictionary.MergedDictionaries>
         <local:GenreIconConverter x:Key="GenreIcon" />
@@ -24,17 +24,17 @@
                         <Image x:Name="GenreImage" Source="{Binding Converter={StaticResource GenreIcon}}" Stretch="Uniform" />
                     </Grid>
                 </Border>
-                <TextBlock Text="{Binding}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" Margin="0,5,0,0" />
+                <TextBlock Text="{Binding}" TextAlignment="Center" TextWrapping="Wrap" FontSize="13" Margin="0,3,0,0" />
             </StackPanel>
         </DataTemplate>
     </ResourceDictionary></Window.Resources>
     <DockPanel Margin="16">
-        <StackPanel DockPanel.Dock="Bottom" Margin="0,14,0,0">
-            <Border BorderBrush="#40FFFFFF" BorderThickness="0,1,0,0" Padding="0,10,0,0">
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+            <Border BorderBrush="#40FFFFFF" BorderThickness="0,1,0,0" Padding="0,5,0,0">
                 <Grid x:Name="FooterBar">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <WrapPanel VerticalAlignment="Center">
-                    <Border BorderBrush="#60FFFFFF" BorderThickness="1" CornerRadius="5" Margin="0,0,12,8">
+                    <Border BorderBrush="#60FFFFFF" BorderThickness="1" CornerRadius="5" Margin="0,0,0,8">
                         <Grid Width="340">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>
                             <TextBox x:Name="MediaPath" Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Margin="0" ToolTip="{Binding Path}" LostKeyboardFocus="InspectChangedPath" />
@@ -43,26 +43,26 @@
                             </Button>
                         </Grid>
                     </Border>
-                    <ItemsControl x:Name="FileMetrics" Margin="0,0,12,8" VerticalAlignment="Center">
+                    <ItemsControl x:Name="FileMetrics" Margin="0,0,0,8" VerticalAlignment="Center">
                         <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate><DataTemplate><StackPanel Orientation="Horizontal" Margin="8,0,12,0" VerticalAlignment="Center">
                             <Path Data="{Binding Icon}" Stroke="#E0FFFFFF" StrokeThickness="1.7" Width="25" Height="25" Stretch="Uniform" Margin="0,0,9,0" />
                             <TextBlock Text="{Binding Value}" VerticalAlignment="Center" FontSize="14" />
                         </StackPanel></DataTemplate></ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock x:Name="FileInfo" Text="Reading file information…" VerticalAlignment="Center" Margin="0,0,12,8" FontSize="13" />
-                    <Border BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="16,0,4,0" Margin="0,0,12,8" VerticalAlignment="Center">
+                    <TextBlock x:Name="FileInfo" Text="Reading file information…" VerticalAlignment="Center" Margin="0,0,12,8" FontSize="12" />
+                    <Border BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="8,0,5,0" Margin="0,0,10,8" VerticalAlignment="Center">
                         <ItemsControl x:Name="AudioLanguages">
                             <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate><DataTemplate><StackPanel Orientation="Horizontal" Margin="0,0,16,0" ToolTip="{Binding Name}">
+                            <ItemsControl.ItemTemplate><DataTemplate><StackPanel Orientation="Horizontal" Margin="0,0,8,0" ToolTip="{Binding Name}">
                                 <Image Source="{Binding Icon}" Width="30" Height="21" Stretch="Uniform" />
                             </StackPanel></DataTemplate></ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Border>
                     </WrapPanel>
-                    <Border Grid.Column="1" BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="12,0,0,0" Margin="0,0,0,8" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <Border Grid.Column="1" BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="10,0,0,0" Margin="0,0,0,8" VerticalAlignment="Center" HorizontalAlignment="Right">
                         <StackPanel Orientation="Horizontal">
-                            <CheckBox x:Name="Wishlist" Content="Wishlist" IsChecked="{Binding Wanted}" Margin="0,0,12,0" />
+                            <CheckBox x:Name="Wishlist" Content="Wishlist" IsChecked="{Binding Wanted}" Margin="0,0,8,0" />
                             <Button x:Name="SaveButton" Content="Save" Click="Save" MinWidth="100" Background="{Binding Theme.Background}" />
                         </StackPanel>
                     </Border>
@@ -70,7 +70,7 @@
             </Border>
         </StackPanel>
         <Grid>
-            <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="3.3*" /></Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="1.8*" /><ColumnDefinition Width="3*" /></Grid.ColumnDefinitions>
             <Grid Margin="0,0,20,0">
                 <Grid Background="#10000000" MouseDown="PosterDoubleClick">
                     <TextBlock Text="?" FontSize="256" AutomationProperties.Name="Missing poster" Foreground="#A0FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" >
@@ -88,18 +88,34 @@
                     <Image x:Name="PosterImage" Source="{Binding Poster}" Stretch="Uniform" />
                 </Grid>
             </Grid>
-            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
-                <StackPanel>
-                    <Label Content="Title" Target="{Binding ElementName=TitleText}" /><TextBox x:Name="TitleText" FontSize="25" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
-                    <Label Content="Original title" /><TextBox FontSize="19" Text="{Binding OriginalTitle, UpdateSourceTrigger=PropertyChanged}" />
-                    <Grid Margin="0,2,0,10">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="110" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
+                <ScrollViewer.Style>
+                    <Style TargetType="ScrollViewer">
+                        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Documentary}">
+                                <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ScrollViewer.Style>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Label Content="Title" Target="{Binding ElementName=TitleText}" /><TextBox Grid.Row="1" x:Name="TitleText" FontSize="18" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
+                    <Label Grid.Row="2" Content="Original title" /><TextBox Grid.Row="3" FontSize="16" Text="{Binding OriginalTitle, UpdateSourceTrigger=PropertyChanged}" />
+                    <Grid Grid.Row="4" Margin="0,2,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="80" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,12,0"><Label Content="Year" /><TextBox Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
                         <StackPanel Grid.Column="1">
                             <DockPanel Margin="0,0,0,4">
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <Button x:Name="PasteGenresButton" Content="↓" Click="PasteGenres" ToolTip="Paste genres from clipboard" FontSize="22" Padding="7,0" Margin="5,0,0,0" />
-                                    <Button x:Name="GenrePickerButton" Content="..." Click="ToggleGenrePicker" ToolTip="Choose genre" FontSize="22" Padding="7,0" Margin="5,0,0,0" />
+                                    <Button x:Name="PasteGenresButton" Content="↓" Click="PasteGenres" ToolTip="Paste genres from clipboard" FontSize="14" Padding="7,0" Margin="5,0,0,0" />
+                                    <Button x:Name="GenrePickerButton" Content="..." Click="ToggleGenrePicker" ToolTip="Choose genre" FontSize="14" Padding="7,0" Margin="5,0,0,0" />
                                 </StackPanel>
                                 <Label Content="Genres" VerticalAlignment="Center" />
                             </DockPanel>
@@ -121,12 +137,23 @@
                             <CheckBox Content="VR" IsChecked="{Binding Vr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
                         </StackPanel>
                     </Grid>
-                    <DockPanel Margin="0,0,0,6">
+                    <DockPanel Grid.Row="5" Margin="0,0,0,5">
                         <Label Content="Description" VerticalAlignment="Bottom" Visibility="{Binding HasDescription, Converter={StaticResource Visibility}}" />
                     </DockPanel>
-                    <TextBox x:Name="DescriptionText" Height="125" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top"
-                             VerticalScrollBarVisibility="Auto" Visibility="{Binding HasDescription, Converter={StaticResource Visibility}}" />
-                    <StackPanel Visibility="{Binding IsGame, Converter={StaticResource Visibility}}">
+                    <TextBox Grid.Row="6" x:Name="DescriptionText" MinHeight="125" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top"
+                             VerticalScrollBarVisibility="Auto" Visibility="{Binding HasDescription, Converter={StaticResource Visibility}}">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                <Setter Property="Height" Value="125" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Documentary}">
+                                        <Setter Property="Height" Value="Auto" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                    <StackPanel Grid.Row="7" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}">
                         <Label Content="Version" /><TextBox Text="{Binding Version, UpdateSourceTrigger=PropertyChanged}" />
                         <Image x:Name="SelectedPreview" Height="230" Stretch="Uniform" />
                         <WrapPanel>
@@ -135,16 +162,16 @@
                             <Button x:Name="PreviewReplace" Content="Replace preview…" Tag="1" Click="ReplaceImage" /><Button x:Name="PreviewPaste" Content="Paste preview" Tag="1" Click="PasteImage" />
                         </WrapPanel>
                     </StackPanel>
-                    <Grid Margin="0,4,0,0" Visibility="{Binding HasPeople, Converter={StaticResource Visibility}}">
-                        <Grid.ColumnDefinitions><ColumnDefinition x:Name="PeopleColumn" Width="230" /><ColumnDefinition x:Name="CastColumn" Width="*" /></Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource DetailsSection}" Margin="0,0,10,0">
+                    <Grid Grid.Row="8" Margin="0,2,0,0" Visibility="{Binding HasPeople, Converter={StaticResource Visibility}}">
+                        <Grid.ColumnDefinitions><ColumnDefinition x:Name="PeopleColumn" Width="165" /><ColumnDefinition x:Name="CastColumn" Width="*" /></Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource DetailsSection}" Margin="0,0,8,0">
                             <local:PeopleEditorView x:Name="PeopleEditor" />
                         </Border>
                         <Border Grid.Column="1" Style="{StaticResource DetailsSection}" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}">
                             <local:PeopleEditorView x:Name="CastEditor" />
                         </Border>
                     </Grid>
-                </StackPanel>
+                </Grid>
             </ScrollViewer>
         </Grid>
     </DockPanel>

@@ -14,6 +14,83 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogViewTests
 {
     [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies", false)]
+    [DataRow(CatalogKind.Movie, "movies", true)]
+    [DataRow(CatalogKind.Library, "library", false)]
+    public async Task PeopleSearch_TypedName_ShowsPortraitResultsAndConfirmsWithEnter(CatalogKind kind, string argument, bool actor) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(kind, "Matching entry");
+        fixture.Store.Save(kind, new CatalogDetails(entry, [], actor ? [] : [new PersonPhoto("\u0420\u043e\u043b\u0430\u043d\u0434 Test", null)], actor ? [new PersonPhoto("\u0420\u043e\u043b\u0430\u043d\u0434 Test", null)] : []));
+        fixture.Add(kind, "Other entry");
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            await window.PreloadAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var field = (TextBox)view.FindName(actor ? "ActorSearch" : "PersonSearch");
+            var popup = (Popup)view.FindName("PeoplePopup");
+            var suggestions = (ListBox)view.FindName("PeopleSuggestions");
+
+            // Act
+            field.Focus();
+            field.Text = "\u0440\u043e\u043b";
+            await Task.Delay(350);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.IsTrue(popup.IsOpen);
+            Assert.HasCount(1, suggestions.Items);
+            Assert.AreEqual("\u0420\u043e\u043b\u0430\u043d\u0434 Test", ((PersonEditorModel)suggestions.Items[0]).Name);
+            Assert.HasCount(2, view.Model.Entries);
+
+            // Act
+            suggestions.SelectedIndex = 0;
+            suggestions.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(suggestions), 0, Key.Enter)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
+            await view.Model.RefreshAsync(CancellationToken.None);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.IsFalse(popup.IsOpen);
+            Assert.AreEqual("\u0420\u043e\u043b\u0430\u043d\u0434 Test", field.Text);
+            Assert.HasCount(1, view.Model.Entries);
+            Assert.AreEqual(entry.Id, view.Model.Entries[0].Entry.Id);
+
+            // Act
+            field.Text = "\u0440\u043e\u043b";
+            await Task.Delay(350);
+            field.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(field), 0, Key.Escape)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
+
+            // Assert
+            Assert.IsFalse(popup.IsOpen);
+            Assert.AreEqual("\u0440\u043e\u043b", field.Text);
+
+            // Act
+            Descendants<Button>(view).Single(button => (string?)button.Tag == (actor ? "Actor" : "Person")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await view.Model.RefreshAsync(CancellationToken.None);
+
+            // Assert
+            Assert.AreEqual(string.Empty, field.Text);
+            Assert.HasCount(2, view.Model.Entries);
+        }
+        finally
+        {
+            window.Close();
+            await Task.Delay(300);
+        }
+    });
+
+    [TestMethod]
     [DataRow(CatalogKind.Movie, "movies")]
     [DataRow(CatalogKind.Game, "games")]
     [DataRow(CatalogKind.Library, "library")]
@@ -401,8 +478,8 @@ public sealed class CatalogViewTests
 
             // Assert
             CollectionAssert.AreEqual(expectedFlags.Split('|'), Descendants<CheckBox>(view).Where(control => control.IsVisible).Select(control => (string)control.Content).ToArray());
-            Assert.AreEqual(kind is CatalogKind.Movie or CatalogKind.Library, ((ComboBox)view.FindName("PersonSearch")).IsVisible);
-            Assert.AreEqual(kind == CatalogKind.Movie, ((ComboBox)view.FindName("ActorSearch")).IsVisible);
+            Assert.AreEqual(kind is CatalogKind.Movie or CatalogKind.Library, ((TextBox)view.FindName("PersonSearch")).IsVisible);
+            Assert.AreEqual(kind == CatalogKind.Movie, ((TextBox)view.FindName("ActorSearch")).IsVisible);
             Assert.IsTrue(Filter(view, "Genre").IsVisible);
             Assert.IsFalse(initiallyVisible);
             Assert.AreEqual(kind == CatalogKind.Library, subgenre.IsVisible);

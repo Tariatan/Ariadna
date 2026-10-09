@@ -10,6 +10,10 @@ public partial class CatalogView : UserControl, IDisposable
 {
     private const double MinimumPosterWidth = 250;
     private readonly Action<CatalogView, string> edit;
+    private readonly System.Windows.Threading.DispatcherTimer peopleTimer = new() { Interval = TimeSpan.FromMilliseconds(200) };
+    private Window? owner;
+    private TextBox? peopleField;
+    private bool applyingPerson;
     private double scrollOffset;
     private int mouseWheelDelta;
     private bool firstActivation = true;
@@ -26,6 +30,14 @@ public partial class CatalogView : UserControl, IDisposable
         this.edit = edit;
         InitializeComponent();
         DataContext = Model;
+        peopleTimer.Tick += OnPeopleTimer;
+        PreviewMouseDown += (_, _) =>
+        {
+            if (!PeopleSuggestions.IsMouseOver)
+            {
+                ClosePeopleSuggestions();
+            }
+        };
     }
 
     internal async Task Reload(int? selectedEntryId = null)
@@ -41,6 +53,13 @@ public partial class CatalogView : UserControl, IDisposable
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        owner = Window.GetWindow(this);
+        if (owner != null)
+        {
+            owner.Deactivated += OnOwnerDeactivated;
+            owner.LocationChanged += OnOwnerDeactivated;
+            owner.SizeChanged += OnOwnerDeactivated;
+        }
         Model.SetColumns(Math.Max(1, (int)((PosterRows.ActualWidth - 22) / MinimumPosterWidth)));
         Dispatcher.InvokeAsync(() =>
         {
@@ -65,6 +84,8 @@ public partial class CatalogView : UserControl, IDisposable
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        ClosePeopleSuggestions();
+        DetachOwner();
         scrollOffset = FindChild<ScrollViewer>(PosterRows)?.VerticalOffset ?? 0;
         mouseWheelDelta = 0;
         discovery?.Cancel();
@@ -337,10 +358,14 @@ public partial class CatalogView : UserControl, IDisposable
                 Model.Title = string.Empty;
                 break;
             case "Person":
+                ClosePeopleSuggestions();
                 Model.Person = string.Empty;
+                _ = Reload();
                 break;
             case "Actor":
+                ClosePeopleSuggestions();
                 Model.Actor = string.Empty;
+                _ = Reload();
                 break;
             case "Genre":
                 Model.Genre = string.Empty;
@@ -351,10 +376,122 @@ public partial class CatalogView : UserControl, IDisposable
         }
     }
 
-    private void OnPeopleSuggestions(object sender, EventArgs e)
+    private void OnOwnerDeactivated(object? sender, EventArgs e) => ClosePeopleSuggestions();
+
+    private void DetachOwner()
     {
-        var combo = (ComboBox)sender;
-        Run(() => combo.ItemsSource = Actions.Store.SuggestPeople((string)combo.Tag == "Actors", Model.IsLibrary, combo.Text, 30).Select(person => person.Name).ToArray());
+        if (owner != null)
+        {
+            owner.Deactivated -= OnOwnerDeactivated;
+            owner.LocationChanged -= OnOwnerDeactivated;
+            owner.SizeChanged -= OnOwnerDeactivated;
+            owner = null;
+        }
+    }
+
+    private void ClosePeopleSuggestions()
+    {
+        peopleTimer.Stop();
+        PeoplePopup.IsOpen = false;
+    }
+
+    private void OnPeopleTextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (applyingPerson || !IsLoaded)
+        {
+            return;
+        }
+
+        ClosePeopleSuggestions();
+        peopleField = (TextBox)sender;
+        if (peopleField.Text.Length > 0)
+        {
+            peopleTimer.Start();
+        }
+    }
+
+    private void OnPeopleTimer(object? sender, EventArgs e)
+    {
+        peopleTimer.Stop();
+        if (!IsLoaded || peopleField == null || !peopleField.IsKeyboardFocusWithin)
+        {
+            return;
+        }
+
+        Run(() =>
+        {
+            PeopleSuggestions.ItemsSource = Actions.Store.SuggestPeople(peopleField == ActorSearch, Model.IsLibrary, peopleField.Text, 200)
+                .Select(person => new PersonEditorModel(person)).ToArray();
+            PeoplePopup.IsOpen = true;
+        });
+    }
+
+    private void OnPeopleKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            ClosePeopleSuggestions();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Down && PeoplePopup.IsOpen && PeopleSuggestions.Items.Count > 0)
+        {
+            PeopleSuggestions.SelectedIndex = 0;
+            ((ListBoxItem)PeopleSuggestions.ItemContainerGenerator.ContainerFromIndex(0))?.Focus();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Enter)
+        {
+            ClosePeopleSuggestions();
+            _ = Reload();
+            e.Handled = true;
+        }
+    }
+
+    private void OnSuggestionKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            ConfirmPerson();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape)
+        {
+            ClosePeopleSuggestions();
+            peopleField?.Focus();
+            e.Handled = true;
+        }
+    }
+
+    private void OnSuggestionDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ItemsControl.ContainerFromElement(PeopleSuggestions, e.OriginalSource as DependencyObject) is ListBoxItem)
+        {
+            ConfirmPerson();
+            e.Handled = true;
+        }
+    }
+
+    private void ConfirmPerson()
+    {
+        if (PeopleSuggestions.SelectedItem is not PersonEditorModel person || peopleField == null)
+        {
+            return;
+        }
+
+        applyingPerson = true;
+        try
+        {
+            peopleField.Text = person.Name;
+            peopleField.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+        }
+        finally
+        {
+            applyingPerson = false;
+        }
+
+        ClosePeopleSuggestions();
+        peopleField.Focus();
+        _ = Reload();
     }
 
     private void Run(Action action)
@@ -391,6 +528,9 @@ public partial class CatalogView : UserControl, IDisposable
 
     public void Dispose()
     {
+        ClosePeopleSuggestions();
+        peopleTimer.Tick -= OnPeopleTimer;
+        DetachOwner();
         lifetime.Cancel();
         Model.Dispose();
         lifetime.Dispose();

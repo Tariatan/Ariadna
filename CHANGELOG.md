@@ -13,6 +13,13 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [1.10.6] - 2026-10-09
+
+#### Fixed
+
+- Restore legacy live portrait search for Movies directors and actors and Library authors, with double-click/Enter confirmation and Escape dismissal.
+- Stretch the Documentaries Details description to fill the available area above the footer as the window resizes.
+
 ### [1.10.5] - 2026-10-08
 
 #### Fixed

@@ -56,29 +56,9 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
         }
     }
 
-    public string Person
-    {
-        get => person;
-        set
-        {
-            if (Set(ref person, value))
-            {
-                ScheduleRefresh();
-            }
-        }
-    }
+    public string Person { get => person; set => Set(ref person, value); }
 
-    public string Actor
-    {
-        get => actor;
-        set
-        {
-            if (Set(ref actor, value))
-            {
-                ScheduleRefresh();
-            }
-        }
-    }
+    public string Actor { get => actor; set => Set(ref actor, value); }
 
     public string Genre
     {
