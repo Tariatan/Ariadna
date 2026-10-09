@@ -25,9 +25,16 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
                     <Border x:Name="Field" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+                            <TextBlock x:Name="Placeholder" Text="…" Margin="4,0" VerticalAlignment="Center" FontWeight="Bold" IsHitTestVisible="False" Visibility="Collapsed" />
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions><Condition Property="Text" Value="" /><Condition Property="IsReadOnly" Value="True" /></MultiTrigger.Conditions>
+                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+                        </MultiTrigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
                             <Setter TargetName="Field" Property="BorderBrush" Value="#88FFFFFF" />
                         </Trigger>

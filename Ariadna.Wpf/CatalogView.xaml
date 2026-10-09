@@ -53,14 +53,14 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Height="34">
                     <Border Style="{StaticResource FilterSeparator}" />
-                    <Label Content="Genre" Target="{Binding ElementName=GenreSearch}" />
-                    <ComboBox x:Name="GenreSearch" Width="140" Tag="Genre" ItemsSource="{Binding Genres}" IsEditable="True" Text="{Binding Genre, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Genre filter" />
+                    <Label Content="Genre" Target="{Binding ElementName=GenreSearch}" PreviewMouseLeftButtonUp="OpenGenrePicker" />
+                    <TextBox x:Name="GenreSearch" Width="140" Tag="Genre" IsReadOnly="True" Cursor="Hand" Text="{Binding Genre}" PreviewMouseLeftButtonUp="OpenGenrePicker" PreviewKeyDown="OnGenreFieldKeyDown" AutomationProperties.Name="Genre filter" />
                     <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Genre" Click="ClearFilter" ToolTip="Clear genre" AutomationProperties.Name="Clear genre" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding HasSubgenre, Converter={StaticResource Visibility}}">
                     <Border Style="{StaticResource FilterSeparator}" />
-                    <Label Content="Subgenre" Target="{Binding ElementName=SubgenreSearch}" />
-                    <ComboBox x:Name="SubgenreSearch" Width="110" Tag="Subgenre" ItemsSource="{Binding Subgenres}" IsEditable="True" Text="{Binding Subgenre, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Subgenre filter" />
+                    <Label Content="Subgenre" Target="{Binding ElementName=SubgenreSearch}" Tag="Subgenre" PreviewMouseLeftButtonUp="OpenGenrePicker" />
+                    <TextBox x:Name="SubgenreSearch" Width="110" Tag="Subgenre" IsReadOnly="True" Cursor="Hand" Text="{Binding Subgenre}" PreviewMouseLeftButtonUp="OpenGenrePicker" PreviewKeyDown="OnGenreFieldKeyDown" AutomationProperties.Name="Subgenre filter" />
                     <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Subgenre" Click="ClearFilter" ToolTip="Clear subgenre" AutomationProperties.Name="Clear subgenre" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Height="34">
@@ -172,6 +172,39 @@
             </ListBox.ItemTemplate>
         </ListBox>
     </DockPanel>
+    <Popup x:Name="GenrePopup" Opened="OnGenrePopupOpened" PlacementTarget="{Binding ElementName=FilterBar}" Placement="Bottom" HorizontalOffset="12" VerticalOffset="8" StaysOpen="False">
+        <Border x:Name="GenrePopupSurface" Background="{Binding Theme.Background}" BorderBrush="#DDFFFFFF" BorderThickness="1">
+            <ListBox x:Name="GenreSuggestions" Background="Transparent" Foreground="White" BorderThickness="0" Padding="3"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                     PreviewKeyDown="OnGenreSuggestionKeyDown" PreviewMouseDown="OnGenreSuggestionMouseDown">
+                <ListBox.Resources><local:GenreIconConverter x:Key="GenreIcon" /></ListBox.Resources>
+                <ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="Padding" Value="2" />
+                        <Setter Property="Margin" Value="2,0" />
+                        <Setter Property="Template"><Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border x:Name="Tile" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" Padding="{TemplateBinding Padding}"><ContentPresenter /></Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True"><Setter TargetName="Tile" Property="BorderBrush" Value="White" /><Setter TargetName="Tile" Property="Background" Value="#30FFFFFF" /></Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Tile" Property="Background" Value="#20FFFFFF" /></Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value></Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate><DataTemplate><StackPanel Width="96" Height="88">
+                    <Grid Width="60" Height="60">
+                        <TextBlock Text="?" FontSize="44" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#80FFFFFF" />
+                        <Image Source="{Binding Converter={StaticResource GenreIcon}}" Stretch="Uniform" />
+                    </Grid>
+                    <TextBlock Text="{Binding}" TextAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,3,0,0" ToolTip="{Binding}" />
+                </StackPanel></DataTemplate></ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+    </Popup>
     <Popup x:Name="PeoplePopup" PlacementTarget="{Binding ElementName=FilterBar}" Placement="Bottom" HorizontalOffset="12" VerticalOffset="8" StaysOpen="True">
         <Border Background="{Binding Theme.Background}" BorderBrush="#DDFFFFFF" BorderThickness="1" Width="{Binding ActualWidth, ElementName=FilterBar}" Height="300">
             <ListBox x:Name="PeopleSuggestions" Background="Transparent" Foreground="White" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewKeyDown="OnSuggestionKeyDown" MouseDoubleClick="OnSuggestionDoubleClick">

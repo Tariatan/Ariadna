@@ -13,6 +13,14 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [2.0.0] - 2026-10-09
+
+#### Changed
+
+- Replace page genre dropdowns with legacy-style, collection-themed icon panels beneath the toolbar on all four tabs. Double-click or Enter confirms; Escape, outside clicks, window changes and tab switches dismiss without applying an unconfirmed selection.
+- Use catalog genres for Movies, Games and Documentaries, and category/subject icon panels for Library; retain the adjacent clear buttons.
+- Release the genre field's text-selection mouse capture before opening the page picker, so genre tiles receive clicks and the popup can dismiss on outside clicks.
+
 ### [1.10.7] - 2026-10-09
 
 #### Fixed
@@ -367,6 +375,12 @@ Versioning rule:
 - Changelog introduced, tracking the current project version before the planned rework.
 
 ## Ariadna.Storage
+
+### [2.0.3] - 2026-10-09
+
+#### Fixed
+
+- Add explicit strict genre matching for WPF queries, while preserving legacy unknown-lookup behavior and people-search semantics.
 
 ### [2.0.2] - 2026-10-04
 

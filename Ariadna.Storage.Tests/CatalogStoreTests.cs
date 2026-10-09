@@ -32,6 +32,25 @@ public sealed class CatalogStoreTests
     [DataRow(CatalogKind.Documentary)]
     [DataRow(CatalogKind.Game)]
     [DataRow(CatalogKind.Library)]
+    public void Query_RequiredGenreMissing_ReturnsNoMatchesAndClearingRestoresEntries(CatalogKind kind)
+    {
+        // Arrange
+        Save(kind, "One", genres: ["Drama"]);
+        Save(kind, "Two", genres: ["Comedy"]);
+
+        // Act
+        var result = store.Query(kind, new CatalogQuery { Genre = "Missing", RequireGenreMatch = true });
+        var cleared = store.Query(kind, new CatalogQuery { RequireGenreMatch = true });
+
+        // Assert
+        Assert.HasCount(0, result);
+        Assert.HasCount(2, cleared);
+    }
+    [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Documentary)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Library)]
     public void Query_UnicodeNameAndLiteralWildcards_SearchesTitleOriginalAndPath(CatalogKind kind)
     {
         // Arrange

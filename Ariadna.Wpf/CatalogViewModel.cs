@@ -238,6 +238,7 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
             Director = Person,
             Actor = Actor,
             Genre = IsLibrary && !string.IsNullOrEmpty(Subgenre) ? Subgenre : Genre,
+            RequireGenreMatch = true,
             Wish = Wish,
             Recent = Recent,
             New = New,

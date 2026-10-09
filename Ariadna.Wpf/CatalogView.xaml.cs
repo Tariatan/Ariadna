@@ -85,6 +85,7 @@ public partial class CatalogView : UserControl, IDisposable
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         ClosePeopleSuggestions();
+        GenrePopup.IsOpen = false;
         DetachOwner();
         scrollOffset = FindChild<ScrollViewer>(PosterRows)?.VerticalOffset ?? 0;
         mouseWheelDelta = 0;
@@ -352,6 +353,7 @@ public partial class CatalogView : UserControl, IDisposable
     private void Refresh(object sender, RoutedEventArgs e) => _ = Reload();
     private void ClearFilter(object sender, RoutedEventArgs e)
     {
+        GenrePopup.IsOpen = false;
         switch (((Button)sender).Tag)
         {
             case "Title":
@@ -376,7 +378,11 @@ public partial class CatalogView : UserControl, IDisposable
         }
     }
 
-    private void OnOwnerDeactivated(object? sender, EventArgs e) => ClosePeopleSuggestions();
+    private void OnOwnerDeactivated(object? sender, EventArgs e)
+    {
+        ClosePeopleSuggestions();
+        GenrePopup.IsOpen = false;
+    }
 
     private void DetachOwner()
     {
@@ -403,6 +409,7 @@ public partial class CatalogView : UserControl, IDisposable
         }
 
         ClosePeopleSuggestions();
+        GenrePopup.IsOpen = false;
         peopleField = (TextBox)sender;
         if (peopleField.Text.Length > 0)
         {
@@ -529,6 +536,7 @@ public partial class CatalogView : UserControl, IDisposable
     public void Dispose()
     {
         ClosePeopleSuggestions();
+        GenrePopup.IsOpen = false;
         peopleTimer.Tick -= OnPeopleTimer;
         DetachOwner();
         lifetime.Cancel();

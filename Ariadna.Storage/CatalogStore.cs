@@ -17,7 +17,7 @@ public sealed class CatalogStore(CatalogDatabase database)
             command.Parameters.AddWithValue("$name", query.Name);
         }
 
-        AddLookupFilter(command, conditions, layout.GenreTable, layout.GenreRelation, layout.EntryKey, "genreId", query.Genre, "$genre");
+        AddLookupFilter(command, conditions, layout.GenreTable, layout.GenreRelation, layout.EntryKey, "genreId", query.Genre, "$genre", !query.RequireGenreMatch);
         if (kind == CatalogKind.Movie)
         {
             AddLookupFilter(command, conditions, "Director", "MovieDirector", "movieId", "directorId", query.Director, "$director");
@@ -333,14 +333,15 @@ public sealed class CatalogStore(CatalogDatabase database)
         command.ExecuteNonQuery();
     }
 
-    private static void AddLookupFilter(SqliteCommand command, List<string> conditions, string lookup, string relation, string entryKey, string lookupKey, string? value, string parameter)
+    private static void AddLookupFilter(SqliteCommand command, List<string> conditions, string lookup, string relation, string entryKey, string lookupKey, string? value, string parameter, bool ignoreUnknown = true)
     {
         if (string.IsNullOrEmpty(value))
         {
             return;
         }
         command.Parameters.AddWithValue(parameter, value);
-        conditions.Add($"(NOT EXISTS (SELECT 1 FROM [{lookup}] WHERE name={parameter} COLLATE ARIADNA) OR EXISTS (SELECT 1 FROM [{relation}] r WHERE r.[{entryKey}]=e.Id AND r.[{lookupKey}]=(SELECT Id FROM [{lookup}] WHERE name={parameter} COLLATE ARIADNA ORDER BY Id LIMIT 1)))");
+        var unknownLookup = ignoreUnknown ? $"NOT EXISTS (SELECT 1 FROM [{lookup}] WHERE name={parameter} COLLATE ARIADNA) OR " : string.Empty;
+        conditions.Add($"({unknownLookup}EXISTS (SELECT 1 FROM [{relation}] r WHERE r.[{entryKey}]=e.Id AND r.[{lookupKey}]=(SELECT Id FROM [{lookup}] WHERE name={parameter} COLLATE ARIADNA ORDER BY Id LIMIT 1)))");
     }
 
     private static CatalogEntry ReadEntry(SqliteDataReader reader) => new()

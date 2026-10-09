@@ -8,6 +8,36 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogViewModelTests
 {
     [TestMethod]
+    public async Task RefreshAsync_LibrarySubjectAbsentFromDatabase_ReturnsNoEntries() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Library, "Programming book");
+        fixture.Store.Save(CatalogKind.Library, new CatalogDetails(entry, ["Programming", "C++"], [], []));
+        using var model = Model(fixture, CatalogKind.Library);
+        model.Genre = "Programming";
+        model.Subgenre = "C++";
+        await model.RefreshAsync(CancellationToken.None);
+        Assert.HasCount(1, model.Entries);
+
+        // Act
+        model.Genre = "Literature";
+        model.Subgenre = "Fantasy";
+        model.Subgenre = "Horror";
+        await model.RefreshAsync(CancellationToken.None);
+
+        // Assert
+        Assert.AreEqual("Literature", model.Genre);
+        Assert.AreEqual("Horror", model.Subgenre);
+        Assert.HasCount(0, model.Entries);
+        model.Subgenre = string.Empty;
+        await model.RefreshAsync(CancellationToken.None);
+        Assert.HasCount(0, model.Entries);
+        model.Genre = string.Empty;
+        await model.RefreshAsync(CancellationToken.None);
+        Assert.HasCount(1, model.Entries);
+    });
+    [TestMethod]
     [DataRow(CatalogKind.Movie)]
     [DataRow(CatalogKind.Game)]
     [DataRow(CatalogKind.Library)]

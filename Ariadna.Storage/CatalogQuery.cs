@@ -6,6 +6,7 @@ public sealed record CatalogQuery
     public string? Director { get; init; }
     public string? Actor { get; init; }
     public string? Genre { get; init; }
+    public bool RequireGenreMatch { get; init; }
     public bool Wish { get; init; }
     public bool Recent { get; init; }
     public bool New { get; init; }

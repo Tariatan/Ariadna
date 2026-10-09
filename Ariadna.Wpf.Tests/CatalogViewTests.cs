@@ -14,6 +14,234 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogViewTests
 {
     [TestMethod]
+    public async Task GenrePicker_LibraryRepeatedSelections_RefreshesToLatestSubject() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var programming = fixture.Add(CatalogKind.Library, "Programming book");
+        fixture.Store.Save(CatalogKind.Library, new CatalogDetails(programming, ["Programming", "C++"], [], []));
+        var fantasy = fixture.Add(CatalogKind.Library, "Fantasy book");
+        fixture.Store.Save(CatalogKind.Library, new CatalogDetails(fantasy, ["Literature", "Fantasy"], [], []));
+        var horror = fixture.Add(CatalogKind.Library, "Horror book");
+        fixture.Store.Save(CatalogKind.Library, new CatalogDetails(horror, ["Literature", "Horror"], [], []));
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, "library");
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var suggestions = (ListBox)view.FindName("GenreSuggestions");
+
+            foreach (var (fieldName, choice, expected) in new[]
+            {
+                ("GenreSearch", "Programming", programming.Id),
+                ("SubgenreSearch", "C++", programming.Id),
+                ("GenreSearch", "Literature", fantasy.Id),
+                ("SubgenreSearch", "Fantasy", fantasy.Id),
+                ("SubgenreSearch", "Horror", horror.Id),
+            })
+            {
+                // Act
+                var field = (TextBox)view.FindName(fieldName);
+                field.Focus();
+                field.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
+                {
+                    RoutedEvent = UIElement.PreviewMouseLeftButtonUpEvent,
+                });
+                await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+                suggestions.SelectedItem = choice;
+                var tile = (ListBoxItem)suggestions.ItemContainerGenerator.ContainerFromItem(choice);
+                var doubleClick = new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
+                {
+                    RoutedEvent = Mouse.PreviewMouseDownEvent,
+                    Source = tile,
+                };
+                typeof(MouseButtonEventArgs).GetProperty(nameof(MouseButtonEventArgs.ClickCount))!.SetValue(doubleClick, 2);
+                tile.RaiseEvent(doubleClick);
+                while (view.Model.Busy)
+                {
+                    await Task.Delay(10);
+                }
+
+                // Assert
+                Assert.AreEqual(choice, field.Text);
+                Assert.IsTrue(view.Model.Entries.Any(item => item.Entry.Id == expected), $"Missing result for {choice}: {view.Model.Status}");
+                Assert.IsFalse(view.Model.Entries.Any(item => item.Entry.Id == programming.Id) && choice is "Literature" or "Fantasy" or "Horror", $"Stale programming results for {choice}");
+            }
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+    [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies")]
+    [DataRow(CatalogKind.Game, "games")]
+    [DataRow(CatalogKind.Documentary, "documentaries")]
+    [DataRow(CatalogKind.Library, "library")]
+    public async Task GenrePicker_MouseOpeningWithTextBoxCapture_TransfersCaptureToPopup(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        fixture.Add(kind, "Entry");
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var field = (TextBox)view.FindName("GenreSearch");
+            var popup = (Popup)view.FindName("GenrePopup");
+            Assert.IsTrue(Mouse.Capture(field));
+
+            // Act
+            field.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
+            {
+                RoutedEvent = UIElement.PreviewMouseLeftButtonUpEvent,
+            });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.IsTrue(popup.IsOpen);
+            Assert.IsFalse(field.IsMouseCaptureWithin, "The opening text field must release its selection capture before the popup acquires input.");
+            Assert.IsNotNull(Mouse.Captured, "The popup must capture outside clicks for dismissal.");
+        }
+        finally
+        {
+            Mouse.Capture(null);
+            window.Close();
+        }
+    });
+
+    [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies", "Боевик")]
+    [DataRow(CatalogKind.Game, "games", "Action")]
+    [DataRow(CatalogKind.Documentary, "documentaries", "Science")]
+    [DataRow(CatalogKind.Library, "library", "Programming")]
+    public async Task GenrePicker_AllCollections_ConfirmsFiltersAndCancelsWithoutChanges(CatalogKind kind, string argument, string genre) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(kind, "Matching entry");
+        fixture.Store.Save(kind, new CatalogDetails(entry, [genre, "C++"], [], []));
+        fixture.Add(kind, "Other entry");
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var field = (TextBox)view.FindName("GenreSearch");
+            var popup = (Popup)view.FindName("GenrePopup");
+            var suggestions = (ListBox)view.FindName("GenreSuggestions");
+
+            // Act
+            field.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(field), 0, Key.Down)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.IsTrue(popup.IsOpen);
+            Assert.IsTrue(field.IsReadOnly);
+            Assert.IsTrue(suggestions.Items.Contains(genre));
+            Assert.IsFalse(suggestions.Items.Contains(string.Empty));
+            Assert.AreEqual(string.Empty, view.Model.Genre);
+            Assert.AreEqual(view.ActualWidth - 24, ((Border)view.FindName("GenrePopupSurface")).ActualWidth, 1);
+            if (kind != CatalogKind.Library)
+            {
+                CollectionAssert.AreEquivalent(new[] { genre, "C++", "Genre" }, suggestions.Items.Cast<string>().ToArray());
+            }
+
+            // Act
+            suggestions.SelectedItem = genre;
+            suggestions.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(suggestions), 0, Key.Enter)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
+            await view.Model.RefreshAsync(CancellationToken.None);
+
+            // Assert
+            Assert.IsFalse(popup.IsOpen);
+            Assert.AreEqual(genre, view.Model.Genre);
+            Assert.HasCount(1, view.Model.Entries);
+            Assert.AreEqual(entry.Id, view.Model.Entries[0].Entry.Id);
+
+            // Act
+            var nextField = kind == CatalogKind.Library ? (TextBox)view.FindName("SubgenreSearch") : field;
+            nextField.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(nextField), 0, Key.Down)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            suggestions.SelectedItem = kind == CatalogKind.Library ? "C++" : "Genre";
+            suggestions.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(suggestions), 0, Key.Escape)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
+
+            // Assert
+            Assert.IsFalse(popup.IsOpen);
+            Assert.AreEqual(genre, view.Model.Genre);
+            Assert.AreEqual(string.Empty, view.Model.Subgenre);
+
+            // Act
+            nextField.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(nextField), 0, Key.Down)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var mouseGenre = kind == CatalogKind.Library ? "C++" : genre;
+            suggestions.SelectedItem = mouseGenre;
+            var tile = (ListBoxItem)suggestions.ItemContainerGenerator.ContainerFromItem(mouseGenre);
+            var doubleClick = new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
+            {
+                RoutedEvent = Mouse.PreviewMouseDownEvent,
+                Source = tile,
+            };
+            typeof(MouseButtonEventArgs).GetProperty(nameof(MouseButtonEventArgs.ClickCount))!.SetValue(doubleClick, 2);
+            tile.RaiseEvent(doubleClick);
+
+            // Assert
+            Assert.IsFalse(popup.IsOpen);
+            Assert.AreEqual(mouseGenre, kind == CatalogKind.Library ? view.Model.Subgenre : view.Model.Genre);
+
+            // Act
+            if (kind == CatalogKind.Library)
+            {
+                nextField.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(nextField), 0, Key.Down)
+                {
+                    RoutedEvent = Keyboard.PreviewKeyDownEvent,
+                });
+                await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+                suggestions.SelectedItem = "C++";
+                suggestions.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(suggestions), 0, Key.Enter)
+                {
+                    RoutedEvent = Keyboard.PreviewKeyDownEvent,
+                });
+                await view.Model.RefreshAsync(CancellationToken.None);
+                Assert.AreEqual("C++", view.Model.Subgenre);
+                Assert.HasCount(1, view.Model.Entries);
+            }
+            Descendants<Button>(view).Single(button => (string?)button.Tag == "Genre").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await view.Model.RefreshAsync(CancellationToken.None);
+
+            // Assert
+            Assert.AreEqual(string.Empty, view.Model.Genre);
+            Assert.AreEqual(string.Empty, view.Model.Subgenre);
+            Assert.HasCount(2, view.Model.Entries);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     [DataRow(CatalogKind.Movie, "movies", false)]
     [DataRow(CatalogKind.Movie, "movies", true)]
     [DataRow(CatalogKind.Library, "library", false)]
@@ -776,8 +1004,8 @@ public sealed class CatalogViewTests
             window.Close();
         }
     });
-    private static ComboBox Filter(CatalogView view, string property) => Descendants<ComboBox>(view)
-        .Single(control => BindingOperations.GetBinding(control, ComboBox.TextProperty)?.Path.Path == property);
+    private static TextBox Filter(CatalogView view, string property) => Descendants<TextBox>(view)
+        .Single(control => BindingOperations.GetBinding(control, TextBox.TextProperty)?.Path.Path == property);
 
     private static IEnumerable<T> Descendants<T>(DependencyObject parent)
         where T : DependencyObject
