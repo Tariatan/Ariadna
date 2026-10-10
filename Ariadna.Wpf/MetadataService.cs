@@ -71,6 +71,114 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         }
     }
 
+    internal async Task RefreshAsync(MetadataChoice choice, EntryEditorModel editor, bool poster, CancellationToken cancellationToken)
+    {
+        var revision = editor.Revision;
+        string? description;
+        string? posterPath;
+        if (choice.Series)
+        {
+            var show = await client.GetTvShowAsync(choice.Id, TvShowMethods.Undefined, configuration.Get("ImdbLanguage"), cancellationToken: cancellationToken)
+                ?? throw new InvalidDataException("TMDb returned no series metadata.");
+            description = show.Overview;
+            posterPath = show.PosterPath;
+        }
+        else
+        {
+            var movie = await client.GetMovieAsync(choice.Id, configuration.Get("ImdbLanguage"), cancellationToken: cancellationToken)
+                ?? throw new InvalidDataException("TMDb returned no movie metadata.");
+            description = movie.Overview;
+            posterPath = movie.PosterPath;
+        }
+
+        byte[]? bytes = null;
+        if (poster)
+        {
+            if (string.IsNullOrWhiteSpace(posterPath))
+            {
+                throw new InvalidDataException("No poster is available for this match.");
+            }
+
+            await client.GetConfigAsync().WaitAsync(cancellationToken);
+            var size = client.Config?.Images?.PosterSizes?.LastOrDefault()
+                ?? throw new InvalidDataException("TMDb returned no poster sizes.");
+            bytes = await client.GetImageBytesAsync(size, posterPath, false, cancellationToken)
+                ?? throw new InvalidDataException("TMDb returned no poster image.");
+        }
+        else if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new InvalidDataException("No description is available for this match.");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        if (editor.Revision != revision)
+        {
+            return;
+        }
+
+        if (poster)
+        {
+            editor.ReplaceImage(string.Empty, bytes!);
+        }
+        else
+        {
+            editor.Description = description!;
+        }
+    }
+
+    internal async Task RefreshPeopleAsync(MetadataChoice choice, EntryEditorModel editor, bool cast, CancellationToken cancellationToken)
+    {
+        var revision = editor.Revision;
+        var target = cast ? editor.Actors : editor.People;
+        var previous = target.Select(person => (person.Name, person.Photo)).ToArray();
+        (int Id, string Name, string? ProfilePath)[] credits;
+        if (choice.Series)
+        {
+            var result = await client.GetTvShowCreditsAsync(choice.Id, configuration.Get("ImdbLanguage"), cancellationToken)
+                ?? throw new InvalidDataException("TMDb returned no series credits.");
+            credits = cast
+                ? (result.Cast ?? []).Select(person => (person.Id, person.Name ?? string.Empty, person.ProfilePath)).ToArray()
+                : (result.Crew ?? []).Where(person => person.Job == "Director").Select(person => (person.Id, person.Name ?? string.Empty, person.ProfilePath)).ToArray();
+        }
+        else
+        {
+            var result = await client.GetMovieCreditsAsync(choice.Id, cancellationToken)
+                ?? throw new InvalidDataException("TMDb returned no movie credits.");
+            credits = cast
+                ? (result.Cast ?? []).Select(person => (person.Id, person.Name ?? string.Empty, person.ProfilePath)).ToArray()
+                : (result.Crew ?? []).Where(person => person.Job == "Director").Select(person => (person.Id, person.Name ?? string.Empty, person.ProfilePath)).ToArray();
+        }
+
+        credits = credits.Where(person => !string.IsNullOrWhiteSpace(person.Name)).DistinctBy(person => person.Id).ToArray();
+        if (credits.Length == 0)
+        {
+            throw new InvalidDataException(cast ? "No cast is available for this match." : "No directors are available for this match.");
+        }
+
+        await client.GetConfigAsync().WaitAsync(cancellationToken);
+        var size = client.Config?.Images?.ProfileSizes?.LastOrDefault()
+            ?? throw new InvalidDataException("TMDb returned no portrait sizes.");
+        var people = new List<PersonPhoto>();
+        foreach (var person in credits)
+        {
+            var existing = target.FirstOrDefault(value => value.Name.Equals(person.Name, StringComparison.OrdinalIgnoreCase))?.Photo;
+            var photo = person.ProfilePath == null ? existing : await client.GetImageBytesAsync(size, person.ProfilePath, false, cancellationToken) ?? existing;
+            people.Add(new PersonPhoto(person.Name, photo));
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        if (editor.Revision != revision || !previous.SequenceEqual(target.Select(person => (person.Name, person.Photo))))
+        {
+            return;
+        }
+
+        target.Clear();
+        foreach (var person in people)
+        {
+            target.Add(new PersonEditorModel(person));
+        }
+    }
+
     internal async Task<byte[]?> PortraitAsync(string name, CancellationToken cancellationToken)
     {
         await client.GetConfigAsync().WaitAsync(cancellationToken);

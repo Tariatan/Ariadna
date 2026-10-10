@@ -13,6 +13,13 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [3.3.0] - 2026-10-10
+
+#### Added
+
+- Add Movies Details refresh buttons beneath the poster and at the right of Description. Retrieve only the requested field through the existing TMDb movie/series lookup, retaining edits until Save.
+- Add Movies Details Director and Cast refresh buttons. Replace only the requested list with matching TMDb credits and portraits, retaining changes until Save and leaving existing lists intact when credits are unavailable.
+
 ### [3.2.1] - 2026-10-10
 
 #### Fixed

@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Ariadna.Storage;
 using Microsoft.Win32;
 using Microsoft.Extensions.Logging;
@@ -29,6 +30,8 @@ public partial class EntryDetailsWindow : Window
         DataContext = editor;
         PeopleEditor.Configure(editor, actions, false);
         CastEditor.Configure(editor, actions, true);
+        PeopleEditor.RefreshRequested += RefreshDirectors;
+        CastEditor.RefreshRequested += RefreshCast;
         SelectedPreview.Source = editor.Previews[0];
         if (kind == CatalogKind.Library)
         {
@@ -170,7 +173,7 @@ public partial class EntryDetailsWindow : Window
             return;
         }
 
-        if (e.Key == Key.Enter && (Keyboard.FocusedElement == GenrePickerButton || Keyboard.FocusedElement == PasteGenresButton))
+        if (e.Key == Key.Enter && (Keyboard.FocusedElement == GenrePickerButton || Keyboard.FocusedElement == PasteGenresButton || Keyboard.FocusedElement == RefreshPosterButton || Keyboard.FocusedElement == RefreshDescriptionButton || PeopleEditor.IsRefreshFocused || CastEditor.IsRefreshFocused))
         {
             return;
         }
@@ -363,6 +366,81 @@ public partial class EntryDetailsWindow : Window
             editor.AddGenre(genre);
         }
     });
+    private async void RefreshPoster(object sender, RoutedEventArgs e) => await RefreshMetadataAsync(MetadataField.Poster, lifetime.Token);
+    private async void RefreshDescription(object sender, RoutedEventArgs e) => await RefreshMetadataAsync(MetadataField.Description, lifetime.Token);
+
+    private async void RefreshDirectors(object? sender, EventArgs e) => await RefreshMetadataAsync(MetadataField.Directors, lifetime.Token);
+    private async void RefreshCast(object? sender, EventArgs e) => await RefreshMetadataAsync(MetadataField.Cast, lifetime.Token);
+
+    private async Task RefreshMetadataAsync(MetadataField field, CancellationToken cancellationToken)
+    {
+        var activeButton = field switch
+        {
+            MetadataField.Poster => RefreshPosterButton,
+            MetadataField.Description => RefreshDescriptionButton,
+            MetadataField.Directors => PeopleEditor.MetadataRefreshButton,
+            MetadataField.Cast => CastEditor.MetadataRefreshButton,
+            _ => throw new ArgumentOutOfRangeException(nameof(field)),
+        };
+        RefreshIndicator.SetIsRefreshing(activeButton, true);
+        RefreshPosterButton.IsEnabled = false;
+        RefreshDescriptionButton.IsEnabled = false;
+        PeopleEditor.SetRefreshEnabled(false);
+        CastEditor.SetRefreshEnabled(false);
+        try
+        {
+            var revision = editor.Revision;
+            using var service = new MetadataService(actions.Configuration);
+            var choices = await service.SearchAsync(editor.DisplayTitle, Directory.Exists(editor.Path), cancellationToken);
+            if (closed || editor.Revision != revision)
+            {
+                return;
+            }
+
+            if (choices.Count == 0)
+            {
+                throw new InvalidDataException("No matching movie or series was found.");
+            }
+
+            var selected = choices.Count == 1 ? choices.First() : ChooseMetadata(choices);
+            if (selected != null && !closed)
+            {
+                if (field is MetadataField.Directors or MetadataField.Cast)
+                {
+                    await service.RefreshPeopleAsync(selected, editor, field == MetadataField.Cast, cancellationToken);
+                }
+                else
+                {
+                    await service.RefreshAsync(selected, editor, field == MetadataField.Poster, cancellationToken);
+                }
+
+                // Keep the indicator active through queued bindings, layout and rendering.
+                await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
+            }
+        }
+        catch (OperationCanceledException) when (closed)
+        {
+        }
+        catch (Exception exception)
+        {
+            if (!closed)
+            {
+                actions.Report(this, exception, editor.Kind);
+            }
+        }
+        finally
+        {
+            RefreshIndicator.SetIsRefreshing(activeButton, false);
+            if (!closed)
+            {
+                RefreshPosterButton.IsEnabled = true;
+                RefreshDescriptionButton.IsEnabled = true;
+                PeopleEditor.SetRefreshEnabled(true);
+                CastEditor.SetRefreshEnabled(true);
+            }
+        }
+    }
+
     private async Task FindMetadataAsync(CancellationToken cancellationToken)
     {
         var revision = editor.Revision;
@@ -400,47 +478,8 @@ public partial class EntryDetailsWindow : Window
             return null;
         }
 
-        var list = new ListBox
-        {
-            ItemsSource = choices,
-            Margin = new Thickness(12),
-            SelectedIndex = 0
-        };
-        var confirm = new Button
-        {
-            Content = "Choose",
-            IsDefault = true,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-        var cancel = new Button
-        {
-            Content = "Cancel",
-            IsCancel = true,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-        var buttons = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-        buttons.Children.Add(cancel);
-        buttons.Children.Add(confirm);
-        var panel = new DockPanel();
-        DockPanel.SetDock(buttons, Dock.Bottom);
-        panel.Children.Add(buttons);
-        panel.Children.Add(list);
-        var window = new Window
-        {
-            Owner = this,
-            Title = "Choose TMDb match",
-            Width = 700,
-            Height = 430,
-            Content = panel,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-        };
-        confirm.Click += (_, _) => window.DialogResult = true;
-        list.MouseDoubleClick += (_, _) => window.DialogResult = true;
-        return window.ShowDialog() == true ? list.SelectedItem as MetadataChoice : null;
+        var window = new MetadataChoiceWindow(this, editor.Theme, choices);
+        return window.ShowDialog() == true ? window.SelectedChoice : null;
     }
 
     private void Run(Action action)

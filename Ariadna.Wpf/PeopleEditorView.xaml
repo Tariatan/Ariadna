@@ -39,6 +39,7 @@
     <DockPanel>
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button x:Name="RefreshButton" Content="↻" Style="{StaticResource RefreshButtonStyle}" Click="Refresh" ToolTip="Refresh people from IMDb / TMDb" FontSize="14" Padding="7,0" Margin="5,0,0,0" Visibility="Collapsed" />
                 <Button x:Name="PasteButton" Content="↓" Click="Paste" ToolTip="Paste people from clipboard" FontSize="14" Padding="7,0" Margin="5,0,0,0" />
                 <Button x:Name="AddButton" Content="+" Click="Add" ToolTip="Add New Entry" FontSize="14" Padding="7,0" Margin="5,0,0,0" />
             </StackPanel>

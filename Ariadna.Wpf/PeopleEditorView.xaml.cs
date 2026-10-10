@@ -18,6 +18,7 @@ public partial class PeopleEditorView : UserControl
         editor = model;
         actions = catalogActions;
         actors = cast;
+        RefreshButton.Visibility = model.IsMovie ? Visibility.Visible : Visibility.Collapsed;
         People.ItemsSource = cast ? model.Actors : model.People;
         PanelLabel.Text = cast ? "Cast" : model.PeopleLabel;
         if (model.Kind == Ariadna.Storage.CatalogKind.Library)
@@ -27,6 +28,12 @@ public partial class PeopleEditorView : UserControl
             People.MaxHeight = 90;
         }
     }
+
+    internal event EventHandler? RefreshRequested;
+    internal void SetRefreshEnabled(bool enabled) => RefreshButton.IsEnabled = enabled;
+    internal Button MetadataRefreshButton => RefreshButton;
+    internal bool IsRefreshFocused => RefreshButton.IsKeyboardFocused;
+    private void Refresh(object sender, RoutedEventArgs e) => RefreshRequested?.Invoke(this, EventArgs.Empty);
 
     private void Add(object sender, RoutedEventArgs e)
     {

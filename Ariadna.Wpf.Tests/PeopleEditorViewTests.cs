@@ -11,6 +11,76 @@ namespace Ariadna.Wpf.Tests;
 public sealed class PeopleEditorViewTests
 {
     [TestMethod]
+    public async Task RefreshIndicator_DisabledCastButton_AnimatesGlyphAndResetsWhenFinished() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Movie, "Animated refresh");
+        var window = new EntryDetailsWindow(fixture.Actions, CatalogKind.Movie, entry.Path);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (PeopleEditorView)window.FindName("CastEditor");
+            var button = view.MetadataRefreshButton;
+            button.IsEnabled = false;
+
+            // Act
+            RefreshIndicator.SetIsRefreshing(button, true);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var glyph = CatalogView.FindChild<TextBlock>(button)!;
+            var rotation = (RotateTransform)glyph.RenderTransform;
+
+            // Assert
+            Assert.IsTrue(rotation.HasAnimatedProperties);
+            Assert.AreEqual(1.0, button.Opacity);
+            Assert.IsFalse(button.IsEnabled);
+            Assert.IsFalse(RefreshIndicator.GetIsRefreshing(((PeopleEditorView)window.FindName("PeopleEditor")).MetadataRefreshButton));
+
+            // Act
+            RefreshIndicator.SetIsRefreshing(button, false);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+            // Assert
+            Assert.IsFalse(rotation.HasAnimatedProperties);
+            Assert.AreEqual(0.0, rotation.Angle);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task Refresh_Click_RaisesRequestWithoutChangingPeople(bool cast) => await WpfThread.RunAsync(() =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Movie, "Refresh people");
+        var model = new EntryEditorModel(fixture.Actions, CatalogKind.Movie, entry.Path);
+        model.AddPlaceholderPerson(cast);
+        var view = new PeopleEditorView();
+        view.Configure(model, fixture.Actions, cast);
+        var requests = 0;
+        view.RefreshRequested += (_, _) => requests++;
+        var button = (Button)view.FindName("RefreshButton");
+
+        // Act
+        button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+        // Assert
+        Assert.AreEqual(1, requests);
+        Assert.AreEqual(1, (cast ? model.Actors : model.People).Count);
+        view.SetRefreshEnabled(false);
+        Assert.IsFalse(button.IsEnabled);
+        view.SetRefreshEnabled(true);
+        Assert.IsTrue(button.IsEnabled);
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task Scroll_PortraitRows_KeepsWholeRowsVisible(bool actors) => await WpfThread.RunAsync(async () =>

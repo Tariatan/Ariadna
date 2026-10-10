@@ -11,6 +11,46 @@ namespace Ariadna.Wpf.Tests;
 public sealed class EntryDetailsWindowTests
 {
     [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Documentary)]
+    [DataRow(CatalogKind.Library)]
+    public async Task Layout_RefreshButtons_VisibleOnlyForMovies(CatalogKind kind) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(kind, "Refresh test");
+        var window = new EntryDetailsWindow(fixture.Actions, kind, entry.Path);
+        try
+        {
+            // Act
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var poster = (Button)window.FindName("RefreshPosterButton");
+            var description = (Button)window.FindName("RefreshDescriptionButton");
+
+            // Assert
+            var expected = kind == CatalogKind.Movie ? Visibility.Visible : Visibility.Collapsed;
+            Assert.AreEqual(expected, poster.Visibility);
+            Assert.AreEqual(expected, description.Visibility);
+            Assert.AreEqual(1, Grid.GetRow(poster));
+            Assert.AreEqual(Dock.Right, DockPanel.GetDock(description));
+            foreach (var name in new[] { "PeopleEditor", "CastEditor" })
+            {
+                var view = (PeopleEditorView)window.FindName(name);
+                var refresh = (Button)view.FindName("RefreshButton");
+                Assert.AreEqual(expected, refresh.Visibility);
+                Assert.AreEqual("↻", refresh.Content);
+                Assert.IsTrue(((StackPanel)refresh.Parent).Children.IndexOf(refresh) < ((StackPanel)refresh.Parent).Children.IndexOf((Button)view.FindName("PasteButton")));
+            }
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     public async Task Save_MovieTitleFields_PreservesOriginalAndTranslationMapping() => await WpfThread.RunAsync(async () =>
     {
         // Arrange
