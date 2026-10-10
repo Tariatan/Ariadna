@@ -369,7 +369,7 @@ public partial class EntryDetailsWindow : Window
         try
         {
             using var service = new MetadataService(actions.Configuration);
-            var choices = await service.SearchAsync(editor.Title, Directory.Exists(editor.Path), cancellationToken);
+            var choices = await service.SearchAsync(editor.DisplayTitle, Directory.Exists(editor.Path), cancellationToken);
             if (closed || editor.Revision != revision)
             {
                 return;

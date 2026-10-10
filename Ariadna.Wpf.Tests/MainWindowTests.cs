@@ -254,7 +254,7 @@ public sealed class MainWindowTests
             // Assert
             var model = (EntryEditorModel)window.DataContext;
             Assert.AreEqual(entry.Id, model.StoredId);
-            Assert.AreEqual("Synthetic entry", ((TextBox)window.FindName("TitleText")).Text);
+            Assert.AreEqual(kind == CatalogKind.Movie ? "Original Synthetic entry" : "Synthetic entry", ((TextBox)window.FindName("TitleText")).Text);
             Assert.IsTrue(window.IsVisible);
         }
         finally

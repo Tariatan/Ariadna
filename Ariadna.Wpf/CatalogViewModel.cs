@@ -258,9 +258,14 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
             var result = await Task.Run(() => (Entries: store.Query(Kind, query), Genres: store.GetGenres(Kind)), request.Token);
             request.Token.ThrowIfCancellationRequested();
             var selectedId = selectedEntryId ?? Selected?.Entry.Id;
-            entries = result.Entries.Select(entry => new PosterItem(entry, Path.Combine(configuration.PosterRoot(Kind), entry.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)), thumbnails)).ToList();
+            entries = result.Entries.Select(entry => new PosterItem(entry, Kind, Path.Combine(configuration.PosterRoot(Kind), entry.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)), thumbnails)).ToList();
+            if (IsMovie && !query.Recent && !query.New)
+            {
+                entries = entries.OrderBy(entry => entry.Caption, StringComparer.Create(System.Globalization.CultureInfo.GetCultureInfo("en-US"), true)).ToList();
+            }
+
             genres = GenreCatalog.FilterGenres(Kind, result.Genres).Distinct(StringComparer.OrdinalIgnoreCase).Order().Prepend(string.Empty).ToArray();
-            letters = entries.Where(entry => entry.Entry.Title.Length > 0).Select(entry => entry.Entry.Title[..1].ToUpperInvariant()).Where(letter => letter is not ("}" or "«") && (!IsLibrary || letter is not ("(" or "9"))).Distinct().ToArray();
+            letters = entries.Where(entry => entry.Caption.Length > 0).Select(entry => entry.Caption[..1].ToUpperInvariant()).Where(letter => letter is not ("}" or "«") && (!IsLibrary || letter is not ("(" or "9"))).Distinct().ToArray();
             BuildRows();
             Selected = entries.FirstOrDefault(entry => entry.Entry.Id == selectedId) ?? (selectedId == null && entries.Count > 0 ? entries[Random.Shared.Next(entries.Count)] : entries.FirstOrDefault());
             Status = $"{entries.Count:N0} entries";
@@ -315,7 +320,7 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
         }
     }
 
-    internal void Jump(string letter) => Selected = entries.FirstOrDefault(entry => entry.Entry.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) ?? Selected;
+    internal void Jump(string letter) => Selected = entries.FirstOrDefault(entry => entry.Caption.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) ?? Selected;
     internal void Randomize()
     {
         if (entries.Count > 0)

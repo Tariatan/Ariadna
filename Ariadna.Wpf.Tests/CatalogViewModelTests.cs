@@ -8,6 +8,29 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogViewModelTests
 {
     [TestMethod]
+    public async Task RefreshAsync_MovieOriginalTitles_SortsCaptionsAndNavigatesWithFallback() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var translated = fixture.Add(CatalogKind.Movie, "Alpha translation");
+        translated.OriginalTitle = "Zulu original";
+        fixture.Store.Save(CatalogKind.Movie, new CatalogDetails(translated, [], [], []));
+        var fallback = fixture.Add(CatalogKind.Movie, "Beta fallback");
+        fallback.OriginalTitle = string.Empty;
+        fixture.Store.Save(CatalogKind.Movie, new CatalogDetails(fallback, [], [], []));
+        using var model = Model(fixture, CatalogKind.Movie);
+
+        // Act
+        await model.RefreshAsync(CancellationToken.None);
+        model.Jump("Z");
+
+        // Assert
+        CollectionAssert.AreEqual(new[] { "Beta fallback", "Zulu original" }, model.Entries.Select(entry => entry.Caption).ToArray());
+        CollectionAssert.AreEqual(new[] { "B", "Z" }, model.Letters.ToArray());
+        Assert.AreEqual(translated.Id, model.Selected!.Entry.Id);
+    });
+
+    [TestMethod]
     public async Task RefreshAsync_LibrarySubjectAbsentFromDatabase_ReturnsNoEntries() => await WpfThread.RunAsync(async () =>
     {
         // Arrange
@@ -126,11 +149,11 @@ public sealed class CatalogViewModelTests
         // Act
         model.Wish = true;
         await model.RefreshAsync(CancellationToken.None);
-        model.Jump("Я");
+        model.Jump("O");
         // Assert
         Assert.HasCount(2, model.Entries);
-        CollectionAssert.AreEqual(new[] { "A", "Я" }, model.Letters.ToArray());
-        Assert.AreEqual("Яблоко", model.Selected!.Entry.Title);
+        CollectionAssert.AreEqual(new[] { "O" }, model.Letters.ToArray());
+        Assert.AreEqual("Alpha", model.Selected!.Entry.Title);
         model.Title = "бло";
         await model.RefreshAsync(CancellationToken.None);
         Assert.HasCount(1, model.Entries);

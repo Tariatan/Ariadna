@@ -106,7 +106,7 @@
                         <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
                         <RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Label Content="Title" Target="{Binding ElementName=TitleText}" /><TextBox Grid.Row="1" x:Name="TitleText" FontSize="18" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
+                    <Label Content="Title" Target="{Binding ElementName=TitleText}" /><TextBox Grid.Row="1" x:Name="TitleText" FontSize="18" Text="{Binding DisplayTitle, UpdateSourceTrigger=PropertyChanged}" />
                     <StackPanel Grid.Row="2" Grid.RowSpan="2">
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
@@ -122,13 +122,16 @@
                                 <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
                                     <Setter Property="Content" Value="Original title" />
                                     <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Movie}">
+                                            <Setter Property="Content" Value="Translation" />
+                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Library}">
                                             <Setter Property="Content" Value="Details" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Label.Style>
-                        </Label><TextBox FontSize="16" Text="{Binding OriginalTitle, UpdateSourceTrigger=PropertyChanged}" />
+                        </Label><TextBox x:Name="SecondaryTitleText" FontSize="16" Text="{Binding SecondaryTitle, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                     <Grid Grid.Row="4" Margin="0,2,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>

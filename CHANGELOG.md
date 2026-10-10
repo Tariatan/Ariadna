@@ -13,11 +13,18 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [3.1.0] - 2026-10-10
+
+#### Changed
+
+- Show Movies original titles on poster entries, with title fallback when absent; sort and navigate by the displayed titles.
+- Show Movies original title in Details Title and stored title in Translation, preserving their storage mapping.
+
 ### [3.0.2] - 2026-10-10
 
 #### Fixed
 
-- Rename Original title to Full title in Library Details.
+- Further Details form tweaks.
 
 ### [3.0.1] - 2026-10-10
 

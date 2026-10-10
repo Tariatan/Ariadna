@@ -644,7 +644,9 @@ public sealed class CatalogViewTests
         using var fixture = new CatalogFixture();
         foreach (var index in Enumerable.Range(0, 60))
         {
-            fixture.Add(kind, $"{(index < 30 ? "A" : "Z")} Entry {index:D2}");
+            var entry = fixture.Add(kind, $"{(index < 30 ? "A" : "Z")} Entry {index:D2}");
+            entry.OriginalTitle = entry.Title;
+            fixture.Store.Save(kind, new CatalogDetails(entry, ["Genre"], [], []));
         }
 
         var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);

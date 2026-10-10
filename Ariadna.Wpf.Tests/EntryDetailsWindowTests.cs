@@ -11,6 +11,38 @@ namespace Ariadna.Wpf.Tests;
 public sealed class EntryDetailsWindowTests
 {
     [TestMethod]
+    public async Task Save_MovieTitleFields_PreservesOriginalAndTranslationMapping() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(CatalogKind.Movie, "Translated title");
+        var window = new EntryDetailsWindow(fixture.Actions, CatalogKind.Movie, entry.Path);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var title = (TextBox)window.FindName("TitleText");
+            var translation = (TextBox)window.FindName("SecondaryTitleText");
+            Assert.AreEqual(entry.OriginalTitle, title.Text);
+            Assert.AreEqual(entry.Title, translation.Text);
+
+            // Act
+            title.Text = "Edited original";
+            translation.Text = "Edited translation";
+            ((EntryEditorModel)window.DataContext).Save();
+            var saved = fixture.Store.GetDetails(CatalogKind.Movie, entry.Id)!;
+
+            // Assert
+            Assert.AreEqual("Edited original", saved.Entry.OriginalTitle);
+            Assert.AreEqual("Edited translation", saved.Entry.Title);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     public async Task Layout_Game_PreviewSelectionAndReplacementRefreshImages() => await WpfThread.RunAsync(async () =>
     {
         // Arrange

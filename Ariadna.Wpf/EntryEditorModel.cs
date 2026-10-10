@@ -27,7 +27,7 @@ internal sealed class EntryEditorModel : ObservableObject
         loaded = id < 0 ? null : actions.Store.GetDetails(kind, id);
         StoredId = id;
         title = loaded?.Entry.Title ?? System.IO.Path.GetFileNameWithoutExtension(path);
-        originalTitle = loaded?.Entry.OriginalTitle ?? string.Empty;
+        originalTitle = loaded?.Entry.OriginalTitle ?? (kind == CatalogKind.Movie ? title : string.Empty);
         this.path = loaded?.Entry.Path ?? path;
         year = loaded?.Entry.Year > 0 ? loaded.Entry.Year.ToString(CultureInfo.InvariantCulture) : string.Empty;
         description = loaded?.Entry.Description ?? string.Empty;
@@ -49,6 +49,37 @@ internal sealed class EntryEditorModel : ObservableObject
     public bool HasDescription => !IsGame;
     public bool HasPeople => IsMovie || Kind == CatalogKind.Library;
     public string PeopleLabel => Kind == CatalogKind.Library ? "Authors" : "Directors";
+    public string DisplayTitle
+    {
+        get => IsMovie ? OriginalTitle : Title;
+        set
+        {
+            if (IsMovie)
+            {
+                OriginalTitle = value;
+            }
+            else
+            {
+                Title = value;
+            }
+        }
+    }
+
+    public string SecondaryTitle
+    {
+        get => IsMovie ? Title : OriginalTitle;
+        set
+        {
+            if (IsMovie)
+            {
+                Title = value;
+            }
+            else
+            {
+                OriginalTitle = value;
+            }
+        }
+    }
     public string Caption => StoredId < 0 ? $"Add {Theme.Caption} entry" : $"{Theme.Caption} — {Title}";
 
     public string Title
@@ -58,6 +89,8 @@ internal sealed class EntryEditorModel : ObservableObject
         {
             if (Set(ref title, value))
             {
+                Notify(nameof(DisplayTitle));
+                Notify(nameof(SecondaryTitle));
                 Revision++;
             }
         }
@@ -70,6 +103,8 @@ internal sealed class EntryEditorModel : ObservableObject
         {
             if (Set(ref originalTitle, value))
             {
+                Notify(nameof(DisplayTitle));
+                Notify(nameof(SecondaryTitle));
                 Revision++;
             }
         }
@@ -184,7 +219,7 @@ internal sealed class EntryEditorModel : ObservableObject
 
     internal CatalogDetails BuildDetails()
     {
-        if (string.IsNullOrWhiteSpace(Title) || string.IsNullOrWhiteSpace(Path))
+        if ((string.IsNullOrWhiteSpace(Title) && (!IsMovie || string.IsNullOrWhiteSpace(OriginalTitle))) || string.IsNullOrWhiteSpace(Path))
         {
             throw new InvalidDataException("Title and media path are required.");
         }
