@@ -140,7 +140,7 @@ public partial class EntryDetailsWindow : Window
         }
         catch (Exception exception)
         {
-            actions.Report(this, exception);
+            actions.Report(this, exception, editor.Kind);
         }
         finally
         {
@@ -158,7 +158,7 @@ public partial class EntryDetailsWindow : Window
         }
         catch (Exception exception)
         {
-            actions.Report(this, exception);
+            actions.Report(this, exception, editor.Kind);
         }
     }
 
@@ -388,7 +388,7 @@ public partial class EntryDetailsWindow : Window
         {
             if (!closed)
             {
-                actions.Report(this, exception);
+                actions.Report(this, exception, editor.Kind);
             }
         }
     }
@@ -451,7 +451,7 @@ public partial class EntryDetailsWindow : Window
         }
         catch (Exception exception)
         {
-            actions.Report(this, exception);
+            actions.Report(this, exception, editor.Kind);
         }
     }
 

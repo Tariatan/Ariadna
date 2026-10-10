@@ -1,0 +1,54 @@
+<Window x:Class="Ariadna.Wpf.CatalogDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Ariadna" Width="540" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStyle="None" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Background="#400040" Foreground="White" FontFamily="Segoe UI" FontSize="15"
+        Loaded="OnLoaded">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="40" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="6" UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DetailsStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Border BorderBrush="#60FFFFFF" BorderThickness="1" CornerRadius="6">
+        <StackPanel>
+            <Border Background="#30000000" BorderBrush="#35FFFFFF" BorderThickness="0,0,0,1">
+                <Grid Height="39">
+                    <TextBlock Text="Ariadna" Margin="16,0" VerticalAlignment="Center" />
+                    <Button Content="&#x2715;" AutomationProperties.Name="Close" Width="40" Height="38"
+                            HorizontalAlignment="Right" Padding="0" Margin="0" Background="Transparent" BorderThickness="0"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True" Click="Dismiss" />
+                </Grid>
+            </Border>
+            <Grid Margin="28,28,28,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="48" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid Width="48" Height="48" VerticalAlignment="Top">
+                    <Path x:Name="WarningIcon" Data="M24,3 L46,44 L2,44 Z M24,15 L24,29 M24,35 L24,37"
+                          Stroke="#FFE3B1" StrokeThickness="2" StrokeLineJoin="Round" Visibility="Collapsed" />
+                    <Ellipse x:Name="CircleIcon" Stroke="#E0FFFFFF" StrokeThickness="2" Margin="2" />
+                    <TextBlock x:Name="IconGlyph" Text="i" FontSize="31" TextAlignment="Center" VerticalAlignment="Center" />
+                </Grid>
+                <StackPanel Grid.Column="2">
+                    <TextBlock x:Name="Heading" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,10" />
+                    <ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <TextBlock x:Name="Message" Foreground="#E8FFFFFF" TextWrapping="Wrap" />
+                    </ScrollViewer>
+                </StackPanel>
+            </Grid>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,0,24,22">
+                <Button x:Name="CancelAction" Content="Cancel" MinWidth="100" IsCancel="True" IsDefault="True" Click="Dismiss" Margin="0,0,10,0" />
+                <Button x:Name="PrimaryAction" Content="OK" MinWidth="100" Margin="0" Click="Accept" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

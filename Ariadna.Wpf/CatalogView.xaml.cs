@@ -303,7 +303,7 @@ public partial class CatalogView : UserControl, IDisposable
             {
                 if (path == null)
                 {
-                    MessageBox.Show(Window.GetWindow(this), "No unregistered entries were found.", "Ariadna");
+                    CatalogDialog.ShowInformation(Window.GetWindow(this), Model.Kind, "Discovery complete", "No unregistered entries were found.");
                 }
                 else
                 {
@@ -318,7 +318,7 @@ public partial class CatalogView : UserControl, IDisposable
         {
             if (!request.IsCancellationRequested)
             {
-                Actions.Report(Window.GetWindow(this), exception);
+                Actions.Report(Window.GetWindow(this), exception, Model.Kind);
             }
         }
         finally
@@ -330,16 +330,16 @@ public partial class CatalogView : UserControl, IDisposable
 
     private void Remove(object sender, RoutedEventArgs e)
     {
-        if (Model.Selected == null)
+        var selected = Model.Selected;
+        if (selected == null)
         {
             return;
         }
 
         var deleteMedia = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
-        var prompt = deleteMedia ? "Remove this catalog entry AND permanently delete its media?" : "Remove this catalog entry and its poster images?";
-        if (MessageBox.Show(Window.GetWindow(this), prompt, "Ariadna", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+        if (CatalogDialog.ConfirmRemoval(Window.GetWindow(this), Model.Kind, selected.Caption, selected.Entry.Path, deleteMedia))
         {
-            Run(() => Actions.Remove(Model.Kind, Model.Selected.Entry, deleteMedia));
+            Run(() => Actions.Remove(Model.Kind, selected.Entry, deleteMedia));
             _ = Reload();
         }
     }
@@ -509,7 +509,7 @@ public partial class CatalogView : UserControl, IDisposable
         }
         catch (Exception exception)
         {
-            Actions.Report(Window.GetWindow(this), exception);
+            Actions.Report(Window.GetWindow(this), exception, Model.Kind);
         }
     }
 

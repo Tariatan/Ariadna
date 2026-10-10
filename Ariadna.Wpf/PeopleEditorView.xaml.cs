@@ -195,7 +195,7 @@ public partial class PeopleEditorView : UserControl
         }
         catch (Exception exception)
         {
-            actions!.Report(Window.GetWindow(this), exception);
+            actions!.Report(Window.GetWindow(this), exception, editor!.Kind);
         }
     }
 }

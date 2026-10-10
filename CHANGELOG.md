@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [3.2.0] - 2026-10-10
+
+#### Changed
+
+- Redesign popups.
+
 ### [3.1.0] - 2026-10-10
 
 #### Changed

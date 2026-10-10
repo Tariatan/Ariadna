@@ -12,10 +12,10 @@ internal sealed class CatalogActions(CatalogStore store, CatalogConfiguration co
     internal ILogger Logger { get; } = logger;
     internal Action? ThumbnailsInvalidated { get; set; }
 
-    internal void Report(Window owner, Exception exception)
+    internal void Report(Window owner, Exception exception, CatalogKind kind)
     {
         Logger.LogError("Catalog action failed, error type '{ErrorType}'", exception.GetType().Name);
-        MessageBox.Show(owner, exception.Message, "Ariadna", MessageBoxButton.OK, MessageBoxImage.Error);
+        CatalogDialog.ShowError(owner, kind, "Action could not complete", exception.Message);
     }
 
     internal void Execute(CatalogKind kind, string path)

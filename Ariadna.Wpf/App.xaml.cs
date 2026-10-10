@@ -52,7 +52,8 @@ public partial class App : Application
         catch (Exception exception)
         {
             logging?.CreateLogger("Ariadna.Wpf").LogError("Startup failed, error type '{ErrorType}'", exception.GetType().Name);
-            MessageBox.Show("Ariadna could not start. Check the catalog configuration and recovery files.\n\n" + exception.Message, "Ariadna", MessageBoxButton.OK, MessageBoxImage.Error);
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            CatalogDialog.ShowError(null, CatalogKind.Movie, "Ariadna could not start", "Check the catalog configuration and recovery files.\n\n" + exception.Message);
             Shutdown(1);
         }
     }
