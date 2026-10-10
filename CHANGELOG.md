@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [3.0.2] - 2026-10-10
+
+#### Fixed
+
+- Rename Original title to Full title in Library Details.
+
 ### [3.0.1] - 2026-10-10
 
 #### Fixed

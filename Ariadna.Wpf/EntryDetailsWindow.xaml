@@ -117,7 +117,18 @@
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
-                        <Label Content="Original title" /><TextBox FontSize="16" Text="{Binding OriginalTitle, UpdateSourceTrigger=PropertyChanged}" />
+                        <Label>
+                            <Label.Style>
+                                <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
+                                    <Setter Property="Content" Value="Original title" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Library}">
+                                            <Setter Property="Content" Value="Details" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Label.Style>
+                        </Label><TextBox FontSize="16" Text="{Binding OriginalTitle, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                     <Grid Grid.Row="4" Margin="0,2,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
