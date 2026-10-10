@@ -339,8 +339,13 @@ public partial class CatalogView : UserControl, IDisposable
         var deleteMedia = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
         if (CatalogDialog.ConfirmRemoval(Window.GetWindow(this), Model.Kind, selected.Caption, selected.Entry.Path, deleteMedia))
         {
-            Run(() => Actions.Remove(Model.Kind, selected.Entry, deleteMedia));
-            _ = Reload();
+            var index = Model.Entries.TakeWhile(entry => entry != selected).Count();
+            var neighbour = index > 0 ? Model.Entries[index - 1] : Model.Entries.ElementAtOrDefault(index + 1);
+            Run(() =>
+            {
+                Actions.Remove(Model.Kind, selected.Entry, deleteMedia);
+                _ = Reload(neighbour?.Entry.Id);
+            });
         }
     }
 

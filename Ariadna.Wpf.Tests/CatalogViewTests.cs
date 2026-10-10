@@ -14,6 +14,64 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogViewTests
 {
     [TestMethod]
+    [DataRow(CatalogKind.Movie, "movies")]
+    [DataRow(CatalogKind.Game, "games")]
+    [DataRow(CatalogKind.Documentary, "documentaries")]
+    [DataRow(CatalogKind.Library, "library")]
+    public async Task Remove_ConfirmedDeletion_FocusesPreviousThenNextOrEmpty(CatalogKind kind, string argument) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        foreach (var title in new[] { "A entry", "B entry", "C entry", "D entry" })
+        {
+            fixture.Add(kind, title);
+        }
+
+        var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, argument);
+        try
+        {
+            await window.PrepareAsync(CancellationToken.None);
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var view = (CatalogView)((TabItem)((TabControl)window.FindName("CatalogTabs")).SelectedItem).Content;
+            var originalIds = view.Model.Entries.Select(item => item.Entry.Id).ToArray();
+            (int Index, int? ExpectedId)[] removals = [(2, originalIds[1]), (2, originalIds[1]), (0, originalIds[1]), (0, null)];
+            foreach (var (index, expectedId) in removals)
+            {
+                view.Model.Selected = view.Model.Entries[index];
+                var removedId = view.Model.Selected.Entry.Id;
+                _ = window.Dispatcher.BeginInvoke(() =>
+                {
+                    var dialog = window.OwnedWindows.OfType<CatalogDialog>().Single();
+                    ((Button)dialog.FindName("PrimaryAction")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                }, DispatcherPriority.ApplicationIdle);
+
+                // Act
+                typeof(CatalogView).GetMethod("Remove", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(view, [view, new RoutedEventArgs()]);
+                while (view.Model.Busy)
+                {
+                    await Task.Delay(10);
+                }
+
+                await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+
+                // Assert
+                Assert.IsFalse(view.Model.Entries.Any(item => item.Entry.Id == removedId));
+                Assert.AreEqual(expectedId, view.Model.Selected?.Entry.Id);
+                if (expectedId != null)
+                {
+                    Assert.IsTrue(((ListBox)view.FindName("PosterRows")).IsKeyboardFocusWithin);
+                }
+            }
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     public async Task GenrePicker_LibraryRepeatedSelections_RefreshesToLatestSubject() => await WpfThread.RunAsync(async () =>
     {
         // Arrange

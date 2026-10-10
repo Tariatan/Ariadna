@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [3.2.1] - 2026-10-10
+
+#### Fixed
+
+- After removing an entry, select and focus the previous displayed entry when available, otherwise the next entry.
+
 ### [3.2.0] - 2026-10-10
 
 #### Changed
