@@ -107,7 +107,18 @@
                         <RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <Label Content="Title" Target="{Binding ElementName=TitleText}" /><TextBox Grid.Row="1" x:Name="TitleText" FontSize="18" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
-                    <Label Grid.Row="2" Content="Original title" /><TextBox Grid.Row="3" FontSize="16" Text="{Binding OriginalTitle, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel Grid.Row="2" Grid.RowSpan="2">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Game}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <Label Content="Original title" /><TextBox FontSize="16" Text="{Binding OriginalTitle, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
                     <Grid Grid.Row="4" Margin="0,2,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,0,0">
@@ -159,7 +170,7 @@
                         </TextBox.Style>
                     </TextBox>
                     <StackPanel Grid.Row="7" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}">
-                        <Image x:Name="SelectedPreview" Height="339" Stretch="Uniform" Margin="0,8,0,8" />
+                        <Image x:Name="SelectedPreview" Height="410" Stretch="Uniform" Margin="0,8,0,8" />
                         <UniformGrid Rows="1" Columns="4">
                             <Button Tag="1" Click="SelectPreview" PreviewMouseDoubleClick="PreviewDoubleClick" Padding="2" Margin="2" ToolTip="Select preview 1; double-click to replace" AutomationProperties.Name="Preview 1">
                                 <Grid Height="64" Background="#10000000">

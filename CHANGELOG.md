@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [3.0.1] - 2026-10-10
+
+#### Fixed
+
+- Remove the Original title field and label from Games Details without leaving an empty row.
+
 ### [3.0.0] - 2026-10-10
 
 #### Changed
