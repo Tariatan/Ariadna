@@ -116,7 +116,7 @@ public sealed class CatalogViewTests
     });
 
     [TestMethod]
-    [DataRow(CatalogKind.Movie, "movies", "Боевик")]
+    [DataRow(CatalogKind.Movie, "movies", "Action")]
     [DataRow(CatalogKind.Game, "games", "Action")]
     [DataRow(CatalogKind.Documentary, "documentaries", "Science")]
     [DataRow(CatalogKind.Library, "library", "Programming")]

@@ -1,7 +1,7 @@
 <Window x:Class="Ariadna.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Ariadna — WPF" Width="1120" Height="780" MinWidth="700" MinHeight="500"
+        Title="Ariadna" Width="1120" Height="780" MinWidth="700" MinHeight="500"
         Icon="Resources/Ariadna.ico" Background="#FF585C59" Foreground="White"
         WindowStartupLocation="CenterScreen" PreviewKeyDown="OnKeyDown" Closed="OnClosed">
     <TabControl x:Name="CatalogTabs" Background="#FF585C59" BorderThickness="0">

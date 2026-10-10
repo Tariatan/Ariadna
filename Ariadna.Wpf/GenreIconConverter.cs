@@ -6,31 +6,21 @@ public sealed class GenreIconConverter : IValueConverter
 {
     private static readonly Dictionary<string, string> Icons = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["Боевик"] = "action",
-        ["Приключение"] = "adventure",
-        ["Анимационный"] = "animation",
-        ["Биография"] = "biography",
-        ["Комедия"] = "comedy",
-        ["Криминал"] = "criminal",
-        ["Детектив"] = "detective",
-        ["Катастрофа"] = "disaster",
-        ["Драма"] = "drama",
-        ["Сказка"] = "fairytale",
-        ["Семейный"] = "family",
-        ["Фэнтези"] = "fantasy",
-        ["Исторический"] = "historical",
-        ["Ужасы"] = "horror",
-        ["Детский"] = "kid",
-        ["Музыка"] = "musical",
-        ["Мистика"] = "mystic",
-        ["Постапокалипсис"] = "postapocalypse",
-        ["Романтика"] = "romance",
-        ["Фантастика"] = "scifi",
-        ["Спорт"] = "sport",
-        ["Триллер"] = "thriller",
-        ["Военный"] = "war",
-        ["Вестерн"] = "western",
-        ["Новогодний"] = "xmas",
+        ["Animation"] = "animation",
+        ["Biography"] = "biography",
+        ["Comedy"] = "comedy",
+        ["Crime"] = "criminal",
+        ["Detective"] = "detective",
+        ["Disaster"] = "disaster",
+        ["Drama"] = "drama",
+        ["Family"] = "family",
+        ["Historical"] = "historical",
+        ["Mysticism"] = "mystic",
+        ["Romance"] = "romance",
+        ["Thriller"] = "thriller",
+        ["War"] = "war",
+        ["Western"] = "western",
+        ["New Year"] = "xmas",
         ["Travel"] = "travel",
         ["Art. History"] = "art",
         ["Universe"] = "universe",
@@ -102,7 +92,7 @@ public sealed class GenreIconConverter : IValueConverter
 
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var name = value as string ?? string.Empty;
+        var name = GenreCatalog.Normalize(Ariadna.Storage.CatalogKind.Movie, value as string ?? string.Empty);
         return Icons.TryGetValue(name, out var icon)
             ? $"pack://application:,,,/Ariadna.Wpf;component/Resources/genres/{icon}.png"
             : null;

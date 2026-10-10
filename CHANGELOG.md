@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [3.0.0] - 2026-10-10
+
+#### Changed
+
+- Switch to English.
+
 ### [2.0.1] - 2026-10-09
 
 #### Fixed

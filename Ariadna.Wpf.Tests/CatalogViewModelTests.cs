@@ -111,7 +111,7 @@ public sealed class CatalogViewModelTests
 
         // Assert
         CollectionAssert.Contains(model.Genres.ToArray(), "Custom saved genre");
-        CollectionAssert.Contains(model.Genres.ToArray(), "Комедия");
+        CollectionAssert.Contains(model.Genres.ToArray(), "Comedy");
     });
 
     [TestMethod]

@@ -3,7 +3,7 @@ using Ariadna.Storage;
 namespace Ariadna.Wpf;
 internal static class GenreCatalog
 {
-    private static readonly string[] MovieGenres = ["Боевик", "Приключение", "Анимационный", "Биография", "Комедия", "Криминал", "Детектив", "Катастрофа", "Драма", "Сказка", "Семейный", "Фэнтези", "Исторический", "Ужасы", "Детский", "Музыка", "Мистика", "Постапокалипсис", "Романтика", "Фантастика", "Спорт", "Триллер", "Военный", "Вестерн", "Новогодний"];
+    private static readonly string[] MovieGenres = ["Action", "Adventure", "Animation", "Biography", "Comedy", "Crime", "Detective", "Disaster", "Drama", "Fairytale", "Family", "Fantasy", "Historical", "Horror", "Child", "Music", "Mysticism", "Postapocalypse", "Romance", "Sci-Fi", "Sport", "Thriller", "War", "Western", "New Year"];
     private static readonly string[] GameGenres = ["Adventure", "Fighting", "Action", "Quest", "Platformer", "Postapocalypse", "RPG", "Turn-Based", "Simulator", "Strategy", "Tower Defense", "Racing", "Sport", "Sci-Fi", "Fantasy", "FPS", "3rd View", "Isometric", "Horror", "City Building", "Music", "Arcade", "Meditate"];
     private static readonly string[] DocumentaryGenres = ["Travel", "Art. History", "Universe", "Stars. Planets", "Astronautics", "Personality", "Science", "Misc"];
     private static readonly string[] LibraryGenres = ["Languages", "Literature", "Programming", "Misc"];
@@ -28,11 +28,39 @@ internal static class GenreCatalog
         return values.Prepend(string.Empty).ToArray();
     }
 
-    internal static string Normalize(CatalogKind kind, string name) => kind == CatalogKind.Movie ? name switch
+    private static readonly Dictionary<string, string> MovieGenreTranslations = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Мультфильм" or "Анимация" => "Анимационный",
-        "Мелодрама" => "Драма",
-        "Приключения" => "Приключение",
-        _ => name,
-    } : name;
+        ["Боевик"] = "Action",
+        ["Приключение"] = "Adventure",
+        ["Анимационный"] = "Animation",
+        ["Биография"] = "Biography",
+        ["Комедия"] = "Comedy",
+        ["Криминал"] = "Crime",
+        ["Детектив"] = "Detective",
+        ["Катастрофа"] = "Disaster",
+        ["Драма"] = "Drama",
+        ["Сказка"] = "Fairytale",
+        ["Семейный"] = "Family",
+        ["Фэнтези"] = "Fantasy",
+        ["Исторический"] = "Historical",
+        ["Ужасы"] = "Horror",
+        ["Детский"] = "Child",
+        ["Музыка"] = "Music",
+        ["Мистика"] = "Mysticism",
+        ["Постапокалипсис"] = "Postapocalypse",
+        ["Романтика"] = "Romance",
+        ["Фантастика"] = "Sci-Fi",
+        ["Спорт"] = "Sport",
+        ["Триллер"] = "Thriller",
+        ["Военный"] = "War",
+        ["Вестерн"] = "Western",
+        ["Новогодний"] = "New Year",
+        ["Мультфильм"] = "Animation",
+        ["Анимация"] = "Animation",
+        ["Мелодрама"] = "Drama",
+        ["Приключения"] = "Adventure",
+    };
+
+    internal static string Normalize(CatalogKind kind, string name) =>
+        kind == CatalogKind.Movie && MovieGenreTranslations.TryGetValue(name, out var translated) ? translated : name;
 }

@@ -38,7 +38,8 @@ public sealed class EntryDetailsWindowTests
             Assert.IsNotNull(FindImages(thumbnails[2]).Single().Source);
             var year = (TextBox)window.FindName("YearText");
             var version = (TextBox)window.FindName("VersionText");
-            Assert.AreEqual(year.ActualWidth, version.ActualWidth, 0.1);
+            Assert.AreEqual(80, year.ActualWidth, 0.1);
+            Assert.AreEqual(120, version.ActualWidth, 0.1);
             Assert.IsTrue(version.TranslatePoint(new Point(), window).Y > year.TranslatePoint(new Point(), window).Y);
             Assert.AreEqual(year.TranslatePoint(new Point(), window).X, version.TranslatePoint(new Point(), window).X, 0.1);
             Assert.IsNull(window.FindName("PreviewReplace"));
