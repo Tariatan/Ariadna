@@ -384,7 +384,13 @@ public partial class EntryDetailsWindow : Window
             MetadataField.Cast => CastEditor.MetadataRefreshButton,
             _ => throw new ArgumentOutOfRangeException(nameof(field)),
         };
-        RefreshIndicator.SetIsRefreshing(activeButton, true);
+        Button[] activeButtons = field == MetadataField.All
+            ? [RefreshAllButton, RefreshPosterButton, RefreshDescriptionButton, PeopleEditor.MetadataRefreshButton, CastEditor.MetadataRefreshButton]
+            : [activeButton];
+        foreach (var button in activeButtons)
+        {
+            RefreshIndicator.SetIsRefreshing(button, true);
+        }
         RefreshAllButton.IsEnabled = false;
         RefreshPosterButton.IsEnabled = false;
         RefreshDescriptionButton.IsEnabled = false;
@@ -408,9 +414,10 @@ public partial class EntryDetailsWindow : Window
             var selected = choices.Count == 1 ? choices.First() : ChooseMetadata(choices);
             if (selected != null && !closed)
             {
+                string? failureSummary = null;
                 if (field == MetadataField.All)
                 {
-                    await RefreshAllFieldsAsync(service, selected, cancellationToken);
+                    failureSummary = await RefreshAllFieldsAsync(service, selected, cancellationToken);
                 }
                 else if (field is MetadataField.Directors or MetadataField.Cast)
                 {
@@ -424,6 +431,10 @@ public partial class EntryDetailsWindow : Window
                 // Keep the indicator active through queued bindings, layout and rendering.
                 await Dispatcher.InvokeAsync(UpdateLayout, DispatcherPriority.ContextIdle, cancellationToken);
                 await RefreshIndicator.WaitForRenderAsync(cancellationToken);
+                if (failureSummary != null && !closed)
+                {
+                    actions.Report(this, new InvalidDataException(failureSummary), editor.Kind);
+                }
             }
         }
         catch (OperationCanceledException) when (closed)
@@ -438,7 +449,10 @@ public partial class EntryDetailsWindow : Window
         }
         finally
         {
-            RefreshIndicator.SetIsRefreshing(activeButton, false);
+            foreach (var button in activeButtons)
+            {
+                RefreshIndicator.SetIsRefreshing(button, false);
+            }
             if (!closed)
             {
                 RefreshAllButton.IsEnabled = true;
@@ -450,37 +464,57 @@ public partial class EntryDetailsWindow : Window
         }
     }
 
-    private async Task RefreshAllFieldsAsync(MetadataService service, MetadataChoice choice, CancellationToken cancellationToken)
+    private async Task<string?> RefreshAllFieldsAsync(MetadataService service, MetadataChoice choice, CancellationToken cancellationToken)
     {
         var revision = editor.Revision;
         var directors = editor.People.Select(person => (person.Name, person.Photo)).ToArray();
         var cast = editor.Actors.Select(person => (person.Name, person.Photo)).ToArray();
         var staged = new EntryEditorModel(actions, editor.Kind, editor.Path);
-        await service.RefreshAsync(choice, staged, true, cancellationToken);
-        await service.RefreshAsync(choice, staged, false, cancellationToken);
-        await service.RefreshPeopleAsync(choice, staged, false, cancellationToken);
-        await service.RefreshPeopleAsync(choice, staged, true, cancellationToken);
+        var failures = await RefreshBatch.RunAsync(
+        [
+            (MetadataField.Poster, token => service.RefreshAsync(choice, staged, true, token)),
+            (MetadataField.Description, token => service.RefreshAsync(choice, staged, false, token)),
+            (MetadataField.Directors, token => service.RefreshPeopleAsync(choice, staged, false, token)),
+            (MetadataField.Cast, token => service.RefreshPeopleAsync(choice, staged, true, token)),
+        ], cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         if (closed || editor.Revision != revision ||
             !directors.SequenceEqual(editor.People.Select(person => (person.Name, person.Photo))) ||
             !cast.SequenceEqual(editor.Actors.Select(person => (person.Name, person.Photo))))
         {
-            return;
+            return null;
         }
 
-        editor.ReplaceImage(string.Empty, Images.Png(staged.Poster!));
-        editor.Description = staged.Description;
-        editor.People.Clear();
-        foreach (var person in staged.People)
+        if (!failures.ContainsKey(MetadataField.Poster))
         {
-            editor.People.Add(person);
+            editor.ReplaceImage(string.Empty, Images.Png(staged.Poster!));
         }
 
-        editor.Actors.Clear();
-        foreach (var person in staged.Actors)
+        if (!failures.ContainsKey(MetadataField.Description))
         {
-            editor.Actors.Add(person);
+            editor.Description = staged.Description;
         }
+
+        if (!failures.ContainsKey(MetadataField.Directors))
+        {
+            editor.People.Clear();
+            foreach (var person in staged.People)
+            {
+                editor.People.Add(person);
+            }
+        }
+
+        if (!failures.ContainsKey(MetadataField.Cast))
+        {
+            editor.Actors.Clear();
+            foreach (var person in staged.Actors)
+            {
+                editor.Actors.Add(person);
+            }
+        }
+
+        return failures.Count == 0 ? null : "Refresh completed with unavailable fields:" + Environment.NewLine +
+            string.Join(Environment.NewLine, failures.Select(failure => $"{failure.Key}: {failure.Value.Message}"));
     }
 
     private async Task FindMetadataAsync(CancellationToken cancellationToken)

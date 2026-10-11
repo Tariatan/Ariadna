@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.1.1] - 2026-10-11
+
+#### Fixed
+
+- Spin the poster, description, director and cast refresh symbols alongside `↻  all` throughout a full refresh, stopping them together on completion, cancellation or failure.
+
 ### [4.1.0] - 2026-10-11
 
 #### Added
