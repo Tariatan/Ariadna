@@ -38,7 +38,7 @@ public partial class App : Application
             var database = new CatalogDatabase(configuration.DatabasePath);
             await Task.Run(database.RecoverAssets);
             var placementPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Ariadna", "Wpf", "window.json");
-            var window = new MainWindow(new CatalogStore(database), configuration, logger, argument, new WindowPlacement(placementPath, logger));
+            var window = new MainWindow(new CatalogStore(database, configuration.PeopleRoot), configuration, logger, argument, new WindowPlacement(placementPath, logger));
             MainWindow = window;
             instance.StartListening(request => window.Dispatcher.InvokeAsync(() => window.ActivateCatalog(request)));
             await window.PrepareAsync(CancellationToken.None);

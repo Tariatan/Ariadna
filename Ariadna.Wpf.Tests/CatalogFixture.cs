@@ -22,6 +22,7 @@ internal sealed class CatalogFixture : IDisposable
             ["MoviePostersRootPath"] = Path.Combine(Root, "movies"),
             ["GamePostersRootPath"] = Path.Combine(Root, "games"),
             ["LibraryPostersRootPath"] = Path.Combine(Root, "library"),
+            ["PeoplePortraitsRootPath"] = Path.Combine(Root, "people"),
             ["DocumentaryPostersRootPath"] = Path.Combine(Root, "documentary"),
             ["DefaultMoviesPath"] = Path.Combine(Root, "MOVIES"),
             ["DefaultSeriesPath"] = Path.Combine(Root, "SERIES"),

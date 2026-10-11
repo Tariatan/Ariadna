@@ -30,14 +30,11 @@ internal static class Images
     internal static byte[] Resize(byte[] bytes, int width, int height)
     {
         var image = Decode(bytes);
-        var visual = new DrawingVisual();
-        using (var drawing = visual.RenderOpen())
-        {
-            drawing.DrawImage(image, new System.Windows.Rect(0, 0, width, height));
-        }
-
-        var target = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
-        target.Render(visual);
-        return Png(target);
+        var scaled = new TransformedBitmap(image, new ScaleTransform(
+            (double)width / image.PixelWidth,
+            (double)height / image.PixelHeight));
+        return Png(scaled);
     }
+
+    internal static byte[] ResizePortrait(byte[] bytes) => Resize(bytes, 200, 300);
 }

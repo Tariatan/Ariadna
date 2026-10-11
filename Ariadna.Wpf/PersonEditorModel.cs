@@ -18,5 +18,6 @@ internal sealed class PersonEditorModel(PersonPhoto person) : ObservableObject
         Notify(nameof(Portrait));
     }
 
-    internal PersonPhoto ToPerson() => new(Name, photo);
+    internal int? TmdbId => person.TmdbId;
+    internal PersonPhoto ToPerson() => person with { Name = Name, Photo = photo };
 }

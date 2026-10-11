@@ -3,8 +3,18 @@ using Microsoft.Data.Sqlite;
 
 namespace Ariadna.Storage;
 
-public sealed class CatalogStore(CatalogDatabase database)
+public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = null)
 {
+    private readonly string portraitRoot = GetPortraitRoot(peopleRoot ?? Path.Combine(database.DirectoryPath, "people"));
+
+    private static string GetPortraitRoot(string root)
+    {
+        if (!Path.IsPathFullyQualified(root))
+        {
+            throw new ArgumentException("The shared portrait directory must be an absolute path.", nameof(root));
+        }
+        return Path.GetFullPath(root);
+    }
     public IReadOnlyCollection<CatalogEntry> Query(CatalogKind kind, CatalogQuery query)
     {
         var layout = CatalogLayout.For(kind);
@@ -193,8 +203,19 @@ public sealed class CatalogStore(CatalogDatabase database)
         using var connection = database.Open();
         using var command = connection.CreateCommand();
         var table = actor ? "Actor" : author ? "Author" : "Director";
-        command.CommandText = $"SELECT name,photo FROM [{table}] WHERE name=$name COLLATE ARIADNA ORDER BY Id LIMIT 1";
+        command.CommandText = $"SELECT r.name,r.Id,p.Id,p.tmdbId FROM [{table}] r JOIN Person p ON p.Id=r.personId WHERE r.name=$name COLLATE ARIADNA ORDER BY r.Id LIMIT 1";
         command.Parameters.AddWithValue("$name", name);
+        using var reader = command.ExecuteReader();
+        return reader.Read() ? ReadPerson(reader) : null;
+    }
+
+    public PersonPhoto? FindPerson(int tmdbId, bool actor = false, bool author = false)
+    {
+        using var connection = database.Open();
+        using var command = connection.CreateCommand();
+        var table = actor ? "Actor" : author ? "Author" : "Director";
+        command.CommandText = $"SELECT COALESCE(r.name,''),COALESCE(r.Id,-1),p.Id,p.tmdbId FROM Person p LEFT JOIN [{table}] r ON r.personId=p.Id WHERE p.tmdbId=$tmdbId ORDER BY r.Id LIMIT 1";
+        command.Parameters.AddWithValue("$tmdbId", tmdbId);
         using var reader = command.ExecuteReader();
         return reader.Read() ? ReadPerson(reader) : null;
     }
@@ -206,7 +227,7 @@ public sealed class CatalogStore(CatalogDatabase database)
         var table = actors ? "Actor" : authors ? "Author" : "Director";
         var relation = actors ? "MovieCast" : authors ? "LibraryAuthor" : "MovieDirector";
         var key = actors ? "actorId" : authors ? "authorId" : "directorId";
-        command.CommandText = $"SELECT p.name,p.photo FROM [{table}] p WHERE contains_text(p.name,$name) AND EXISTS (SELECT 1 FROM [{relation}] r WHERE r.[{key}]=p.Id) ORDER BY p.name COLLATE ARIADNA,p.Id LIMIT $limit";
+        command.CommandText = $"SELECT p.name,p.Id,i.Id,i.tmdbId FROM [{table}] p JOIN Person i ON i.Id=p.personId WHERE contains_text(p.name,$name) AND EXISTS (SELECT 1 FROM [{relation}] r WHERE r.[{key}]=p.Id) ORDER BY p.name COLLATE ARIADNA,p.Id LIMIT $limit";
         command.Parameters.AddWithValue("$name", name);
         command.Parameters.AddWithValue("$limit", limit);
         using var reader = command.ExecuteReader();
@@ -231,6 +252,7 @@ public sealed class CatalogStore(CatalogDatabase database)
     public int Save(CatalogKind kind, CatalogDetails details, CatalogAssets? assets = null)
     {
         Validate(details);
+        assets ??= new CatalogAssets(database.DirectoryPath, new Dictionary<string, byte[]>());
         using var writeLock = database.AcquireWriteLock();
         database.RecoverAssetsWhileLocked();
         var layout = CatalogLayout.For(kind);
@@ -275,17 +297,17 @@ public sealed class CatalogStore(CatalogDatabase database)
         ReplaceGenres(connection, transaction, layout, id, details.Genres);
         if (kind == CatalogKind.Movie)
         {
-            ReplacePeople(connection, transaction, "Actor", "MovieCast", "movieId", "actorId", id, details.Actors);
-            ReplacePeople(connection, transaction, "Director", "MovieDirector", "movieId", "directorId", id, details.Directors);
+            ReplacePeople(connection, transaction, "Actor", "MovieCast", "movieId", "actorId", id, details.Actors, assets);
+            ReplacePeople(connection, transaction, "Director", "MovieDirector", "movieId", "directorId", id, details.Directors, assets);
         }
         else if (kind == CatalogKind.Library)
         {
-            ReplacePeople(connection, transaction, "Author", "LibraryAuthor", "libraryId", "authorId", id, details.Directors);
+            ReplacePeople(connection, transaction, "Author", "LibraryAuthor", "libraryId", "authorId", id, details.Directors, assets);
         }
 
         try
         {
-            if (assets != null)
+            if (assets.HasImages)
             {
                 assets.Prepare(database.DirectoryPath, id);
                 Execute(connection, transaction, "INSERT INTO CatalogAssetCommit(token) VALUES ($token)", ("$token", assets.Token));
@@ -355,13 +377,23 @@ public sealed class CatalogStore(CatalogDatabase database)
         Wanted = reader.IsDBNull(6) ? null : reader.GetBoolean(6),
     };
 
-    private static PersonPhoto ReadPerson(SqliteDataReader reader) => new(reader.GetString(0), reader.IsDBNull(1) ? null : (byte[])reader.GetValue(1));
+    private PersonPhoto ReadPerson(SqliteDataReader reader)
+    {
+        var personId = reader.GetInt32(2);
+        var file = Path.Combine(portraitRoot, $"{personId}.png");
+        return new PersonPhoto(reader.GetString(0), File.Exists(file) ? File.ReadAllBytes(file) : null)
+        {
+            Id = reader.GetInt32(1),
+            PersonId = personId,
+            TmdbId = reader.IsDBNull(3) ? null : reader.GetInt32(3),
+        };
+    }
 
-    private static IReadOnlyCollection<PersonPhoto> ReadPeople(SqliteConnection connection, string table, string relation, string entryKey, string personKey, int id, SqliteTransaction? transaction = null)
+    private IReadOnlyCollection<PersonPhoto> ReadPeople(SqliteConnection connection, string table, string relation, string entryKey, string personKey, int id, SqliteTransaction? transaction = null)
     {
         using var command = connection.CreateCommand();
         command.Transaction = transaction;
-        command.CommandText = $"SELECT p.name,p.photo FROM [{relation}] r JOIN [{table}] p ON p.Id=r.[{personKey}] WHERE r.[{entryKey}]=$id ORDER BY r.Id";
+        command.CommandText = $"SELECT p.name,p.Id,i.Id,i.tmdbId FROM [{relation}] r JOIN [{table}] p ON p.Id=r.[{personKey}] JOIN Person i ON i.Id=p.personId WHERE r.[{entryKey}]=$id ORDER BY r.Id";
         command.Parameters.AddWithValue("$id", id);
         using var reader = command.ExecuteReader();
         var people = new List<PersonPhoto>();
@@ -400,23 +432,107 @@ public sealed class CatalogStore(CatalogDatabase database)
         }
     }
 
-    private static void ReplacePeople(SqliteConnection connection, SqliteTransaction transaction, string table, string relation, string entryKey, string personKey, int id, IEnumerable<PersonPhoto> people)
+    private void ReplacePeople(SqliteConnection connection, SqliteTransaction transaction, string table, string relation, string entryKey, string personKey, int id, IEnumerable<PersonPhoto> people, CatalogAssets assets)
     {
         var values = people.ToArray();
         var existing = ReadPeople(connection, table, relation, entryKey, personKey, id, transaction);
-        if (existing.Count == values.Length && existing.Zip(values).All(pair =>
-            pair.First.Name == pair.Second.Name &&
-            (pair.First.Photo == null ? pair.Second.Photo == null : pair.Second.Photo != null && pair.First.Photo.AsSpan().SequenceEqual(pair.Second.Photo))))
+        var resolvedIds = values.Select(person => ResolvePerson(connection, transaction, table, person, assets)).ToArray();
+        if (existing.Select(person => person.Id).SequenceEqual(resolvedIds))
         {
             return;
         }
         Execute(connection, transaction, $"DELETE FROM [{relation}] WHERE [{entryKey}]=$id", ("$id", id));
-        foreach (var person in values.DistinctBy(person => person.Name))
+        foreach (var personId in resolvedIds.Distinct())
         {
-            Execute(connection, transaction, $"INSERT INTO [{table}](name,photo) SELECT $name,$photo WHERE NOT EXISTS (SELECT 1 FROM [{table}] WHERE name=$name COLLATE ARIADNA)", ("$name", person.Name), ("$photo", person.Photo));
-            Execute(connection, transaction, $"UPDATE [{table}] SET photo=$photo WHERE Id=(SELECT Id FROM [{table}] WHERE name=$name COLLATE ARIADNA ORDER BY Id LIMIT 1)", ("$name", person.Name), ("$photo", person.Photo));
-            Execute(connection, transaction, $"INSERT INTO [{relation}]([{entryKey}],[{personKey}]) SELECT $id,Id FROM [{table}] WHERE name=$name COLLATE ARIADNA ORDER BY Id LIMIT 1", ("$id", id), ("$name", person.Name));
+            Execute(connection, transaction, $"INSERT INTO [{relation}]([{entryKey}],[{personKey}]) VALUES ($id,$personId)", ("$id", id), ("$personId", personId));
         }
+    }
+
+    private int ResolvePerson(SqliteConnection connection, SqliteTransaction transaction, string table, PersonPhoto person, CatalogAssets assets)
+    {
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.Parameters.AddWithValue("$name", person.Name);
+        command.Parameters.AddWithValue("$id", person.Id);
+        command.Parameters.AddWithValue("$personId", person.PersonId);
+        command.Parameters.AddWithValue("$tmdbId", (object?)person.TmdbId ?? DBNull.Value);
+        command.CommandText = $"""
+            SELECT r.Id,r.personId FROM [{table}] r JOIN Person p ON p.Id=r.personId
+            WHERE ($tmdbId IS NOT NULL AND p.tmdbId=$tmdbId)
+                OR ($tmdbId IS NULL AND r.personId=$personId)
+                OR (r.Id=$id AND ($tmdbId IS NULL OR p.tmdbId IS NULL OR p.tmdbId=$tmdbId))
+                OR ($id<0 AND ($personId<0 OR $tmdbId IS NOT NULL)
+                    AND r.name=$name COLLATE ARIADNA AND ($tmdbId IS NULL OR p.tmdbId IS NULL))
+            ORDER BY CASE WHEN p.tmdbId=$tmdbId THEN 0
+                WHEN r.personId=$personId THEN 1 WHEN r.Id=$id THEN 2 ELSE 3 END,r.Id
+            LIMIT 1
+            """;
+        var roleId = -1;
+        var identityId = -1;
+        using (var reader = command.ExecuteReader())
+        {
+            if (reader.Read())
+            {
+                roleId = reader.GetInt32(0);
+                identityId = reader.GetInt32(1);
+            }
+        }
+
+        if (person.TmdbId != null)
+        {
+            command.CommandText = "SELECT Id FROM Person WHERE tmdbId=$tmdbId";
+            if (command.ExecuteScalar() is long knownId)
+            {
+                identityId = checked((int)knownId);
+            }
+            else if (identityId >= 0)
+            {
+                command.Parameters["$personId"].Value = identityId;
+                command.CommandText = "UPDATE Person SET tmdbId=$tmdbId WHERE Id=$personId AND tmdbId IS NULL";
+                command.ExecuteNonQuery();
+            }
+            else
+            {
+                command.CommandText = "INSERT INTO Person(tmdbId) VALUES ($tmdbId) RETURNING Id";
+                identityId = checked((int)(long)command.ExecuteScalar()!);
+            }
+        }
+        else if (identityId < 0 && person.PersonId >= 0)
+        {
+            command.CommandText = "SELECT Id FROM Person WHERE Id=$personId";
+            identityId = command.ExecuteScalar() is long knownId ? checked((int)knownId) : -1;
+        }
+
+        if (identityId < 0)
+        {
+            command.CommandText = "INSERT INTO Person DEFAULT VALUES RETURNING Id";
+            identityId = checked((int)(long)command.ExecuteScalar()!);
+        }
+
+        command.Parameters.Clear();
+        command.Parameters.AddWithValue("$name", person.Name);
+        command.Parameters.AddWithValue("$personId", identityId);
+        if (roleId < 0)
+        {
+            command.CommandText = $"INSERT INTO [{table}](name,personId) VALUES ($name,$personId) RETURNING Id";
+            roleId = checked((int)(long)command.ExecuteScalar()!);
+        }
+        else
+        {
+            command.Parameters.AddWithValue("$id", roleId);
+            command.CommandText = $"UPDATE [{table}] SET name=$name,personId=$personId WHERE Id=$id";
+            command.ExecuteNonQuery();
+        }
+
+        if (person.Photo != null)
+        {
+            var file = Path.Combine(portraitRoot, $"{identityId}.png");
+            if (!File.Exists(file) || !person.Photo.AsSpan().SequenceEqual(File.ReadAllBytes(file)))
+            {
+                assets.AddPortrait(portraitRoot, identityId, person.Photo);
+            }
+        }
+        return roleId;
     }
 
     private static int Execute(SqliteConnection connection, SqliteTransaction? transaction, string sql, params (string Name, object? Value)[] parameters)

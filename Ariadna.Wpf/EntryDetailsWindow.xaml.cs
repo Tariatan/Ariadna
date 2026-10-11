@@ -246,7 +246,7 @@ public partial class EntryDetailsWindow : Window
         var dialog = new OpenFileDialog
         {
             InitialDirectory = actions.Configuration.Get("BitmapInitialSearchDir"),
-            Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All files|*.*",
+            Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.exif;*.webp;*.tiff|All files|*.*",
         };
         if (dialog.ShowDialog(this) == true)
         {

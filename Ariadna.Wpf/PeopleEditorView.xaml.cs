@@ -88,11 +88,11 @@ public partial class PeopleEditorView : UserControl
 
         var dialog = new OpenFileDialog
         {
-            Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif|All files|*.*"
+            Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.exif;*.webp;*.tiff|All files|*.*"
         };
         if (dialog.ShowDialog(Window.GetWindow(this)) == true)
         {
-            Run(() => person.SetPhoto(Images.Resize(File.ReadAllBytes(dialog.FileName), actions!.Configuration.GetInt("PortraitWidth", 100), actions.Configuration.GetInt("PortraitHeight", 150))));
+            Run(() => person.SetPhoto(Images.ResizePortrait(File.ReadAllBytes(dialog.FileName))));
         }
     }
 

@@ -52,7 +52,7 @@ dependency.
 | EF6 | Entity Framework 6 |
 | EDMX / T4 | Database-first model and entity/context generation templates |
 | Collection mode | One of movies, documentaries, games, or library, selected by tab |
-| Catalog assets | External posters/game previews and database-resident person photos |
+| Catalog assets | External posters, game previews, and shared person portraits |
 | Matched recovery | Database, external images, and relevant configuration captured consistently |
 
 ## Unit Design Notes / Decisions
@@ -172,6 +172,7 @@ All paths and keys are set in `Ariadna.Wpf/App.config` for WPF and `Ariadna/App.
 | `GamePostersRootPath` | Root directory for game poster images |
 | `DocumentaryPostersRootPath` | Root directory for documentary poster images |
 | `LibraryPostersRootPath` | Root directory for library/book poster images |
+| `PeoplePortraitsRootPath` | Shared directory for ID-named person portraits |
 | `DefaultMoviesPath` | Default directory scanned when discovering new movie files |
 | `DefaultSeriesPath` | Default directory for TV series discovery |
 | `DefaultGamesPath` | Default directory for game discovery |
@@ -179,7 +180,7 @@ All paths and keys are set in `Ariadna.Wpf/App.config` for WPF and `Ariadna/App.
 | `DefaultLibraryPath` | Default directory for book/document discovery |
 | `TotalCommanderPath` | Full path to `TOTALCMD64.EXE` |
 | `MediaPlayerPath` | Full path to `mpc-hc64.exe` |
-| `PosterWidth` / `PosterHeight` | Poster image dimensions (default: 400×600) |
+| `PosterWidth` / `PosterHeight` | Stored poster dimensions (WPF default: 600×900; legacy WinForms: 400×600) |
 | `PreviewWidth` / `PreviewHeight` | Preview pane dimensions (default: 603×339) |
 | `RecentInMonth` | How many months back counts as "recently added" (default: 3) |
 | `VideoFilesFilter` | File extension filter for video file discovery (e.g. `*.mkv;*.mp4;*.avi`) |
@@ -187,9 +188,12 @@ All paths and keys are set in `Ariadna.Wpf/App.config` for WPF and `Ariadna/App.
 
 Poster files are PNG images stored under extensionless `{id}` filenames inside
 the configured root for each category. Game previews append `PreviewSuffix` and
-numbers 1 through 4 (currently `_preview1` through `_preview4`). Person photos
-are stored as byte arrays in the database. These identifiers and filenames are
-part of the persistence contract.
+numbers 1 through 4 (currently `_preview1` through `_preview4`). Person portraits
+are external 200×300 PNG files named `{personId}.png` in the shared people root.
+The database retains display names and numeric role/person identities, with an
+optional unique TMDb person ID for reuse across roles and collections. These
+identifiers and filenames are part of the persistence contract. Missing files
+display `?`; image edits become durable only on Save.
 
 Strategies/adaptors concatenate configured root paths with IDs; preserve the
 required path separators. Typed settings are generated from
@@ -405,7 +409,9 @@ Key strategy responsibilities:
 ### Data Layer
 
 Direct `Microsoft.Data.Sqlite` queries with explicit scalar/BLOB mapping. The
-original 19 data tables are retained, plus internal image commit metadata:
+original 19 data tables are retained, plus shared person identities and internal
+image commit metadata. Schema 2 removes person-photo BLOB columns; older schemas
+are rejected rather than read through a compatibility path:
 
 | Entity | Description |
 |---|---|
@@ -413,7 +419,8 @@ original 19 data tables are retained, plus internal image commit metadata:
 | `Game` | PC or VR game entry |
 | `Documentary` | Documentary entry |
 | `Library` | Book / document entry with authors |
-| `Actor` / `Director` / `Author` | People, with portrait photo stored as byte[] |
+| `Actor` / `Director` / `Author` | Role IDs and display names linked to a shared person identity |
+| `Person` | Shared numeric identity and optional unique TMDb person ID; portrait filename uses the local ID |
 | `Genre` / `GenreOfGame` / `GenreOfDocumentary` / `GenreOfLibrary` | Genre lookup entities |
 | `MovieCast` / `MovieDirector` / `MovieGenre` / `GameGenre` / `DocumentaryGenre` / `LibraryAuthor` / `LibraryGenre` | Collection-to-person/genre relationship entities |
 | `Ignore` (`Ignores` context set) | Files permanently excluded from automatic discovery |
@@ -421,15 +428,16 @@ original 19 data tables are retained, plus internal image commit metadata:
 `CatalogStore` owns queries, people lookups, discovery/ignore paths, complete-entry
 saves, and relationship-aware deletes. `CatalogDatabase` owns validated connections,
 backup, integrity checks, writer coordination, and image-journal recovery. Lists and
-entry information avoid loading photos; details and suggestions request them.
+entry information avoid loading portraits; details and suggestions read the
+external files. Portrait writes use the same recovery journal as posters.
 Recovery clears the read-only attribute on its own staging directories before
 cleanup so empty leftovers do not block startup or later writes. Commit/rollback
 decisions are unchanged; other filesystem access failures still propagate.
 
 Complete-entry saves compare loaded genre/people sequences before replacing
-relationships. Unchanged sequences, including legacy duplicates and photo bytes,
-retain their existing relationship rows and IDs. Explicit relationship edits
-retain the previous replacement/normalization behavior. The schema is unchanged.
+relationships. Unchanged person-ID sequences, including legacy duplicates,
+retain their existing relationship rows and IDs even when a name or portrait
+changes. Explicit relationship edits retain replacement/normalization behavior.
 
 ### Theming
 

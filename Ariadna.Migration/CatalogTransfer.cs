@@ -10,8 +10,8 @@ namespace Ariadna.Migration;
 
 internal sealed class CatalogTransfer(ILogger logger)
 {
-    private static readonly string[] tableNames = ["Actor", "Author", "Director", "Genre", "GenreOfDocumentary", "GenreOfGame", "GenreOfLibrary", "Documentary", "Game", "Library", "Movie", "Ignore", "DocumentaryGenre", "GameGenre", "LibraryAuthor", "LibraryGenre", "MovieCast", "MovieDirector", "MovieGenre"];
-    private static readonly string[] assetDirectories = ["movies", "documentary", "games", "library"];
+    private static readonly string[] tableNames = ["Person", "Actor", "Author", "Director", "Genre", "GenreOfDocumentary", "GenreOfGame", "GenreOfLibrary", "Documentary", "Game", "Library", "Movie", "Ignore", "DocumentaryGenre", "GameGenre", "LibraryAuthor", "LibraryGenre", "MovieCast", "MovieDirector", "MovieGenre"];
+    private static readonly string[] assetDirectories = ["movies", "documentary", "games", "library", "people"];
 
     internal void Export(string connectionString, string assetRoot, string destination)
     {
@@ -106,7 +106,7 @@ internal sealed class CatalogTransfer(ILogger logger)
 
     internal void Snapshot(string catalog, string assetRoot, string destination)
     {
-        if (System.Diagnostics.Process.GetProcessesByName("Ariadna").Length != 0)
+        if (System.Diagnostics.Process.GetProcessesByName("Ariadna").Length != 0 || System.Diagnostics.Process.GetProcessesByName("Ariadna.Wpf").Length != 0)
         {
             throw new InvalidOperationException("Close all Ariadna windows before capturing a matched catalog and image backup.");
         }
@@ -170,6 +170,10 @@ internal sealed class CatalogTransfer(ILogger logger)
         var assets = new List<ExportAsset>();
         foreach (var directory in assetDirectories)
         {
+            if (directory == "people" && !Directory.Exists(Path.Combine(assetRoot, directory)))
+            {
+                continue;
+            }
             foreach (var source in Directory.EnumerateFiles(Path.Combine(assetRoot, directory), "*", SearchOption.AllDirectories))
             {
                 var relative = Path.GetRelativePath(assetRoot, source);
@@ -190,7 +194,7 @@ internal sealed class CatalogTransfer(ILogger logger)
 
     private void WriteManifest(string destination, List<ExportTable> tables, List<ExportAsset> assets)
     {
-        var manifest = new ExportManifest(1, DateTime.UtcNow, tables.ToArray(), assets.ToArray());
+        var manifest = new ExportManifest(2, DateTime.UtcNow, tables.ToArray(), assets.ToArray());
         File.WriteAllText(Path.Combine(destination, "manifest.json"), JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }));
         logger.LogInformation("Finished export, rows: '{Rows}', assets: '{Assets}'", tables.Sum(table => table.Rows), assets.Count);
     }
@@ -311,7 +315,7 @@ internal sealed class CatalogTransfer(ILogger logger)
     {
         var manifest = JsonSerializer.Deserialize<ExportManifest>(File.ReadAllText(Path.Combine(package, "manifest.json")))
             ?? throw new InvalidDataException("Missing export manifest.");
-        if (manifest.FormatVersion != 1 || !manifest.Tables.Select(table => table.Name).SequenceEqual(tableNames))
+        if (manifest.FormatVersion != 2 || !manifest.Tables.Select(table => table.Name).SequenceEqual(tableNames))
         {
             throw new InvalidDataException("Unsupported or incomplete export package.");
         }

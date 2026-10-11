@@ -7,13 +7,20 @@ project included in the solution; it is not referenced by the desktop.
 
 ## Catalog format
 
-The SQLite file contains the original 19 data tables and a small internal image
-commit table. Migration preserves every ID, identity high-water mark, scalar
-value, NULL, duplicate relationship, and photo byte. External images retain
+The SQLite file contains the original 19 data tables, a shared `Person` identity
+table, and a small internal image commit table. The original schema-1 migration
+preserved every value and photo byte. The explicit schema-2 portrait reset drops
+Actor, Director, and Author photo BLOBs while preserving names, role IDs, entry
+data, relationship rows, and identity high-water marks. External posters retain
 their extensionless `{id}` and `{id}_preview1` through `{id}_preview4` filenames.
-The schema uses application ID `0x41524941`, schema version 1, foreign keys,
+Person portraits use `people/{personId}.png`; the shared numeric identity can
+carry a unique TMDb ID so a person in different roles reuses one portrait.
+The schema uses application ID `0x41524941`, schema version 2, foreign keys,
 AUTOINCREMENT, explicit length constraints, and nonunique lookup/join indexes.
-Startup refuses missing files, foreign databases, and unsupported schema versions.
+Startup refuses missing files, foreign databases, and unsupported schema versions,
+including schema 1. New WPF manual/TMDb portraits resize to 200×300 before saving;
+missing files yield the `?` placeholder. Portraits participate in the same image
+promotion/recovery transaction as posters and previews.
 
 The locked provider is Microsoft.Data.Sqlite 10.0.12 with
 SQLitePCLRaw.bundle_e_sqlite3 3.0.5; the shipped engine reports SQLite 3.53.4.
@@ -48,20 +55,22 @@ The comparison measured direct SQL Server queries against the new storage API,
 not complete old/new UI latency. SQLite was not universally faster in those
 single-run measurements. Grid image decoding, MediaInfo, and filesystem discovery
 remain separate sources of latency. List/path/info reads do not load person photos;
-detail forms and people suggestions request them explicitly.
+detail forms and people suggestions read portrait files explicitly.
 
 ## Configuration and isolated checks
 
 `AriadnaCatalog` in `Ariadna/App.config` specifies an absolute SQLite filename
 with `Mode=ReadWrite;Foreign Keys=True`. Existing poster-root settings still select
-the four image folders. Environment variables override these for disposable checks:
+the four image folders; WPF's `PeoplePortraitsRootPath` selects the shared people
+folder. Environment variables override these for disposable checks:
 
 ```powershell
 $env:ARIADNA_CATALOG_PATH = 'C:\Ariadna-QA\catalog.sqlite'
 $env:ARIADNA_ASSET_ROOT = 'C:\Ariadna-QA\assets'
 ```
 
-The asset root contains `movies`, `documentary`, `games`, and `library` folders.
+The asset root contains `movies`, `documentary`, `games`, `library`, and `people`
+folders. Keep the configured people folder under the backed-up asset root.
 Unset the overrides to return to normal configuration. Preserve the private TMDb
 key and other existing settings; do not copy their values into reports.
 
@@ -75,12 +84,32 @@ and assets. Use a new destination directory each time:
 dotnet run --project Ariadna.Migration -c Release -- snapshot $catalog $assetRoot $newBackupDirectory
 ```
 
-The package includes a database snapshot, all 19 tables as lossless JSON Lines,
+The format-2 package includes a database snapshot, all 20 data tables as lossless JSON Lines,
 external assets, row counts, identity counters, and SHA-256 hashes in `manifest.json`.
 The manifest is written last; incomplete packages cannot be imported. Verification
-checks every cell, photo byte, count, counter, and asset hash, plus SQLite structural
+checks every cell, count, counter, and asset hash, including portraits, plus SQLite structural
 and foreign-key integrity. Keep a copy of the active executable configuration
 alongside the package separately.
+
+### One-time portrait reset
+
+Storage 3.0.0 and WPF 4.0.0 require schema 2. Before resetting a schema-1 catalog,
+capture and verify a matched snapshot with the previous migration utility and
+close both desktop frontends. With that verified database backup available:
+
+```powershell
+dotnet run --project Ariadna.Migration -c Release -- reset-portraits $catalog $verifiedBackupCatalog
+```
+
+The command first compares the catalog against the backup. It then rebuilds
+the three role tables without portrait BLOBs, assigns shared local identities,
+preserves all other values, relationships and counters, and checks them again
+before committing. It vacuums and checkpoints the file afterwards to reclaim
+space and remove old portrait bytes from free pages/WAL. It does not export the
+old portraits or guess TMDb IDs. Start with an empty people directory and refresh
+entries to populate it. The reset can run only once; it is not a startup upgrade.
+Format-1 packages and legacy SQL exports are unsupported by the new transfer
+utility. Keep the pre-reset snapshot with the previous executable for recovery.
 
 Do not back up only the live main `.sqlite` file: committed data can still be in
 its WAL. Use the snapshot command or the SQLite backup API.

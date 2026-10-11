@@ -1,26 +1,33 @@
 PRAGMA journal_mode=WAL;
 BEGIN IMMEDIATE;
+CREATE TABLE [Person] (
+    [Id] INTEGER PRIMARY KEY AUTOINCREMENT,
+    [tmdbId] INTEGER UNIQUE CHECK ([tmdbId] > 0)
+);
 CREATE TABLE [Actor] (
     [Id] INTEGER PRIMARY KEY AUTOINCREMENT,
     [name] TEXT NOT NULL COLLATE ARIADNA CHECK (length([name]) <= 50),
-    [photo] BLOB
+    [personId] INTEGER NOT NULL REFERENCES [Person]([Id])
 );
 CREATE INDEX [IX_Actor_Id] ON [Actor]([Id]);
 CREATE INDEX [IX_Actor_name] ON [Actor]([name]);
+CREATE INDEX [IX_Actor_personId] ON [Actor]([personId]);
 CREATE TABLE [Author] (
     [Id] INTEGER PRIMARY KEY AUTOINCREMENT,
     [name] TEXT NOT NULL COLLATE ARIADNA CHECK (length([name]) <= 50),
-    [photo] BLOB
+    [personId] INTEGER NOT NULL REFERENCES [Person]([Id])
 );
 CREATE INDEX [IX_Author_Id] ON [Author]([Id]);
 CREATE INDEX [IX_Author_name] ON [Author]([name]);
+CREATE INDEX [IX_Author_personId] ON [Author]([personId]);
 CREATE TABLE [Director] (
     [Id] INTEGER PRIMARY KEY AUTOINCREMENT,
     [name] TEXT NOT NULL COLLATE ARIADNA CHECK (length([name]) <= 50),
-    [photo] BLOB
+    [personId] INTEGER NOT NULL REFERENCES [Person]([Id])
 );
 CREATE INDEX [IX_Director_Id] ON [Director]([Id]);
 CREATE INDEX [IX_Director_name] ON [Director]([name]);
+CREATE INDEX [IX_Director_personId] ON [Director]([personId]);
 CREATE TABLE [Documentary] (
     [Id] INTEGER PRIMARY KEY AUTOINCREMENT,
     [title] TEXT NOT NULL COLLATE ARIADNA CHECK (length([title]) <= 150),
@@ -175,5 +182,5 @@ CREATE INDEX [IX_MovieGenre_movieId] ON [MovieGenre]([movieId]);
 CREATE INDEX [IX_MovieGenre_genreId] ON [MovieGenre]([genreId]);
 PRAGMA application_id=1095911745;
 CREATE TABLE CatalogAssetCommit (token TEXT PRIMARY KEY NOT NULL);
-PRAGMA user_version=1;
+PRAGMA user_version=2;
 COMMIT;

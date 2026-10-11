@@ -13,6 +13,52 @@ public sealed class EntryEditorModelTests
     [DataRow(CatalogKind.Game)]
     [DataRow(CatalogKind.Library)]
     [DataRow(CatalogKind.Documentary)]
+    public async Task Save_HighResolutionImage_StoresConfiguredDimensions(CatalogKind kind) => await WpfThread.RunAsync(() =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(kind, "Original image");
+        var editor = new EntryEditorModel(fixture.Actions, kind, entry.Path);
+        const int width = 1280;
+        const int height = 1920;
+        var pixels = new byte[width * height * 4];
+        for (var index = 0; index < pixels.Length; index += 4)
+        {
+            pixels[index] = (byte)(index / 4 % 251);
+            pixels[index + 1] = (byte)(index / (width * 4) % 253);
+            pixels[index + 2] = 127;
+            pixels[index + 3] = 255;
+        }
+
+        var source = Images.Png(BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4));
+        string[] suffixes = kind == CatalogKind.Game
+            ? [string.Empty, .. Enumerable.Range(1, 4).Select(fixture.Configuration.PreviewSuffix)]
+            : [string.Empty];
+
+        // Act
+        foreach (var suffix in suffixes)
+        {
+            editor.ReplaceImage(suffix, source);
+        }
+
+        editor.Save();
+
+        // Assert
+        foreach (var suffix in suffixes)
+        {
+            var saved = Images.Decode(File.ReadAllBytes(Path.Combine(fixture.Configuration.PosterRoot(kind), $"{entry.Id}{suffix}")));
+            Assert.AreEqual(suffix.Length == 0 ? 80 : 120, saved.PixelWidth);
+            Assert.AreEqual(suffix.Length == 0 ? 120 : 70, saved.PixelHeight);
+        }
+
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Library)]
+    [DataRow(CatalogKind.Documentary)]
     public async Task Save_UnchangedLegacyValues_PreservesDataAndImages(CatalogKind kind) => await WpfThread.RunAsync(() =>
     {
         // Arrange

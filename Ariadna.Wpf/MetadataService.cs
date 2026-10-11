@@ -161,9 +161,15 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         var people = new List<PersonPhoto>();
         foreach (var person in credits)
         {
-            var existing = target.FirstOrDefault(value => value.Name.Equals(person.Name, StringComparison.OrdinalIgnoreCase))?.Photo;
-            var photo = person.ProfilePath == null ? existing : await client.GetImageBytesAsync(size, person.ProfilePath, false, cancellationToken) ?? existing;
-            people.Add(new PersonPhoto(person.Name, photo));
+            var known = editor.FindPerson(person.Id, cast);
+            var existing = target.FirstOrDefault(value => value.TmdbId == person.Id)?.Photo ?? known?.Photo;
+            var photo = existing ?? (person.ProfilePath == null ? null : await client.GetImageBytesAsync(size, person.ProfilePath, false, cancellationToken));
+            people.Add(new PersonPhoto(person.Name, photo)
+            {
+                Id = known?.Id ?? -1,
+                PersonId = known?.PersonId ?? -1,
+                TmdbId = person.Id,
+            });
         }
 
         // Decode frozen portraits before binding creates the cast cards on the UI thread.
@@ -172,7 +178,8 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
             return people.Select(person =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var model = new PersonEditorModel(person);
+                var resized = person.Photo == null ? null : Images.ResizePortrait(person.Photo);
+                var model = new PersonEditorModel(person with { Photo = resized });
                 _ = model.Portrait;
                 return model;
             }).ToArray();
@@ -197,7 +204,8 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         var people = await client.SearchPersonAsync(name, configuration.Get("ImdbLanguage"), cancellationToken: cancellationToken);
         var path = people?.Results?.FirstOrDefault()?.ProfilePath;
         var size = client.Config?.Images?.ProfileSizes?.LastOrDefault() ?? throw new InvalidDataException("TMDb returned no portrait sizes.");
-        return path == null ? null : await client.GetImageBytesAsync(size, path, false, cancellationToken);
+        var bytes = path == null ? null : await client.GetImageBytesAsync(size, path, false, cancellationToken);
+        return bytes == null ? null : await Task.Run(() => Images.ResizePortrait(bytes), cancellationToken);
     }
 
     public void Dispose() => client.Dispose();

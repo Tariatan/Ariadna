@@ -172,8 +172,8 @@ internal sealed class EntryEditorModel : ObservableObject
     internal void ReplaceImage(string suffix, byte[] bytes)
     {
         var preview = suffix.Length > 0;
-        var width = actions.Configuration.GetInt(preview ? "PreviewWidth" : "PosterWidth", preview ? 603 : 400);
-        var height = actions.Configuration.GetInt(preview ? "PreviewHeight" : "PosterHeight", preview ? 339 : 600);
+        var width = actions.Configuration.GetInt(preview ? "PreviewWidth" : "PosterWidth", preview ? 603 : 600);
+        var height = actions.Configuration.GetInt(preview ? "PreviewHeight" : "PosterHeight", preview ? 339 : 900);
         var png = Images.Resize(bytes, width, height);
         changedImages[suffix] = png;
         if (preview)
@@ -200,6 +200,8 @@ internal sealed class EntryEditorModel : ObservableObject
     }
 
     internal void AddPlaceholderPerson(bool actors) => (actors ? Actors : People).Add(new PersonEditorModel(new PersonPhoto("New Entry", null)));
+
+    internal PersonPhoto? FindPerson(int tmdbId, bool cast) => actions.Store.FindPerson(tmdbId, cast);
 
     internal void AddPeople(string text, bool actors)
     {

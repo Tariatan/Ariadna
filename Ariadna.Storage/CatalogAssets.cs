@@ -7,6 +7,13 @@ public sealed class CatalogAssets(string root, IReadOnlyDictionary<string, byte[
     internal string Token { get; } = Guid.NewGuid().ToString("N");
     private string? recoveryDirectory;
     private AssetFile[] files = [];
+    private readonly Dictionary<string, byte[]> additionalImages = new();
+    internal bool HasImages => images.Count != 0 || additionalImages.Count != 0;
+
+    internal void AddPortrait(string root, int personId, byte[] bytes)
+    {
+        additionalImages[Path.Combine(root, $"{personId}.png")] = bytes;
+    }
 
     internal void Prepare(string catalogDirectory, int id)
     {
@@ -18,7 +25,8 @@ public sealed class CatalogAssets(string root, IReadOnlyDictionary<string, byte[
         var previewKeys = Enumerable.Range(1, 4).Select(index => $"{previewSuffix}{index}").ToHashSet(StringComparer.Ordinal);
         recoveryDirectory = Path.Combine(catalogDirectory, $".ariadna-save-{Token}");
         Directory.CreateDirectory(recoveryDirectory);
-        files = images.Select(pair =>
+        var stagedImages = new Dictionary<string, byte[]>();
+        var posterFiles = images.Select(pair =>
         {
             if (pair.Key != string.Empty && !previewKeys.Contains(pair.Key))
             {
@@ -29,14 +37,26 @@ public sealed class CatalogAssets(string root, IReadOnlyDictionary<string, byte[
             {
                 throw new ArgumentException("Image paths must be absolute.");
             }
-            return new AssetFile(destination, File.Exists(destination), pair.Key.Length == 0 ? "poster" : pair.Key);
+            var key = pair.Key.Length == 0 ? "poster" : pair.Key;
+            stagedImages[key] = pair.Value;
+            return new AssetFile(destination, File.Exists(destination), key);
         }).ToArray();
+        var portraitFiles = additionalImages.Select((pair, index) =>
+        {
+            if (!Path.IsPathFullyQualified(pair.Key))
+            {
+                throw new ArgumentException("Portrait paths must be absolute.");
+            }
+            var key = $"person{index}";
+            stagedImages[key] = pair.Value;
+            return new AssetFile(pair.Key, File.Exists(pair.Key), key);
+        });
+        files = [.. posterFiles, .. portraitFiles];
 
         foreach (var file in files)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(file.Destination)!);
-            var suffix = file.Key == "poster" ? string.Empty : file.Key;
-            WriteDurable(Path.Combine(recoveryDirectory, file.Key + ".new"), images[suffix]);
+            WriteDurable(Path.Combine(recoveryDirectory, file.Key + ".new"), stagedImages[file.Key]);
             if (file.Existed)
             {
                 using var source = File.OpenRead(file.Destination);

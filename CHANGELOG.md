@@ -13,6 +13,19 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.0.0] - 2026-10-11
+
+#### Changed
+
+- Use schema-2 person identities and shared external portraits instead of database portrait BLOBs. Keep local and TMDb IDs through editing and cast/director refresh, and reuse portraits across roles.
+- Save new manual and TMDb portraits at 200×300 in the configured shared people directory. Missing portraits display `?`; edits remain pending until Save.
+
+### [3.3.3] - 2026-10-11
+
+#### Fixed
+
+- Resize posters to 600×900 by default using direct bitmap resampling instead of visual rendering, avoiding rough edges. Apply the same resampling to configured game preview and person photo sizes.
+
 ### [3.3.2] - 2026-10-11
 
 #### Fixed
@@ -439,6 +452,14 @@ Versioning rule:
 
 ## Ariadna.Storage
 
+### [3.0.0] - 2026-10-11
+
+#### Changed
+
+- Require catalog schema 2: person records reference shared numeric identities with optional unique TMDb IDs; Actor, Director, and Author no longer contain photo BLOBs.
+- Read and save portraits as ID-named external PNG files using the existing recoverable image transaction. Preserve relationship IDs on unchanged selections and identify existing people by IDs when renaming.
+- Provide an explicit one-time portrait reset against a verified schema-1 backup. Drop portrait data, compare all retained values and counters before commit, and compact/checkpoint the database afterwards.
+
 ### [2.0.3] - 2026-10-09
 
 #### Fixed
@@ -471,6 +492,13 @@ Versioning rule:
 - Direct SQLite catalog operations, explicit schema and Unicode comparison, complete-entry transactions, integrity/backup operations, and recoverable external image writes.
 
 ## Ariadna.Migration
+
+### [3.0.0] - 2026-10-11
+
+#### Changed
+
+- Capture and restore schema-2 packages with shared person identities and the people asset directory. Schema-1 packages and legacy SQL exports are unsupported by this version.
+- Add the explicit `reset-portraits` command requiring a matching pre-reset database backup, and reject snapshots/resets while either desktop frontend is running.
 
 ### [2.0.0] - 2026-10-03
 

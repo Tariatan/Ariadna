@@ -19,6 +19,7 @@ internal sealed class CatalogConfiguration
 
     internal string DatabasePath { get; }
     internal string? AssetRoot { get; }
+    internal string PeopleRoot => AssetRoot == null ? Get("PeoplePortraitsRootPath") : Path.Combine(AssetRoot, "people");
     internal string PreviewPrefix => Get("PreviewSuffix")is { Length: > 0 } prefix ? prefix : "_preview";
 
     internal string Get(string name) => settings.TryGetValue(name, out var value) ? value : string.Empty;

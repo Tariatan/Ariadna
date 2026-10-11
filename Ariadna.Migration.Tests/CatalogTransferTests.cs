@@ -29,10 +29,12 @@ public sealed class CatalogTransferTests
         using (var connection = database.Open())
         using (var command = connection.CreateCommand())
         {
-            command.CommandText = "INSERT INTO [Ignore](Id,path) VALUES (0,'Zero'); INSERT INTO Actor(Id,name,photo) VALUES (7,'Актёр',X'010203'); INSERT INTO Movie(Id,title,title_original,year,file_path,description,want_to_see) VALUES (5,'Чудо','Original',2026,'movie.mkv',NULL,NULL); INSERT INTO MovieCast(movieId,actorId) VALUES (5,7),(5,7); UPDATE sqlite_sequence SET seq=100 WHERE name='Movie'";
+            command.CommandText = "INSERT INTO [Ignore](Id,path) VALUES (0,'Zero'); INSERT INTO Person(Id,tmdbId) VALUES (7,123); INSERT INTO Actor(Id,name,personId) VALUES (7,'Актёр',7); INSERT INTO Movie(Id,title,title_original,year,file_path,description,want_to_see) VALUES (5,'Чудо','Original',2026,'movie.mkv',NULL,NULL); INSERT INTO MovieCast(movieId,actorId) VALUES (5,7),(5,7); UPDATE sqlite_sequence SET seq=100 WHERE name='Movie'";
             command.ExecuteNonQuery();
         }
         File.WriteAllBytes(Path.Combine(directory, "movies", "5"), [9, 8, 7]);
+        Directory.CreateDirectory(Path.Combine(directory, "people"));
+        File.WriteAllBytes(Path.Combine(directory, "people", "7.png"), [1, 2, 3]);
         package = Path.Combine(directory, "package");
         transfer.Snapshot(source, directory, package);
     }
@@ -63,6 +65,8 @@ public sealed class CatalogTransferTests
         command.CommandText = "SELECT Id FROM [Ignore] WHERE path='Zero'";
         Assert.AreEqual(0L, command.ExecuteScalar());
         CollectionAssert.AreEqual(new byte[] { 9, 8, 7 }, File.ReadAllBytes(Path.Combine(package, "assets", "movies", "5")));
+        CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, File.ReadAllBytes(Path.Combine(package, "assets", "people", "7.png")));
+        Assert.AreEqual(123, movie.Actors.First().TmdbId);
     }
 
     [TestMethod]

@@ -34,6 +34,24 @@ Last tidied: 2026-10-08. Repository context only; evidence below is dated.
 
 ## Latest recorded handoff
 
+- **2026-10-11 — external portraits applied to the live catalog (schema 2).**
+  The user explicitly chose to discard all existing database portraits and
+  refresh entries later; missing portraits (`?`) are therefore expected, not
+  migration failures. Shared person IDs and optional TMDb IDs now identify
+  portraits; names remain display metadata. Portraits use 200x300 PNG files in
+  the configured shared people root. See the [TDD](docs/Technical_Design_Description.md)
+  and [SQLite operations](docs/SQLITE-OPERATIONS.md) for the storage contract.
+  The matched pre-reset backup is `2026-10-11-before-external-portraits-124421`
+  under the configured catalog's `backups` directory; its
+  `portrait-reset-verification.json` records preservation of 70,907 original
+  rows, retained values/IDs/counters and all 6,064 existing external assets.
+  Integrity and foreign-key checks passed. Schema-1 recovery requires the
+  included `previous-wpf-executable`, together with the matched database/assets;
+  the current executable does not open schema 1.
+  Release tests passed (463), and Debug/Release builds passed. Next acceptance:
+  on a disposable matched copy, fetch live TMDb cast and exercise manual portrait
+  replacement, Save/cancel and reopen; confirm shared files, IDs and placeholders.
+  Those native/network workflows remain unverified.
 - **2026-10-06 — WPF 1.9.0/1.9.1.** Details genre-picker mouse/keyboard checks
   passed with synthetic Movies; the recorded Release WPF suite passed 113 tests.
   The subsequent Paste (`↓`) before Add (`+`) change passed six focused people
