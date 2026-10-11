@@ -74,6 +74,13 @@
                 Background="{Binding Theme.Background}">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                           Padding="2" Focusable="False" VerticalContentAlignment="Top">
+                <ScrollViewer.Resources>
+                    <ResourceDictionary>
+                        <ResourceDictionary.MergedDictionaries>
+                            <ResourceDictionary Source="DetailsScrollBarStyles.xaml" />
+                        </ResourceDictionary.MergedDictionaries>
+                    </ResourceDictionary>
+                </ScrollViewer.Resources>
                 <ItemsControl x:Name="QuickList" ItemsSource="{Binding Letters}" VerticalAlignment="Top">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

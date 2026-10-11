@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [3.3.1] - 2026-10-11
+
+#### Fixed
+
+- Align the QuickList scrollbar with the shared slim, rounded white scrollbar design.
+
 ### [3.3.0] - 2026-10-10
 
 #### Added

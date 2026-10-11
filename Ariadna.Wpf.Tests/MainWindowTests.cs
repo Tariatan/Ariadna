@@ -35,12 +35,15 @@ public sealed class MainWindowTests
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
             var tabs = (TabControl)window.FindName("CatalogTabs");
             var initialView = (CatalogView)((TabItem)tabs.SelectedItem).Content;
-            Assert.AreSame(initialView.FindName("PosterRows"), Keyboard.FocusedElement);
+            // Logical focus remains testable when another desktop window takes keyboard focus.
+            Assert.AreSame(initialView.FindName("PosterRows"), FocusManager.GetFocusedElement(window));
             string[] arguments = ["games", "library", "documentaries", "movies"];
             foreach (var argument in arguments)
             {
                 var previousView = (CatalogView)((TabItem)tabs.SelectedItem).Content;
-                ((TextBox)previousView.FindName("TitleSearch")).Focus();
+                var titleSearch = (TextBox)previousView.FindName("TitleSearch");
+                titleSearch.Focus();
+                Assert.AreSame(titleSearch, FocusManager.GetFocusedElement(window));
 
                 // Act
                 window.ActivateCatalog(argument);
@@ -49,7 +52,7 @@ public sealed class MainWindowTests
                 await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
                 // Assert
-                Assert.AreSame(view.FindName("PosterRows"), Keyboard.FocusedElement);
+                Assert.AreSame(view.FindName("PosterRows"), FocusManager.GetFocusedElement(window));
                 Assert.AreSame(selection, view.Model.Selected);
             }
 
@@ -61,7 +64,7 @@ public sealed class MainWindowTests
 
             // Assert
             var finalView = (CatalogView)((TabItem)tabs.SelectedItem).Content;
-            Assert.AreSame(finalView.FindName("PosterRows"), Keyboard.FocusedElement);
+            Assert.AreSame(finalView.FindName("PosterRows"), FocusManager.GetFocusedElement(window));
         }
         finally
         {
