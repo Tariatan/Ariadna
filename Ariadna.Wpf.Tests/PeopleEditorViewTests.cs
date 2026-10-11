@@ -11,6 +11,44 @@ namespace Ariadna.Wpf.Tests;
 public sealed class PeopleEditorViewTests
 {
     [TestMethod]
+    public async Task Portrait_PreparedOnWorker_ReusesFrozenImageAndInvalidatesAfterReplacement() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        var photo = EntryEditorModelTests.Png(Colors.Red);
+        var model = new PersonEditorModel(new PersonPhoto("Prepared portrait", photo));
+
+        // Act
+        var prepared = await Task.Run(() => model.Portrait);
+
+        // Assert
+        Assert.IsTrue(prepared!.IsFrozen);
+        Assert.AreSame(prepared, model.Portrait);
+        CollectionAssert.AreEqual(photo, model.Photo);
+
+        // Act
+        model.SetPhoto(EntryEditorModelTests.Png(Colors.Blue));
+
+        // Assert
+        Assert.AreNotSame(prepared, model.Portrait);
+        model.SetPhoto(null);
+        Assert.IsNull(model.Portrait);
+    });
+
+    [TestMethod]
+    public async Task WaitForRender_CancelledRefresh_CompletesWithoutWaitingForFrames() => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var cancellation = new CancellationTokenSource();
+        var wait = RefreshIndicator.WaitForRenderAsync(cancellation.Token);
+
+        // Act
+        cancellation.Cancel();
+
+        // Assert
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await wait);
+    });
+
+    [TestMethod]
     public async Task RefreshIndicator_DisabledCastButton_AnimatesGlyphAndResetsWhenFinished() => await WpfThread.RunAsync(async () =>
     {
         // Arrange

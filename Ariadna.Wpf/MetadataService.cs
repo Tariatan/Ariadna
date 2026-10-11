@@ -166,6 +166,18 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
             people.Add(new PersonPhoto(person.Name, photo));
         }
 
+        // Decode frozen portraits before binding creates the cast cards on the UI thread.
+        var models = await Task.Run(() =>
+        {
+            return people.Select(person =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var model = new PersonEditorModel(person);
+                _ = model.Portrait;
+                return model;
+            }).ToArray();
+        }, cancellationToken);
+
         cancellationToken.ThrowIfCancellationRequested();
         if (editor.Revision != revision || !previous.SequenceEqual(target.Select(person => (person.Name, person.Photo))))
         {
@@ -173,9 +185,9 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         }
 
         target.Clear();
-        foreach (var person in people)
+        foreach (var model in models)
         {
-            target.Add(new PersonEditorModel(person));
+            target.Add(model);
         }
     }
 

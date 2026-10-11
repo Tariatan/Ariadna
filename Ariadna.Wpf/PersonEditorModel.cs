@@ -6,13 +6,15 @@ internal sealed class PersonEditorModel(PersonPhoto person) : ObservableObject
 {
     private string name = person.Name;
     private byte[]? photo = person.Photo;
+    private BitmapSource? portrait;
     public string Name { get => name; set => Set(ref name, value); }
-    public BitmapSource? Portrait => photo == null ? null : Images.Decode(photo, 100);
+    public BitmapSource? Portrait => photo == null ? null : portrait ??= Images.Decode(photo, 100);
     internal byte[]? Photo => photo;
 
     internal void SetPhoto(byte[]? value)
     {
         photo = value;
+        portrait = null;
         Notify(nameof(Portrait));
     }
 

@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [3.3.2] - 2026-10-11
+
+#### Fixed
+
+- Prepare and cache refreshed people portraits off the UI thread, and keep the refresh spinner active through layout and subsequent render frames.
+
 ### [3.3.1] - 2026-10-11
 
 #### Fixed

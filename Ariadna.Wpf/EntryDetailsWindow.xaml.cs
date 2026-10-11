@@ -415,7 +415,8 @@ public partial class EntryDetailsWindow : Window
                 }
 
                 // Keep the indicator active through queued bindings, layout and rendering.
-                await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
+                await Dispatcher.InvokeAsync(UpdateLayout, DispatcherPriority.ContextIdle, cancellationToken);
+                await RefreshIndicator.WaitForRenderAsync(cancellationToken);
             }
         }
         catch (OperationCanceledException) when (closed)
