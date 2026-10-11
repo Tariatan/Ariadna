@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.1.0] - 2026-10-11
+
+#### Added
+
+- Add Movies Details `↻  all` beneath the poster on the left. Use one match to refresh poster, description, directors and cast together, preparing all results before applying them and retaining edits until Save.
+
 ### [4.0.0] - 2026-10-11
 
 #### Changed

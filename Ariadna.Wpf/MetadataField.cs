@@ -6,4 +6,5 @@ internal enum MetadataField
     Description,
     Directors,
     Cast,
+    All,
 }

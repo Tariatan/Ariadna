@@ -173,7 +173,7 @@ public partial class EntryDetailsWindow : Window
             return;
         }
 
-        if (e.Key == Key.Enter && (Keyboard.FocusedElement == GenrePickerButton || Keyboard.FocusedElement == PasteGenresButton || Keyboard.FocusedElement == RefreshPosterButton || Keyboard.FocusedElement == RefreshDescriptionButton || PeopleEditor.IsRefreshFocused || CastEditor.IsRefreshFocused))
+        if (e.Key == Key.Enter && (Keyboard.FocusedElement == GenrePickerButton || Keyboard.FocusedElement == PasteGenresButton || Keyboard.FocusedElement == RefreshAllButton || Keyboard.FocusedElement == RefreshPosterButton || Keyboard.FocusedElement == RefreshDescriptionButton || PeopleEditor.IsRefreshFocused || CastEditor.IsRefreshFocused))
         {
             return;
         }
@@ -366,6 +366,7 @@ public partial class EntryDetailsWindow : Window
             editor.AddGenre(genre);
         }
     });
+    private async void RefreshAll(object sender, RoutedEventArgs e) => await RefreshMetadataAsync(MetadataField.All, lifetime.Token);
     private async void RefreshPoster(object sender, RoutedEventArgs e) => await RefreshMetadataAsync(MetadataField.Poster, lifetime.Token);
     private async void RefreshDescription(object sender, RoutedEventArgs e) => await RefreshMetadataAsync(MetadataField.Description, lifetime.Token);
 
@@ -376,6 +377,7 @@ public partial class EntryDetailsWindow : Window
     {
         var activeButton = field switch
         {
+            MetadataField.All => RefreshAllButton,
             MetadataField.Poster => RefreshPosterButton,
             MetadataField.Description => RefreshDescriptionButton,
             MetadataField.Directors => PeopleEditor.MetadataRefreshButton,
@@ -383,6 +385,7 @@ public partial class EntryDetailsWindow : Window
             _ => throw new ArgumentOutOfRangeException(nameof(field)),
         };
         RefreshIndicator.SetIsRefreshing(activeButton, true);
+        RefreshAllButton.IsEnabled = false;
         RefreshPosterButton.IsEnabled = false;
         RefreshDescriptionButton.IsEnabled = false;
         PeopleEditor.SetRefreshEnabled(false);
@@ -405,7 +408,11 @@ public partial class EntryDetailsWindow : Window
             var selected = choices.Count == 1 ? choices.First() : ChooseMetadata(choices);
             if (selected != null && !closed)
             {
-                if (field is MetadataField.Directors or MetadataField.Cast)
+                if (field == MetadataField.All)
+                {
+                    await RefreshAllFieldsAsync(service, selected, cancellationToken);
+                }
+                else if (field is MetadataField.Directors or MetadataField.Cast)
                 {
                     await service.RefreshPeopleAsync(selected, editor, field == MetadataField.Cast, cancellationToken);
                 }
@@ -434,11 +441,45 @@ public partial class EntryDetailsWindow : Window
             RefreshIndicator.SetIsRefreshing(activeButton, false);
             if (!closed)
             {
+                RefreshAllButton.IsEnabled = true;
                 RefreshPosterButton.IsEnabled = true;
                 RefreshDescriptionButton.IsEnabled = true;
                 PeopleEditor.SetRefreshEnabled(true);
                 CastEditor.SetRefreshEnabled(true);
             }
+        }
+    }
+
+    private async Task RefreshAllFieldsAsync(MetadataService service, MetadataChoice choice, CancellationToken cancellationToken)
+    {
+        var revision = editor.Revision;
+        var directors = editor.People.Select(person => (person.Name, person.Photo)).ToArray();
+        var cast = editor.Actors.Select(person => (person.Name, person.Photo)).ToArray();
+        var staged = new EntryEditorModel(actions, editor.Kind, editor.Path);
+        await service.RefreshAsync(choice, staged, true, cancellationToken);
+        await service.RefreshAsync(choice, staged, false, cancellationToken);
+        await service.RefreshPeopleAsync(choice, staged, false, cancellationToken);
+        await service.RefreshPeopleAsync(choice, staged, true, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (closed || editor.Revision != revision ||
+            !directors.SequenceEqual(editor.People.Select(person => (person.Name, person.Photo))) ||
+            !cast.SequenceEqual(editor.Actors.Select(person => (person.Name, person.Photo))))
+        {
+            return;
+        }
+
+        editor.ReplaceImage(string.Empty, Images.Png(staged.Poster!));
+        editor.Description = staged.Description;
+        editor.People.Clear();
+        foreach (var person in staged.People)
+        {
+            editor.People.Add(person);
+        }
+
+        editor.Actors.Clear();
+        foreach (var person in staged.Actors)
+        {
+            editor.Actors.Add(person);
         }
     }
 

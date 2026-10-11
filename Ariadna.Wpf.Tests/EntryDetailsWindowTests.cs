@@ -26,11 +26,16 @@ public sealed class EntryDetailsWindowTests
             // Act
             window.Show();
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var all = (Button)window.FindName("RefreshAllButton");
             var poster = (Button)window.FindName("RefreshPosterButton");
             var description = (Button)window.FindName("RefreshDescriptionButton");
 
             // Assert
             var expected = kind == CatalogKind.Movie ? Visibility.Visible : Visibility.Collapsed;
+            Assert.AreEqual(expected, all.Visibility);
+            Assert.AreEqual("↻  all", all.Content);
+            Assert.AreEqual(HorizontalAlignment.Left, all.HorizontalAlignment);
+            Assert.AreEqual(1, Grid.GetRow(all));
             Assert.AreEqual(expected, poster.Visibility);
             Assert.AreEqual(expected, description.Visibility);
             Assert.AreEqual(1, Grid.GetRow(poster));

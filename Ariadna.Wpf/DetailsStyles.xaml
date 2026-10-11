@@ -20,10 +20,14 @@
         <Setter Property="ContentTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <TextBlock x:Name="RefreshGlyph" Text="{Binding}" RenderTransformOrigin="0.5,0.5">
-                        <TextBlock.RenderTransform><RotateTransform /></TextBlock.RenderTransform>
-                    </TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="RefreshGlyph" Text="↻" RenderTransformOrigin="0.5,0.5">
+                            <TextBlock.RenderTransform><RotateTransform /></TextBlock.RenderTransform>
+                        </TextBlock>
+                        <TextBlock x:Name="AllLabel" Text="  all" xml:space="preserve" Visibility="Collapsed" />
+                    </StackPanel>
                     <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding}" Value="↻  all"><Setter TargetName="AllLabel" Property="Visibility" Value="Visible" /></DataTrigger>
                         <DataTrigger Binding="{Binding Path=(local:RefreshIndicator.IsRefreshing), RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
                             <DataTrigger.EnterActions>
                                 <BeginStoryboard x:Name="SpinRefresh">
