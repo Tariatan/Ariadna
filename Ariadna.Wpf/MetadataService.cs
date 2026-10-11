@@ -138,7 +138,9 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
                 ?? throw new InvalidDataException("TMDb returned no series credits.");
             credits = cast
                 ? (result.Cast ?? []).Select(person => (person.Id, person.Name ?? string.Empty, person.ProfilePath)).ToArray()
-                : (result.Crew ?? []).Where(person => person.Job == "Director").Select(person => (person.Id, person.Name ?? string.Empty, person.ProfilePath)).ToArray();
+                : await GetSeriesDirectorsAsync(result, async () =>
+                    await client.GetTvShowAsync(choice.Id, TvShowMethods.Undefined, configuration.Get("ImdbLanguage"), cancellationToken: cancellationToken)
+                        ?? throw new InvalidDataException("TMDb returned no series metadata."), cancellationToken);
         }
         else
         {
@@ -152,7 +154,9 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         credits = credits.Where(person => !string.IsNullOrWhiteSpace(person.Name)).DistinctBy(person => person.Id).ToArray();
         if (credits.Length == 0)
         {
-            throw new InvalidDataException(cast ? "No cast is available for this match." : "No directors are available for this match.");
+            throw new InvalidDataException(cast ? "No cast is available for this match." : choice.Series
+                ? "No directors or creators are available for this match."
+                : "No directors are available for this match.");
         }
 
         await client.GetConfigAsync().WaitAsync(cancellationToken);
@@ -196,6 +200,28 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         {
             target.Add(model);
         }
+    }
+
+    internal static async Task<(int Id, string Name, string? ProfilePath)[]> GetSeriesDirectorsAsync(
+        TMDbLib.Objects.TvShows.Credits credits, Func<Task<TvShow>> loadShow, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var directors = (credits.Crew ?? [])
+            .Where(person => person.Job == "Director" && !string.IsNullOrWhiteSpace(person.Name))
+            .Select(person => (person.Id, person.Name ?? string.Empty, person.ProfilePath))
+            .DistinctBy(person => person.Id)
+            .ToArray();
+        if (directors.Length > 0)
+        {
+            return directors;
+        }
+
+        var show = await loadShow().WaitAsync(cancellationToken);
+        return (show.CreatedBy ?? [])
+            .Where(person => !string.IsNullOrWhiteSpace(person.Name))
+            .Select(person => (person.Id, person.Name ?? string.Empty, person.ProfilePath))
+            .DistinctBy(person => person.Id)
+            .ToArray();
     }
 
     internal async Task<byte[]?> PortraitAsync(string name, CancellationToken cancellationToken)

@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.1.2] - 2026-10-11
+
+#### Fixed
+
+- Fall back to TMDb series creators when director credits are unavailable, for Directors and full metadata refresh. Preserve person identities and portraits, with changes pending until Save.
+
 ### [4.1.1] - 2026-10-11
 
 #### Fixed
