@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.2.0] - 2026-10-13
+
+#### Added
+
+- Choose TMDb request language automatically from the original movie or series title: Russian (`ru`) for titles containing Russian letters, English (`en`) otherwise. Apply to automatic lookup and metadata refresh, including series credits and creator fallback.
+
 ### [4.1.2] - 2026-10-11
 
 #### Fixed

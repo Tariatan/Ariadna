@@ -211,9 +211,9 @@ public partial class MainPanel : UserControl
         var listViewItems = new List<ImageListViewItem>(entries.Count);
         foreach (var entry in entries)
         {
-            firstChars.Add(entry.Title[..1].ToUpper());
+            firstChars.Add(entry.Path[..1].ToUpper());
 
-            var item = new ImageListViewItem(entry.Id.ToString(), entry.Title);
+            var item = new ImageListViewItem(entry.Id.ToString(), entry.Path);
             listViewItems.Add(item);
         }
 

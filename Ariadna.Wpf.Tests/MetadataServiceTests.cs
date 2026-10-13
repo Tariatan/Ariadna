@@ -8,6 +8,29 @@ namespace Ariadna.Wpf.Tests;
 public sealed class MetadataServiceTests
 {
     [TestMethod]
+    [DataRow("Брат", "ru")]
+    [DataRow("Ёлки", "ru")]
+    [DataRow("ё", "ru")]
+    [DataRow("Iron Man / Железный человек", "ru")]
+    [DataRow("The Matrix", "en")]
+    [DataRow("Amélie", "en")]
+    [DataRow("七人の侍", "en")]
+    [DataRow("123 — !", "en")]
+    [DataRow("", "en")]
+    [DataRow(null, "en")]
+    public void GetLanguage_OriginalTitle_SelectsRussianLettersOrEnglishFallback(string? originalTitle, string expected)
+    {
+        // Arrange
+        // The title may be absent before automatic discovery finishes.
+
+        // Act
+        var language = MetadataService.GetLanguage(originalTitle);
+
+        // Assert
+        Assert.AreEqual(expected, language);
+    }
+
+    [TestMethod]
     public async Task GetSeriesDirectorsAsync_DirectorsAvailable_DoesNotLoadCreators()
     {
         // Arrange

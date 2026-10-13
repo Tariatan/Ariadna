@@ -10,7 +10,7 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
     private readonly TMDbClient client = new(configuration.Get("TmdbApiKey"));
     internal async Task<IReadOnlyCollection<MetadataChoice>> SearchAsync(string name, bool series, CancellationToken cancellationToken)
     {
-        var language = configuration.Get("ImdbLanguage");
+        var language = GetLanguage(name);
         if (series)
         {
             var result = await client.SearchTvShowAsync(name, language, cancellationToken: cancellationToken);
@@ -32,7 +32,7 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         IEnumerable<string> genres;
         if (choice.Series)
         {
-            var show = await client.GetTvShowAsync(choice.Id, TvShowMethods.Undefined, configuration.Get("ImdbLanguage"), cancellationToken: cancellationToken) ?? throw new InvalidDataException("TMDb returned no series metadata.");
+            var show = await client.GetTvShowAsync(choice.Id, TvShowMethods.Undefined, GetLanguage(choice.OriginalTitle), cancellationToken: cancellationToken) ?? throw new InvalidDataException("TMDb returned no series metadata.");
             title = show.OriginalName;
             description = show.Overview;
             year = show.FirstAirDate?.Year ?? 0;
@@ -41,7 +41,7 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         }
         else
         {
-            var movie = await client.GetMovieAsync(choice.Id, configuration.Get("ImdbLanguage"), cancellationToken: cancellationToken) ?? throw new InvalidDataException("TMDb returned no movie metadata.");
+            var movie = await client.GetMovieAsync(choice.Id, GetLanguage(choice.OriginalTitle), cancellationToken: cancellationToken) ?? throw new InvalidDataException("TMDb returned no movie metadata.");
             title = movie.OriginalTitle;
             description = movie.Overview;
             year = movie.ReleaseDate?.Year ?? 0;
@@ -78,14 +78,14 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         string? posterPath;
         if (choice.Series)
         {
-            var show = await client.GetTvShowAsync(choice.Id, TvShowMethods.Undefined, configuration.Get("ImdbLanguage"), cancellationToken: cancellationToken)
+            var show = await client.GetTvShowAsync(choice.Id, TvShowMethods.Undefined, GetLanguage(choice.OriginalTitle), cancellationToken: cancellationToken)
                 ?? throw new InvalidDataException("TMDb returned no series metadata.");
             description = show.Overview;
             posterPath = show.PosterPath;
         }
         else
         {
-            var movie = await client.GetMovieAsync(choice.Id, configuration.Get("ImdbLanguage"), cancellationToken: cancellationToken)
+            var movie = await client.GetMovieAsync(choice.Id, GetLanguage(choice.OriginalTitle), cancellationToken: cancellationToken)
                 ?? throw new InvalidDataException("TMDb returned no movie metadata.");
             description = movie.Overview;
             posterPath = movie.PosterPath;
@@ -134,16 +134,17 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         (int Id, string Name, string? ProfilePath)[] credits;
         if (choice.Series)
         {
-            var result = await client.GetTvShowCreditsAsync(choice.Id, configuration.Get("ImdbLanguage"), cancellationToken)
+            var result = await client.GetTvShowCreditsAsync(choice.Id, GetLanguage(choice.OriginalTitle), cancellationToken)
                 ?? throw new InvalidDataException("TMDb returned no series credits.");
             credits = cast
                 ? (result.Cast ?? []).Select(person => (person.Id, person.Name ?? string.Empty, person.ProfilePath)).ToArray()
                 : await GetSeriesDirectorsAsync(result, async () =>
-                    await client.GetTvShowAsync(choice.Id, TvShowMethods.Undefined, configuration.Get("ImdbLanguage"), cancellationToken: cancellationToken)
+                    await client.GetTvShowAsync(choice.Id, TvShowMethods.Undefined, GetLanguage(choice.OriginalTitle), cancellationToken: cancellationToken)
                         ?? throw new InvalidDataException("TMDb returned no series metadata."), cancellationToken);
         }
         else
         {
+            client.DefaultLanguage = GetLanguage(choice.OriginalTitle);
             var result = await client.GetMovieCreditsAsync(choice.Id, cancellationToken)
                 ?? throw new InvalidDataException("TMDb returned no movie credits.");
             credits = cast
@@ -233,6 +234,9 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         var bytes = path == null ? null : await client.GetImageBytesAsync(size, path, false, cancellationToken);
         return bytes == null ? null : await Task.Run(() => Images.ResizePortrait(bytes), cancellationToken);
     }
+
+    internal static string GetLanguage(string? originalTitle) =>
+        originalTitle?.Any(character => character is >= 'А' and <= 'я' or 'Ё' or 'ё') == true ? "ru" : "en";
 
     public void Dispose() => client.Dispose();
 }
