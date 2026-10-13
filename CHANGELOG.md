@@ -13,6 +13,14 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.2.1] - 2026-10-13
+
+#### Fixed
+
+- Remove the Details folder button and its file/folder dialog handler; retain the editable path field and let it use the full field width.
+- Use each collection's palette for checked Details checkboxes, including Wishlist and Games VR.
+- Widen the Details file path field for Games and Library from 340 to 600; retain the existing width for Movies and Documentaries.
+
 ### [4.2.0] - 2026-10-13
 
 #### Added

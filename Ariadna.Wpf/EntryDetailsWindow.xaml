@@ -35,13 +35,17 @@
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <WrapPanel VerticalAlignment="Center">
                     <Border BorderBrush="#60FFFFFF" BorderThickness="1" CornerRadius="5" Margin="0,0,0,8">
-                        <Grid Width="340">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>
-                            <TextBox x:Name="MediaPath" Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Margin="0" ToolTip="{Binding Path}" LostKeyboardFocus="InspectChangedPath" />
-                            <Button Grid.Column="1" Click="BrowsePath" ToolTip="Choose media path" Padding="9" Margin="0" BorderThickness="1,0,0,0" Background="Transparent">
-                                <Path Data="M1,7 L1,3 L9,3 L12,6 L23,6 L23,9 M1,21 L5,9 L26,9 L22,21 Z" Stroke="#E0FFFFFF" StrokeThickness="1.7" Width="25" Height="23" Stretch="Uniform" />
-                            </Button>
-                        </Grid>
+                        <TextBox x:Name="MediaPath" Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" Background="Transparent" Margin="0" ToolTip="{Binding Path}" LostKeyboardFocus="InspectChangedPath">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                    <Setter Property="Width" Value="340" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Game}"><Setter Property="Width" Value="450" /></DataTrigger>
+                                        <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Library}"><Setter Property="Width" Value="850" /></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
                     </Border>
                     <ItemsControl x:Name="FileMetrics" Margin="0,0,0,8" VerticalAlignment="Center">
                         <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>

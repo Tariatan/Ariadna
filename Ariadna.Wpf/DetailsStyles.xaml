@@ -63,7 +63,7 @@
                 <ContentPresenter VerticalAlignment="Center" />
             </StackPanel>
             <ControlTemplate.Triggers>
-                <Trigger Property="IsChecked" Value="True"><Setter TargetName="Check" Property="Visibility" Value="Visible" /><Setter TargetName="Box" Property="Background" Value="#805D2679" /></Trigger>
+                <Trigger Property="IsChecked" Value="True"><Setter TargetName="Check" Property="Visibility" Value="Visible" /><Setter TargetName="Box" Property="Background" Value="{Binding Theme.Background}" /></Trigger>
                 <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Box" Property="BorderBrush" Value="White" /></Trigger>
                 <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Box" Property="BorderBrush" Value="White" /></Trigger>
                 <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45" /></Trigger>

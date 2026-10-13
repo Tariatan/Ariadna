@@ -94,33 +94,6 @@ public partial class EntryDetailsWindow : Window
     }
 
     private async void InspectChangedPath(object sender, KeyboardFocusChangedEventArgs e) => await InspectPathAsync(editor.Path);
-    private async void BrowsePath(object sender, RoutedEventArgs e)
-    {
-        string? path = null;
-        if (editor.IsGame || Directory.Exists(editor.Path))
-        {
-            var dialog = new OpenFolderDialog { Title = "Choose media folder" };
-            if (dialog.ShowDialog(this) == true)
-            {
-                path = dialog.FolderName;
-            }
-        }
-        else
-        {
-            var dialog = new OpenFileDialog { Title = "Choose media file", Filter = "All files|*.*" };
-            if (dialog.ShowDialog(this) == true)
-            {
-                path = dialog.FileName;
-            }
-        }
-
-        if (path != null)
-        {
-            editor.Path = path;
-            await InspectPathAsync(path);
-        }
-    }
-
     private void Save(object sender, RoutedEventArgs e)
     {
         if (shiftPressed || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
