@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.3.0] - 2026-10-14
+
+#### Added
+
+- Extend Details `↻  all` refresh to fetch Russian translation, year and replacement genres alongside description, poster, directors and cast; preserve unavailable fields and manual edits made during retrieval.
+
 ### [4.2.1] - 2026-10-13
 
 #### Fixed

@@ -7,4 +7,7 @@ internal enum MetadataField
     Directors,
     Cast,
     All,
+    Translation,
+    Year,
+    Genres,
 }

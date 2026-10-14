@@ -71,6 +71,76 @@ internal sealed class MetadataService(CatalogConfiguration configuration) : IDis
         }
     }
 
+    internal async Task RefreshDetailsAsync(MetadataChoice choice, EntryEditorModel editor, MetadataField field, CancellationToken cancellationToken)
+    {
+        var revision = editor.Revision;
+        var language = field == MetadataField.Translation ? "ru" : GetLanguage(choice.OriginalTitle);
+        string? translation;
+        int year;
+        string[] genres;
+        if (choice.Series)
+        {
+            var show = await client.GetTvShowAsync(choice.Id, TvShowMethods.Undefined, language, cancellationToken: cancellationToken)
+                ?? throw new InvalidDataException("TMDb returned no series metadata.");
+            translation = show.Name;
+            year = show.FirstAirDate?.Year ?? 0;
+            genres = (show.Genres ?? []).Select(genre => genre.Name).OfType<string>().ToArray();
+        }
+        else
+        {
+            var movie = await client.GetMovieAsync(choice.Id, language, cancellationToken: cancellationToken)
+                ?? throw new InvalidDataException("TMDb returned no movie metadata.");
+            translation = movie.Title;
+            year = movie.ReleaseDate?.Year ?? 0;
+            genres = (movie.Genres ?? []).Select(genre => genre.Name).OfType<string>().ToArray();
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        if (editor.Revision == revision)
+        {
+            ApplyDetails(editor, field, translation, year, genres);
+        }
+    }
+
+    internal static void ApplyDetails(EntryEditorModel editor, MetadataField field, string? translation, int year, IEnumerable<string> genres)
+    {
+        switch (field)
+        {
+            case MetadataField.Translation:
+                if (string.IsNullOrWhiteSpace(translation))
+                {
+                    throw new InvalidDataException("No Russian translation is available for this match.");
+                }
+
+                editor.Title = translation;
+                break;
+            case MetadataField.Year:
+                if (year <= 0)
+                {
+                    throw new InvalidDataException("No year is available for this match.");
+                }
+
+                editor.Year = year.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                break;
+            case MetadataField.Genres:
+                var names = genres.Where(name => !string.IsNullOrWhiteSpace(name)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                if (names.Length == 0)
+                {
+                    throw new InvalidDataException("No genres are available for this match.");
+                }
+
+                editor.Genres.Clear();
+                foreach (var name in names)
+                {
+                    editor.AddGenre(name);
+                }
+
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(field));
+        }
+    }
+
     internal async Task RefreshAsync(MetadataChoice choice, EntryEditorModel editor, bool poster, CancellationToken cancellationToken)
     {
         var revision = editor.Revision;

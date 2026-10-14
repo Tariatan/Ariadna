@@ -10,11 +10,14 @@ public sealed class RefreshBatchTests
     [DataRow((int)MetadataField.Description)]
     [DataRow((int)MetadataField.Directors)]
     [DataRow((int)MetadataField.Cast)]
+    [DataRow((int)MetadataField.Translation)]
+    [DataRow((int)MetadataField.Year)]
+    [DataRow((int)MetadataField.Genres)]
     public async Task RunAsync_FieldFails_ContinuesRemainingActionsAndReportsFailure(int failedFieldValue)
     {
         // Arrange
         var failedField = (MetadataField)failedFieldValue;
-        MetadataField[] fields = [MetadataField.Poster, MetadataField.Description, MetadataField.Directors, MetadataField.Cast];
+        MetadataField[] fields = [MetadataField.Translation, MetadataField.Year, MetadataField.Genres, MetadataField.Poster, MetadataField.Description, MetadataField.Directors, MetadataField.Cast];
         var attempted = new List<MetadataField>();
         var actions = fields.Select(field => (field, (Func<CancellationToken, Task>)(_ =>
         {

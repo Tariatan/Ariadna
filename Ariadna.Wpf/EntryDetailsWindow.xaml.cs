@@ -445,6 +445,9 @@ public partial class EntryDetailsWindow : Window
         var staged = new EntryEditorModel(actions, editor.Kind, editor.Path);
         var failures = await RefreshBatch.RunAsync(
         [
+            (MetadataField.Translation, token => service.RefreshDetailsAsync(choice, staged, MetadataField.Translation, token)),
+            (MetadataField.Year, token => service.RefreshDetailsAsync(choice, staged, MetadataField.Year, token)),
+            (MetadataField.Genres, token => service.RefreshDetailsAsync(choice, staged, MetadataField.Genres, token)),
             (MetadataField.Poster, token => service.RefreshAsync(choice, staged, true, token)),
             (MetadataField.Description, token => service.RefreshAsync(choice, staged, false, token)),
             (MetadataField.Directors, token => service.RefreshPeopleAsync(choice, staged, false, token)),
@@ -456,6 +459,25 @@ public partial class EntryDetailsWindow : Window
             !cast.SequenceEqual(editor.Actors.Select(person => (person.Name, person.Photo))))
         {
             return null;
+        }
+
+        if (!failures.ContainsKey(MetadataField.Translation))
+        {
+            editor.Title = staged.Title;
+        }
+
+        if (!failures.ContainsKey(MetadataField.Year))
+        {
+            editor.Year = staged.Year;
+        }
+
+        if (!failures.ContainsKey(MetadataField.Genres))
+        {
+            editor.Genres.Clear();
+            foreach (var genre in staged.Genres)
+            {
+                editor.Genres.Add(genre);
+            }
         }
 
         if (!failures.ContainsKey(MetadataField.Poster))

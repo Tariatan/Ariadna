@@ -8,6 +8,51 @@ namespace Ariadna.Wpf.Tests;
 public sealed class MetadataServiceTests
 {
     [TestMethod]
+    public async Task ApplyDetails_AvailableFields_ReplacesTranslationYearAndGenresPreservingOriginalTitle() => await WpfThread.RunAsync(() =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(Ariadna.Storage.CatalogKind.Movie, "Old translation");
+        var editor = new EntryEditorModel(fixture.Actions, Ariadna.Storage.CatalogKind.Movie, entry.Path);
+        var originalTitle = editor.OriginalTitle;
+        editor.Genres.Add("Old genre");
+
+        // Act
+        MetadataService.ApplyDetails(editor, MetadataField.Translation, "Русское название", 2026, ["Drama"]);
+        MetadataService.ApplyDetails(editor, MetadataField.Year, null, 2026, []);
+        MetadataService.ApplyDetails(editor, MetadataField.Genres, null, 0, ["Drama", "Drama", "Comedy"]);
+        editor.Save();
+        var saved = fixture.Store.GetDetails(Ariadna.Storage.CatalogKind.Movie, entry.Id)!;
+
+        // Assert
+        Assert.AreEqual("Русское название", saved.Entry.Title);
+        Assert.AreEqual(originalTitle, saved.Entry.OriginalTitle);
+        Assert.AreEqual(2026, saved.Entry.Year);
+        CollectionAssert.AreEqual((string[])["Drama", "Comedy"], saved.Genres.ToArray());
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
+    public async Task ApplyDetails_UnavailableFields_PreservesExistingValues() => await WpfThread.RunAsync(() =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var entry = fixture.Add(Ariadna.Storage.CatalogKind.Movie, "Existing translation");
+        var editor = new EntryEditorModel(fixture.Actions, Ariadna.Storage.CatalogKind.Movie, entry.Path) { Year = "2001" };
+        editor.Genres.Add("Existing genre");
+        var genres = editor.Genres.ToArray();
+
+        // Act / Assert
+        Assert.Throws<System.IO.InvalidDataException>(() => MetadataService.ApplyDetails(editor, MetadataField.Translation, " ", 0, []));
+        Assert.Throws<System.IO.InvalidDataException>(() => MetadataService.ApplyDetails(editor, MetadataField.Year, null, 0, []));
+        Assert.Throws<System.IO.InvalidDataException>(() => MetadataService.ApplyDetails(editor, MetadataField.Genres, null, 0, []));
+        Assert.AreEqual("Existing translation", editor.Title);
+        Assert.AreEqual("2001", editor.Year);
+        CollectionAssert.AreEqual(genres, editor.Genres.ToArray());
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
     [DataRow("Брат", "ru")]
     [DataRow("Ёлки", "ru")]
     [DataRow("ё", "ru")]
