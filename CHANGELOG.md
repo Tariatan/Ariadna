@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.3.1] - 2026-10-15
+
+#### Fixed
+
+- Replace the selected or keyboard-focused catalog tab's white rectangle with a single white underline, preserving header dimensions and caption positions.
+
 ### [4.3.0] - 2026-10-14
 
 #### Added
