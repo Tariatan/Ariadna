@@ -46,7 +46,9 @@ internal sealed class EntryEditorModel : ObservableObject
     public CatalogTheme Theme => CatalogTheme.For(Kind);
     public bool IsMovie => Kind == CatalogKind.Movie;
     public bool IsGame => Kind == CatalogKind.Game;
-    public bool HasDescription => !IsGame;
+    public bool IsXxx => Kind == CatalogKind.Xxx;
+    public bool IsStandard => !IsXxx;
+    public bool HasDescription => !IsGame && !IsXxx;
     public bool HasPeople => IsMovie || Kind == CatalogKind.Library;
     public string PeopleLabel => Kind == CatalogKind.Library ? "Authors" : "Directors";
     public string DisplayTitle
@@ -199,7 +201,14 @@ internal sealed class EntryEditorModel : ObservableObject
         }
     }
 
-    internal void AddPlaceholderPerson(bool actors) => (actors ? Actors : People).Add(new PersonEditorModel(new PersonPhoto("New Entry", null)));
+    internal void AddPlaceholderPerson(bool actors)
+    {
+        if (IsXxx && actors && Actors.Count >= 3)
+        {
+            return;
+        }
+        (actors ? Actors : People).Add(new PersonEditorModel(new PersonPhoto("New Entry", null)));
+    }
 
     internal PersonPhoto? FindPerson(int tmdbId, bool cast) => actions.Store.FindPerson(tmdbId, cast);
 
@@ -214,6 +223,10 @@ internal sealed class EntryEditorModel : ObservableObject
                 continue;
             }
 
+            if (IsXxx && actors && target.Count >= 3)
+            {
+                break;
+            }
             var person = actions.Store.FindPerson(name, actors, Kind == CatalogKind.Library) ?? new PersonPhoto(name, null);
             target.Add(new PersonEditorModel(person));
         }
@@ -229,6 +242,11 @@ internal sealed class EntryEditorModel : ObservableObject
         if (!string.IsNullOrEmpty(Year) && (!int.TryParse(Year, CultureInfo.InvariantCulture, out var parsed) || parsed < 0))
         {
             throw new InvalidDataException("Year must be a nonnegative number or empty.");
+        }
+
+        if (IsXxx && Actors.Count > 3)
+        {
+            throw new InvalidDataException("XXX entries support at most three actors.");
         }
 
         var entry = new CatalogEntry

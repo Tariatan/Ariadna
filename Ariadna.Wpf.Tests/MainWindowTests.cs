@@ -37,7 +37,7 @@ public sealed class MainWindowTests
             var initialView = (CatalogView)((TabItem)tabs.SelectedItem).Content;
             // Logical focus remains testable when another desktop window takes keyboard focus.
             Assert.AreSame(initialView.FindName("PosterRows"), FocusManager.GetFocusedElement(window));
-            string[] arguments = ["games", "library", "documentaries", "movies"];
+            string[] arguments = ["games", "library", "documentaries", "xxx", "movies"];
             foreach (var argument in arguments)
             {
                 var previousView = (CatalogView)((TabItem)tabs.SelectedItem).Content;
@@ -79,7 +79,7 @@ public sealed class MainWindowTests
     public async Task Show_WindowWidths_DisplaysAssemblyVersionBesideAllTabs(int width) => await WpfThread.RunAsync(async () =>
     {
         // Arrange
-        string[] arguments = ["games", "library", "documentaries", "movies"];
+        string[] arguments = ["games", "library", "documentaries", "xxx", "movies"];
         using var fixture = new CatalogFixture();
         var window = new MainWindow(fixture.Store, fixture.Configuration, NullLogger.Instance, null)
         {
@@ -101,7 +101,7 @@ public sealed class MainWindowTests
             Assert.IsFalse(label.Focusable);
             Assert.IsFalse(label.IsHitTestVisible);
             Assert.AreEqual(tabs.ActualWidth - 12, labelPosition.X + label.ActualWidth, 1);
-            Assert.HasCount(4, tabs.Items);
+            Assert.HasCount(5, tabs.Items);
             foreach (TabItem tab in tabs.Items)
             {
                 Assert.IsTrue(tab.TranslatePoint(new Point(tab.ActualWidth, 0), tabs).X <= labelPosition.X);
@@ -230,7 +230,7 @@ public sealed class MainWindowTests
             Assert.IsTrue(realized > 0 && realized < 25, $"Realized rows: {realized}");
             Assert.AreSame(selection, movies.Model.Selected);
             Assert.AreEqual(offset, CatalogView.FindChild<ScrollViewer>(grid)!.VerticalOffset, 1);
-            Assert.HasCount(4, tabs.Items);
+            Assert.HasCount(5, tabs.Items);
             Assert.HasCount(3000, movies.Model.Entries);
         }
         finally

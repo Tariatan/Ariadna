@@ -74,6 +74,14 @@ dotnet test Ariadna.slnx -c Release --no-build --no-restore
 dotnet publish Ariadna/Ariadna.csproj -c Release -r win-x64 --self-contained true --no-restore -o publish
 ```
 
+The WPF frontend additionally has **XXX** after Documentaries (`xxx`, Ctrl+5),
+with a dark burgundy/magenta palette, up to three cast members, VR and one screenshot.
+On first opening an existing schema-2 catalog, it creates a verified database backup
+beside the catalog before adding the collection's tables; existing assets are unchanged.
+Set `DefaultXxxPath` and `DefaultXxxPathVR` for discovery (defaults: `a:\XXX\`
+and `a:\XXX_VR\`) and optionally `XxxPostersRootPath` for images
+(default: `xxx` beside the database). Include that directory in matched backups.
+
 For the WPF frontend, run the project-built executable
 `Ariadna.Wpf/bin/Debug/net10.0-windows8.0/Ariadna.Wpf.exe`, or select
 `Ariadna.Wpf` as the startup project. It uses its own configuration in

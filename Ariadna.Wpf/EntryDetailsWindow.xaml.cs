@@ -30,6 +30,8 @@ public partial class EntryDetailsWindow : Window
         DataContext = editor;
         PeopleEditor.Configure(editor, actions, false);
         CastEditor.Configure(editor, actions, true);
+        XxxCastEditor.Configure(editor, actions, true);
+        AudioLanguagesSection.Visibility = editor.IsXxx ? Visibility.Collapsed : Visibility.Visible;
         PeopleEditor.RefreshRequested += RefreshDirectors;
         CastEditor.RefreshRequested += RefreshCast;
         SelectedPreview.Source = editor.Previews[0];
@@ -71,12 +73,12 @@ public partial class EntryDetailsWindow : Window
         FileInfo.Text = "Reading file information…";
         try
         {
-            var info = await FileInspection.InspectAsync(path, editor.Kind is CatalogKind.Movie or CatalogKind.Documentary, actions.Logger, lifetime.Token, editor.IsGame);
+            var info = await FileInspection.InspectAsync(path, editor.Kind is CatalogKind.Movie or CatalogKind.Documentary or CatalogKind.Xxx, actions.Logger, lifetime.Token, editor.IsGame);
             if (!closed && editor.Path == path && inspectionRevision == revision)
             {
                 FileInfo.Text = string.Empty;
                 FileMetrics.ItemsSource = info.Metrics;
-                AudioLanguages.ItemsSource = info.Languages;
+                AudioLanguages.ItemsSource = editor.IsXxx ? null : info.Languages;
             }
         }
         catch (OperationCanceledException)when (closed)
@@ -236,6 +238,15 @@ public partial class EntryDetailsWindow : Window
         if (e.ClickCount == 2)
         {
             ReplaceImage(string.Empty);
+        }
+    }
+
+    private void ScreenshotDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left)
+        {
+            e.Handled = true;
+            ReplaceImage(actions.Configuration.PreviewSuffix(1));
         }
     }
 

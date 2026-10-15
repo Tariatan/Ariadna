@@ -17,6 +17,7 @@ namespace Ariadna.Tests;
 [DoNotParallelize]
 public sealed class MainWindowTests
 {
+    private static readonly CatalogKind[] LegacyKinds = [CatalogKind.Movie, CatalogKind.Documentary, CatalogKind.Game, CatalogKind.Library];
     private string directory = string.Empty;
     private string? previousCatalog;
     private string? previousAssets;
@@ -34,7 +35,7 @@ public sealed class MainWindowTests
         Environment.SetEnvironmentVariable("ARIADNA_CATALOG_PATH", catalog);
         Environment.SetEnvironmentVariable("ARIADNA_ASSET_ROOT", directory);
         var store = CatalogServices.CreateStore();
-        foreach (var kind in Enum.GetValues<CatalogKind>())
+        foreach (var kind in LegacyKinds)
         {
             for (var index = 0; index < 12; index++)
             {
@@ -124,7 +125,7 @@ public sealed class MainWindowTests
             UiTest.PumpUntil(() => views.Count == 4 && testee.PreloadCompletion.IsCompleted);
 
             // Act
-            foreach (var kind in Enum.GetValues<CatalogKind>())
+            foreach (var kind in LegacyKinds)
             {
                 testee.SelectCatalog(kind);
 
@@ -160,7 +161,7 @@ public sealed class MainWindowTests
             // Assert
             var tabs = UiTest.Field<TabControl>(testee, "catalogTabs");
             CollectionAssert.AreEqual((string[])["Movies", "Games", "Library", "Documentaries"], tabs.TabPages.Cast<TabPage>().Select(page => page.Text).ToArray());
-            CollectionAssert.AreEquivalent(Enum.GetValues<CatalogKind>(), created);
+            CollectionAssert.AreEquivalent(LegacyKinds, created);
             Assert.AreEqual(CatalogKind.Game, testee.ActiveCatalog);
             Assert.HasCount(12, Grid(testee.ActiveView!).Items);
         });
@@ -548,7 +549,7 @@ public sealed class MainWindowTests
             Assert.AreEqual(kind, testee.ActiveCatalog);
             Assert.AreEqual("Edited in tab", CatalogServices.CreateStore().GetDetails(kind, entry.Id)!.Entry.Title);
             Assert.IsTrue(Grid(view).Items.Any(item => item.Text == "Edited in tab"));
-            foreach (var otherKind in Enum.GetValues<CatalogKind>().Where(other => other != kind))
+            foreach (var otherKind in LegacyKinds.Where(other => other != kind))
             {
                 SelectReadyCatalog(testee, otherKind);
                 Assert.IsFalse(Grid(testee.ActiveView!).Items.Any(item => item.Text == "Edited in tab"));
@@ -565,7 +566,7 @@ public sealed class MainWindowTests
             using var testee = new MainWindow(NullLogger.Instance);
             testee.Show();
             var panels = new List<MainPanel>();
-            foreach (var kind in Enum.GetValues<CatalogKind>())
+            foreach (var kind in LegacyKinds)
             {
                 SelectReadyCatalog(testee, kind);
                 panels.Add(testee.ActiveView!);

@@ -37,21 +37,21 @@
                 <CheckBox Content="New" IsChecked="{Binding New}" />
                 <CheckBox Content="Series" IsChecked="{Binding Series}" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}" />
                 <CheckBox Content="Movies" IsChecked="{Binding Movies}" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}" />
-                <CheckBox Content="VR" IsChecked="{Binding Vr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
-                <CheckBox Content="Non-VR" IsChecked="{Binding NonVr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
+                <CheckBox Content="VR" IsChecked="{Binding Vr}" Visibility="{Binding HasVr, Converter={StaticResource Visibility}}" />
+                <CheckBox Content="Non-VR" IsChecked="{Binding NonVr}" Visibility="{Binding HasVr, Converter={StaticResource Visibility}}" />
                 <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding HasPeople, Converter={StaticResource Visibility}}">
                     <Border Style="{StaticResource FilterSeparator}" />
                     <Label Content="{Binding PersonLabel}" Target="{Binding ElementName=PersonSearch}" />
                     <TextBox x:Name="PersonSearch" Width="140" Text="{Binding Person, UpdateSourceTrigger=PropertyChanged}" TextChanged="OnPeopleTextChanged" PreviewKeyDown="OnPeopleKeyDown" Tag="People" AutomationProperties.Name="{Binding PersonLabel}" />
                     <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Person" Click="ClearFilter" ToolTip="Clear director or author" AutomationProperties.Name="Clear director or author" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}">
+                <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding HasCast, Converter={StaticResource Visibility}}">
                     <Border Style="{StaticResource FilterSeparator}" />
                     <Label Content="Actor" Target="{Binding ElementName=ActorSearch}" />
                     <TextBox x:Name="ActorSearch" Width="140" Text="{Binding Actor, UpdateSourceTrigger=PropertyChanged}" TextChanged="OnPeopleTextChanged" PreviewKeyDown="OnPeopleKeyDown" Tag="Actors" AutomationProperties.Name="Actor filter" />
                     <Button Content="X" Style="{StaticResource ClearFilterButton}" Tag="Actor" Click="ClearFilter" ToolTip="Clear actor" AutomationProperties.Name="Clear actor" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Height="34">
+                <StackPanel Orientation="Horizontal" Height="34" Visibility="{Binding HasGenres, Converter={StaticResource Visibility}}">
                     <Border Style="{StaticResource FilterSeparator}" />
                     <Label Content="Genre" Target="{Binding ElementName=GenreSearch}" PreviewMouseLeftButtonUp="OpenGenrePicker" />
                     <TextBox x:Name="GenreSearch" Width="140" Tag="Genre" IsReadOnly="True" Cursor="Hand" Text="{Binding Genre}" PreviewMouseLeftButtonUp="OpenGenrePicker" PreviewKeyDown="OnGenreFieldKeyDown" AutomationProperties.Name="Genre filter" />

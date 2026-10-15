@@ -116,6 +116,41 @@ public sealed class CatalogDatabase
         using var command = connection.CreateCommand();
         command.CommandText = reader.ReadToEnd();
         command.ExecuteNonQuery();
+        AddXxxTables(connection);
+    }
+
+    // An additive schema-2 extension: older frontends can still use their four catalogs.
+    // Existing assets are untouched, so the verified database backup uses those same files.
+    public void EnsureXxxCollection()
+    {
+        using var writeLock = AcquireWriteLock();
+        RecoverAssetsWhileLocked();
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Xxx'";
+        if ((long)command.ExecuteScalar()! != 0)
+        {
+            return;
+        }
+
+        CheckIntegrity();
+        var backup = $"{path}.before-xxx-{Guid.NewGuid():N}.sqlite";
+        Backup(backup);
+        AddXxxTables(connection);
+        CheckIntegrity();
+    }
+
+    private static void AddXxxTables(SqliteConnection connection)
+    {
+        using var stream = typeof(CatalogDatabase).Assembly.GetManifestResourceStream("Ariadna.Storage.XxxSchema.sql")
+            ?? throw new InvalidOperationException("The XXX schema resource is missing.");
+        using var reader = new StreamReader(stream);
+        using var transaction = connection.BeginTransaction();
+        using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = reader.ReadToEnd();
+        command.ExecuteNonQuery();
+        transaction.Commit();
     }
 
     public void CheckIntegrity()

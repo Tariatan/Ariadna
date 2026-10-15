@@ -55,7 +55,7 @@
                         </StackPanel></DataTemplate></ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <TextBlock x:Name="FileInfo" Text="Reading file information…" VerticalAlignment="Center" Margin="0,0,12,8" FontSize="12" />
-                    <Border BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="8,0,5,0" Margin="0,0,10,8" VerticalAlignment="Center">
+                    <Border x:Name="AudioLanguagesSection" BorderBrush="#30FFFFFF" BorderThickness="1,0,0,0" Padding="8,0,5,0" Margin="0,0,10,8" VerticalAlignment="Center">
                         <ItemsControl x:Name="AudioLanguages">
                             <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate><DataTemplate><StackPanel Orientation="Horizontal" Margin="0,0,8,0" ToolTip="{Binding Name}">
@@ -121,6 +121,9 @@
                                     <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Game}">
                                         <Setter Property="Visibility" Value="Collapsed" />
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsXxx}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </StackPanel.Style>
@@ -140,7 +143,7 @@
                             </Label.Style>
                         </Label><TextBox x:Name="SecondaryTitleText" FontSize="16" Text="{Binding SecondaryTitle, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
-                    <Grid Grid.Row="4" Margin="0,2,0,0">
+                    <Grid Grid.Row="4" Margin="0,2,0,0" Visibility="{Binding IsStandard, Converter={StaticResource Visibility}}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,0,0">
                             <Label Content="Year" /><TextBox x:Name="YearText" HorizontalAlignment="Left" Width="80" Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" />
@@ -174,6 +177,29 @@
                             <CheckBox Content="VR" IsChecked="{Binding Vr}" Visibility="{Binding IsGame, Converter={StaticResource Visibility}}" />
                         </StackPanel>
                     </Grid>
+                    <Grid Grid.Row="4" Margin="0,10,0,0" Visibility="{Binding IsXxx, Converter={StaticResource Visibility}}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="110" /><ColumnDefinition Width="80" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <Label Content="Year" Target="{Binding ElementName=XxxYearText}" />
+                            <TextBox x:Name="XxxYearText" Width="80" HorizontalAlignment="Left" Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" x:Name="XxxVr" Content="VR" IsChecked="{Binding Vr}" VerticalAlignment="Top" Margin="0,38,0,0" />
+                        <Border Grid.Column="2" Style="{StaticResource DetailsSection}" MaxWidth="300" HorizontalAlignment="Right">
+                            <local:PeopleEditorView x:Name="XxxCastEditor" Width="280" />
+                        </Border>
+                    </Grid>
+                    <StackPanel Grid.Row="7" Visibility="{Binding IsXxx, Converter={StaticResource Visibility}}" Margin="0,12,0,0">
+                        <Label Content="Screenshot" />
+                        <Button x:Name="XxxScreenshotButton" PreviewMouseDoubleClick="ScreenshotDoubleClick" Padding="2" Margin="0,4,0,0"
+                                ToolTip="Double-click to replace screenshot" AutomationProperties.Name="Screenshot">
+                            <Grid Height="340" Background="#10000000">
+                                <TextBlock Text="?" Foreground="#A0FFFFFF" FontSize="96" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding Previews[0]}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+                                </TextBlock>
+                                <Image Source="{Binding Previews[0]}" Stretch="Uniform" />
+                            </Grid>
+                        </Button>
+                    </StackPanel>
                     <DockPanel Grid.Row="5" Margin="0,0,0,0">
                         <Button DockPanel.Dock="Right" x:Name="RefreshDescriptionButton" Content="↻" Style="{StaticResource RefreshButtonStyle}" Click="RefreshDescription" ToolTip="Refresh description from IMDb / TMDb" FontSize="14" Padding="7,0" Margin="5,0,0,0" Visibility="{Binding IsMovie, Converter={StaticResource Visibility}}" />
                         <Label Content="Description" VerticalAlignment="Bottom" Visibility="{Binding HasDescription, Converter={StaticResource Visibility}}" />

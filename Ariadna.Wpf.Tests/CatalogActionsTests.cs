@@ -7,6 +7,33 @@ namespace Ariadna.Wpf.Tests;
 public sealed class CatalogActionsTests
 {
     [TestMethod]
+    public async Task DiscoverAsync_XxxBothRoots_SkipsRegisteredIgnoredAndNonVideoFiles()
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var regularRoot = fixture.Configuration.DiscoveryRoot(CatalogKind.Xxx);
+        var vrRoot = Path.Combine(fixture.Configuration.Get("DefaultXxxPathVR"), "Nested");
+        Directory.CreateDirectory(vrRoot);
+        var registered = Path.Combine(regularRoot, "registered.mp4");
+        var ignored = Path.Combine(regularRoot, "ignored.mkv");
+        var next = Path.Combine(vrRoot, "next.MP4");
+        foreach (var path in new[] { registered, ignored, next, Path.Combine(vrRoot, "notes.txt") })
+        {
+            File.WriteAllBytes(path, []);
+        }
+        fixture.Store.Save(CatalogKind.Xxx, new CatalogDetails(new CatalogEntry { Title = "Registered", Path = registered }, [], [], []));
+        fixture.Store.Ignore(ignored);
+
+        // Act
+        var candidates = fixture.Actions.DiscoveryCandidates(CatalogKind.Xxx).ToArray();
+        var discovered = await fixture.Actions.DiscoverAsync(CatalogKind.Xxx, CancellationToken.None);
+
+        // Assert
+        CollectionAssert.AreEquivalent(new[] { registered, ignored, next }, candidates);
+        Assert.AreEqual(next, discovered);
+    }
+
+    [TestMethod]
     [DataRow(CatalogKind.Movie)]
     [DataRow(CatalogKind.Game)]
     [DataRow(CatalogKind.Documentary)]

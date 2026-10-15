@@ -20,7 +20,7 @@ internal sealed class CatalogActions(CatalogStore store, CatalogConfiguration co
 
     internal void Execute(CatalogKind kind, string path)
     {
-        if (kind is CatalogKind.Movie or CatalogKind.Documentary && File.Exists(path))
+        if (kind is CatalogKind.Movie or CatalogKind.Documentary or CatalogKind.Xxx && File.Exists(path))
         {
             Start(Configuration.Get("MediaPlayerPath"), [path]);
             return;
@@ -82,6 +82,11 @@ internal sealed class CatalogActions(CatalogStore store, CatalogConfiguration co
             return Directories(root).Concat(Directories(Configuration.Get("DefaultGamesPathVR")));
         }
 
+        if (kind == CatalogKind.Xxx)
+        {
+            return VideoFiles(root).Concat(VideoFiles(Configuration.Get("DefaultXxxPathVR")));
+        }
+
         if (kind == CatalogKind.Documentary)
         {
             return Directories(root).SelectMany(directory => Directories(directory).Concat(Files(directory)));
@@ -114,6 +119,11 @@ internal sealed class CatalogActions(CatalogStore store, CatalogConfiguration co
         }
     }
 
+    private static IEnumerable<string> VideoFiles(string root) => Directory.Exists(root)
+        ? Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(file =>
+            ((string[])[".mkv", ".mp4", ".avi", ".mov", ".wmv", ".m4v", ".webm"]).Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase))
+        : [];
+
     private static IEnumerable<string> Files(string path) => Directory.Exists(path) ? Directory.EnumerateFiles(path) : [];
     private static IEnumerable<string> Directories(string path) => Directory.Exists(path) ? Directory.EnumerateDirectories(path) : [];
     internal void Remove(CatalogKind kind, CatalogEntry entry, bool deleteMedia)
@@ -124,7 +134,7 @@ internal sealed class CatalogActions(CatalogStore store, CatalogConfiguration co
         }
 
         var root = Configuration.PosterRoot(kind);
-        string[] suffixes = kind == CatalogKind.Game ? [string.Empty, ..Enumerable.Range(1, 4).Select(Configuration.PreviewSuffix)] : [string.Empty];
+        string[] suffixes = kind == CatalogKind.Game ? [string.Empty, ..Enumerable.Range(1, 4).Select(Configuration.PreviewSuffix)] : kind == CatalogKind.Xxx ? [string.Empty, Configuration.PreviewSuffix(1)] : [string.Empty];
         foreach (var suffix in suffixes)
         {
             File.Delete(Path.Combine(root, $"{entry.Id}{suffix}"));

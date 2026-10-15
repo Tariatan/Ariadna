@@ -8,6 +8,7 @@ internal sealed record CatalogLayout(string Table, string GenreTable, string Gen
         CatalogKind.Documentary => new("Documentary", "GenreOfDocumentary", "DocumentaryGenre", "documentaryId", "want_to_see"),
         CatalogKind.Game => new("Game", "GenreOfGame", "GameGenre", "gameId", "want_to_play"),
         CatalogKind.Library => new("Library", "GenreOfLibrary", "LibraryGenre", "libraryId", "want_to_see"),
+        CatalogKind.Xxx => new("Xxx", string.Empty, string.Empty, "xxxId", "want_to_see"),
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
 }

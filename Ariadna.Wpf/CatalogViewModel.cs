@@ -32,6 +32,9 @@ internal sealed class CatalogViewModel(CatalogKind kind, CatalogStore store, Cat
     public bool IsMovie => Kind == CatalogKind.Movie;
     public bool IsGame => Kind == CatalogKind.Game;
     public bool IsLibrary => Kind == CatalogKind.Library;
+    public bool HasVr => IsGame || Kind == CatalogKind.Xxx;
+    public bool HasCast => IsMovie || Kind == CatalogKind.Xxx;
+    public bool HasGenres => Kind != CatalogKind.Xxx;
     public bool HasPeople => IsMovie || IsLibrary;
     public bool HasSubgenre => IsLibrary && !string.IsNullOrWhiteSpace(Genre);
     public string PersonLabel => IsLibrary ? "Authors" : "Directors";

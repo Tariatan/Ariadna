@@ -27,7 +27,14 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
             command.Parameters.AddWithValue("$name", query.Name);
         }
 
-        AddLookupFilter(command, conditions, layout.GenreTable, layout.GenreRelation, layout.EntryKey, "genreId", query.Genre, "$genre", !query.RequireGenreMatch);
+        if (kind != CatalogKind.Xxx)
+        {
+            AddLookupFilter(command, conditions, layout.GenreTable, layout.GenreRelation, layout.EntryKey, "genreId", query.Genre, "$genre", !query.RequireGenreMatch);
+        }
+        if (kind == CatalogKind.Xxx)
+        {
+            AddLookupFilter(command, conditions, "Actor", "XxxCast", "xxxId", "actorId", query.Actor, "$actor");
+        }
         if (kind == CatalogKind.Movie)
         {
             AddLookupFilter(command, conditions, "Director", "MovieDirector", "movieId", "directorId", query.Director, "$director");
@@ -57,7 +64,7 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
             command.Parameters.AddWithValue("$previousYear", query.Now.Year - 1);
         }
 
-        if (kind == CatalogKind.Game)
+        if (kind is CatalogKind.Game or CatalogKind.Xxx)
         {
             if (query.Vr)
             {
@@ -107,7 +114,7 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
     {
         var layout = CatalogLayout.For(kind);
         using var command = connection.CreateCommand();
-        var extraColumns = kind == CatalogKind.Game ? "version,vr" : "description";
+        var extraColumns = kind == CatalogKind.Game ? "version,vr" : kind == CatalogKind.Xxx ? "vr" : "description";
         command.CommandText = $"SELECT Id,title,title_original,file_path,year,creation_time,[{layout.WantedColumn}],{extraColumns} FROM [{layout.Table}] WHERE Id=$id";
         command.Parameters.AddWithValue("$id", id);
         CatalogEntry entry;
@@ -122,6 +129,10 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
             {
                 entry.Version = reader.IsDBNull(7) ? null : reader.GetString(7);
                 entry.Vr = reader.IsDBNull(8) ? null : reader.GetBoolean(8);
+            }
+            else if (kind == CatalogKind.Xxx)
+            {
+                entry.Vr = reader.IsDBNull(7) ? null : reader.GetBoolean(7);
             }
             else
             {
@@ -143,7 +154,7 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
         var layout = CatalogLayout.For(kind);
         using var command = connection.CreateCommand();
         command.Parameters.AddWithValue("$id", id);
-        command.CommandText = $"SELECT g.name FROM [{layout.GenreRelation}] r JOIN [{layout.GenreTable}] g ON g.Id=r.genreId WHERE r.[{layout.EntryKey}]=$id ORDER BY r.Id";
+        command.CommandText = kind == CatalogKind.Xxx ? "SELECT NULL WHERE 0" : $"SELECT g.name FROM [{layout.GenreRelation}] r JOIN [{layout.GenreTable}] g ON g.Id=r.genreId WHERE r.[{layout.EntryKey}]=$id ORDER BY r.Id";
         var genres = new List<string>();
         using (var reader = command.ExecuteReader())
         {
@@ -155,7 +166,8 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
 
         var directors = kind == CatalogKind.Movie ? ReadPeople(connection, "Director", "MovieDirector", "movieId", "directorId", id)
             : kind == CatalogKind.Library ? ReadPeople(connection, "Author", "LibraryAuthor", "libraryId", "authorId", id) : [];
-        var actors = kind == CatalogKind.Movie ? ReadPeople(connection, "Actor", "MovieCast", "movieId", "actorId", id) : [];
+        var actors = kind == CatalogKind.Movie ? ReadPeople(connection, "Actor", "MovieCast", "movieId", "actorId", id)
+            : kind == CatalogKind.Xxx ? ReadPeople(connection, "Actor", "XxxCast", "xxxId", "actorId", id) : [];
         return new CatalogDetails(entry, genres, directors, actors);
     }
 
@@ -186,6 +198,10 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
 
     public IReadOnlyCollection<string> GetGenres(CatalogKind kind)
     {
+        if (kind == CatalogKind.Xxx)
+        {
+            return [];
+        }
         using var connection = database.Open();
         using var command = connection.CreateCommand();
         command.CommandText = $"SELECT name FROM [{CatalogLayout.For(kind).GenreTable}] ORDER BY name COLLATE ARIADNA";
@@ -227,7 +243,10 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
         var table = actors ? "Actor" : authors ? "Author" : "Director";
         var relation = actors ? "MovieCast" : authors ? "LibraryAuthor" : "MovieDirector";
         var key = actors ? "actorId" : authors ? "authorId" : "directorId";
-        command.CommandText = $"SELECT p.name,p.Id,i.Id,i.tmdbId FROM [{table}] p JOIN Person i ON i.Id=p.personId WHERE contains_text(p.name,$name) AND EXISTS (SELECT 1 FROM [{relation}] r WHERE r.[{key}]=p.Id) ORDER BY p.name COLLATE ARIADNA,p.Id LIMIT $limit";
+        command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='XxxCast'";
+        var xxxActors = actors && (long)command.ExecuteScalar()! != 0
+            ? " OR EXISTS (SELECT 1 FROM XxxCast r WHERE r.actorId=p.Id)" : string.Empty;
+        command.CommandText = $"SELECT p.name,p.Id,i.Id,i.tmdbId FROM [{table}] p JOIN Person i ON i.Id=p.personId WHERE contains_text(p.name,$name) AND (EXISTS (SELECT 1 FROM [{relation}] r WHERE r.[{key}]=p.Id){xxxActors}) ORDER BY p.name COLLATE ARIADNA,p.Id LIMIT $limit";
         command.Parameters.AddWithValue("$name", name);
         command.Parameters.AddWithValue("$limit", limit);
         using var reader = command.ExecuteReader();
@@ -252,6 +271,10 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
     public int Save(CatalogKind kind, CatalogDetails details, CatalogAssets? assets = null)
     {
         Validate(details);
+        if (kind == CatalogKind.Xxx && details.Actors.Count > 3)
+        {
+            throw new ArgumentException("XXX entries support at most three actors.", nameof(details));
+        }
         assets ??= new CatalogAssets(database.DirectoryPath, new Dictionary<string, byte[]>());
         using var writeLock = database.AcquireWriteLock();
         database.RecoverAssetsWhileLocked();
@@ -267,6 +290,11 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
         {
             columns.AddRange(["version", "vr"]);
             values.AddRange([entry.Version, entry.Vr]);
+        }
+        else if (kind == CatalogKind.Xxx)
+        {
+            columns.Add("vr");
+            values.Add(entry.Vr);
         }
         else
         {
@@ -294,7 +322,14 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
             }
         }
 
-        ReplaceGenres(connection, transaction, layout, id, details.Genres);
+        if (kind != CatalogKind.Xxx)
+        {
+            ReplaceGenres(connection, transaction, layout, id, details.Genres);
+        }
+        else
+        {
+            ReplacePeople(connection, transaction, "Actor", "XxxCast", "xxxId", "actorId", id, details.Actors, assets);
+        }
         if (kind == CatalogKind.Movie)
         {
             ReplacePeople(connection, transaction, "Actor", "MovieCast", "movieId", "actorId", id, details.Actors, assets);
@@ -333,7 +368,14 @@ public sealed class CatalogStore(CatalogDatabase database, string? peopleRoot = 
         var layout = CatalogLayout.For(kind);
         using var connection = database.Open();
         using var transaction = connection.BeginTransaction();
-        Execute(connection, transaction, $"DELETE FROM [{layout.GenreRelation}] WHERE [{layout.EntryKey}]=$id", ("$id", id));
+        if (kind != CatalogKind.Xxx)
+        {
+            Execute(connection, transaction, $"DELETE FROM [{layout.GenreRelation}] WHERE [{layout.EntryKey}]=$id", ("$id", id));
+        }
+        else
+        {
+            Execute(connection, transaction, "DELETE FROM XxxCast WHERE xxxId=$id", ("$id", id));
+        }
         if (kind == CatalogKind.Movie)
         {
             Execute(connection, transaction, "DELETE FROM MovieCast WHERE movieId=$id; DELETE FROM MovieDirector WHERE movieId=$id", ("$id", id));

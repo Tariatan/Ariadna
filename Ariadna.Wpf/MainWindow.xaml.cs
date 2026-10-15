@@ -26,7 +26,7 @@ public partial class MainWindow : Window
         {
             ThumbnailsInvalidated = thumbnails.Clear
         };
-        CatalogKind[] kinds = [CatalogKind.Movie, CatalogKind.Game, CatalogKind.Library, CatalogKind.Documentary];
+        CatalogKind[] kinds = [CatalogKind.Movie, CatalogKind.Game, CatalogKind.Library, CatalogKind.Documentary, CatalogKind.Xxx];
         foreach (var kind in kinds)
         {
             var model = new CatalogViewModel(kind, store, configuration, thumbnails, logger);
@@ -104,6 +104,7 @@ public partial class MainWindow : Window
         "games" => 1,
         "library" => 2,
         "documentaries" => 3,
+        "xxx" => 4,
         _ => 0,
     };
     private void OnKeyDown(object sender, KeyEventArgs e)
@@ -113,7 +114,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (e.Key is >= Key.D1 and <= Key.D4)
+        if (e.Key is >= Key.D1 and <= Key.D5)
         {
             CatalogTabs.SelectedIndex = e.Key - Key.D1;
             e.Handled = true;
@@ -121,7 +122,7 @@ public partial class MainWindow : Window
         else if (e.Key == Key.Tab)
         {
             var step = (Keyboard.Modifiers & ModifierKeys.Shift) != 0 ? -1 : 1;
-            CatalogTabs.SelectedIndex = (CatalogTabs.SelectedIndex + step + 4) % 4;
+            CatalogTabs.SelectedIndex = (CatalogTabs.SelectedIndex + step + views.Count) % views.Count;
             e.Handled = true;
         }
     }

@@ -36,7 +36,7 @@ public partial class App : Application
             }
 
             var database = new CatalogDatabase(configuration.DatabasePath);
-            await Task.Run(database.RecoverAssets);
+            await Task.Run(database.EnsureXxxCollection);
             var placementPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Ariadna", "Wpf", "window.json");
             var window = new MainWindow(new CatalogStore(database, configuration.PeopleRoot), configuration, logger, argument, new WindowPlacement(placementPath, logger));
             MainWindow = window;

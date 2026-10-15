@@ -21,6 +21,22 @@ public partial class PeopleEditorView : UserControl
         RefreshButton.Visibility = model.IsMovie ? Visibility.Visible : Visibility.Collapsed;
         People.ItemsSource = cast ? model.Actors : model.People;
         PanelLabel.Text = cast ? "Cast" : model.PeopleLabel;
+        if (model.IsXxx && cast)
+        {
+            var style = new Style(typeof(ListBoxItem), (Style)FindResource("PortraitItem"));
+            style.Setters.Add(new Setter(MarginProperty, new Thickness(0)));
+            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(2)));
+            People.ItemContainerStyle = style;
+            People.Height = 146;
+            ScrollViewer.SetVerticalScrollBarVisibility(People, ScrollBarVisibility.Disabled);
+            void UpdateCapacity()
+            {
+                AddButton.IsEnabled = model.Actors.Count < 3;
+                PasteButton.IsEnabled = model.Actors.Count < 3;
+            }
+            model.Actors.CollectionChanged += (_, _) => UpdateCapacity();
+            UpdateCapacity();
+        }
         if (model.Kind == Ariadna.Storage.CatalogKind.Library)
         {
             People.ItemTemplate = (DataTemplate)FindResource("AuthorName");

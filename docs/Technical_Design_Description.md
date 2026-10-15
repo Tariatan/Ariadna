@@ -7,7 +7,8 @@ section explicitly labels a proposal or an unverified target.
 
 Ariadna is a personal media library management desktop application for Windows.
 It lets the owner browse, search, and organize movies, documentaries, games, and
-books in a poster grid. One application instance hosts four permanent catalog tabs.
+books in a poster grid. WPF also provides an independent XXX video collection.
+One application instance hosts five permanent WPF catalog tabs; WinForms retains four.
 
 This is the primary reference for developers and agents implementing or reviewing
 Ariadna. It owns product behavior, architecture, and technical decisions; consult
@@ -242,6 +243,28 @@ the main window disposes every loaded catalog view and its thumbnail resources.
 ## Architecture
 
 ### WPF frontend
+
+WPF hosts Movies, Games, Library, Documentaries and XXX in that order. `xxx`
+selects the fifth tab; Ctrl+1 through Ctrl+5 select tabs directly and Ctrl+Tab /
+Ctrl+Shift+Tab cycle all five, preserving each view's state. XXX is independent
+of Movies: title, year, VR, Wishlist, shared cast identities (at most three),
+poster and one screenshot. Its Details place Year and VR beside the compact
+Cast section, with Screenshot below; translation, genres, directors, description
+and audio languages are absent. Video metrics and playback follow Movies.
+The palette uses near-black burgundy in Details and magenta-burgundy in browsing.
+
+XXX uses additive `Xxx` and `XxxCast` tables within schema 2 so the existing
+four-collection frontend remains compatible. Before extending an existing catalog,
+WPF recovers pending image saves and creates an integrity-checked SQLite backup
+beside the catalog (`.before-xxx-<unique-id>.sqlite`), then creates the tables
+transactionally. Existing tables and asset files are untouched; that backup is
+paired with the same existing assets. Full snapshots include the optional tables
+and `xxx` asset directory; older packages remain supported.
+`XxxPostersRootPath` selects its image directory (empty defaults to `xxx` beside
+the database); `DefaultXxxPath` and `DefaultXxxPathVR` configure recursive video discovery
+(defaults: `a:\XXX\` and `a:\XXX_VR\`).
+Its poster is extensionless `{id}`; the single screenshot uses `{id}{PreviewSuffix}1`,
+with the same Save/cancel and recoverable asset promotion contract as Games.
 
 The approved WPF migration is implemented as a separate native frontend in
 `Ariadna.Wpf`, alongside the retained WinForms application for acceptance testing.

@@ -14,7 +14,7 @@ internal sealed class CatalogComparison(ILogger logger)
         using var source = new SqlConnection(sourceConnection);
         source.Open();
         var results = new List<object>();
-        foreach (var kind in Enum.GetValues<CatalogKind>())
+        foreach (var kind in (CatalogKind[])[CatalogKind.Movie, CatalogKind.Documentary, CatalogKind.Game, CatalogKind.Library])
         {
             var table = kind.ToString();
             var wanted = kind == CatalogKind.Game ? "want_to_play" : "want_to_see";

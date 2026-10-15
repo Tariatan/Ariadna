@@ -39,9 +39,15 @@ internal sealed class CatalogConfiguration
             CatalogKind.Game => ("games", "GamePostersRootPath"),
             CatalogKind.Library => ("library", "LibraryPostersRootPath"),
             CatalogKind.Documentary => ("documentary", "DocumentaryPostersRootPath"),
+            CatalogKind.Xxx => ("xxx", "XxxPostersRootPath"),
             _ => throw new ArgumentOutOfRangeException(nameof(kind)),
         };
-        return AssetRoot == null ? Get(setting) : Path.Combine(AssetRoot, directory);
+        if (AssetRoot != null)
+        {
+            return Path.Combine(AssetRoot, directory);
+        }
+        return kind == CatalogKind.Xxx && string.IsNullOrWhiteSpace(Get(setting))
+            ? Path.Combine(Path.GetDirectoryName(DatabasePath)!, "xxx") : Get(setting);
     }
 
     internal string DiscoveryRoot(CatalogKind kind) => Get(kind switch
@@ -50,6 +56,7 @@ internal sealed class CatalogConfiguration
         CatalogKind.Game => "DefaultGamesPath",
         CatalogKind.Library => "DefaultLibraryPath",
         CatalogKind.Documentary => "DefaultDoocumentariesPath",
+        CatalogKind.Xxx => "DefaultXxxPath",
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     });
     internal CatalogQuery Query(CatalogQuery query) => query with

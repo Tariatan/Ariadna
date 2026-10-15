@@ -11,7 +11,8 @@ namespace Ariadna.Migration;
 internal sealed class CatalogTransfer(ILogger logger)
 {
     private static readonly string[] tableNames = ["Person", "Actor", "Author", "Director", "Genre", "GenreOfDocumentary", "GenreOfGame", "GenreOfLibrary", "Documentary", "Game", "Library", "Movie", "Ignore", "DocumentaryGenre", "GameGenre", "LibraryAuthor", "LibraryGenre", "MovieCast", "MovieDirector", "MovieGenre"];
-    private static readonly string[] assetDirectories = ["movies", "documentary", "games", "library", "people"];
+    private static readonly string[] extendedTableNames = [.. tableNames, "Xxx", "XxxCast"];
+    private static readonly string[] assetDirectories = ["movies", "documentary", "games", "library", "people", "xxx"];
 
     internal void Export(string connectionString, string assetRoot, string destination)
     {
@@ -123,7 +124,10 @@ internal sealed class CatalogTransfer(ILogger logger)
         database.Backup(snapshot);
         var tables = new List<ExportTable>();
         using var connection = new CatalogDatabase(snapshot).Open(true);
-        foreach (var table in tableNames)
+        using var inventory = connection.CreateCommand();
+        inventory.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Xxx'";
+        var snapshotTables = (long)inventory.ExecuteScalar()! == 0 ? tableNames : extendedTableNames;
+        foreach (var table in snapshotTables)
         {
             using var command = connection.CreateCommand();
             command.CommandText = $"PRAGMA table_info([{table}])";
@@ -170,7 +174,7 @@ internal sealed class CatalogTransfer(ILogger logger)
         var assets = new List<ExportAsset>();
         foreach (var directory in assetDirectories)
         {
-            if (directory == "people" && !Directory.Exists(Path.Combine(assetRoot, directory)))
+            if (directory is "people" or "xxx" && !Directory.Exists(Path.Combine(assetRoot, directory)))
             {
                 continue;
             }
@@ -315,7 +319,8 @@ internal sealed class CatalogTransfer(ILogger logger)
     {
         var manifest = JsonSerializer.Deserialize<ExportManifest>(File.ReadAllText(Path.Combine(package, "manifest.json")))
             ?? throw new InvalidDataException("Missing export manifest.");
-        if (manifest.FormatVersion != 2 || !manifest.Tables.Select(table => table.Name).SequenceEqual(tableNames))
+        if (manifest.FormatVersion != 2 || (!manifest.Tables.Select(table => table.Name).SequenceEqual(tableNames)
+            && !manifest.Tables.Select(table => table.Name).SequenceEqual(extendedTableNames)))
         {
             throw new InvalidDataException("Unsupported or incomplete export package.");
         }

@@ -13,6 +13,15 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.4.0] - 2026-10-15
+
+#### Added
+
+- Add XXX after Documentaries with a dark burgundy/magenta palette and independent browsing state, title/cast/VR/wishlist filters, manual entry and video playback.
+- Add XXX Details with poster, title, year, VR, up to three cast portraits and one large screenshot; retain video metrics and Wishlist while omitting translation, genres, directors, description and audio languages.
+- Support `xxx`, Ctrl+5 and five-tab cycling. Use configurable XXX discovery/assets paths, defaulting assets to the catalog's `xxx` subdirectory.
+- Search both default XXX folders (`a:\XXX\` and `a:\XXX_VR\`) recursively for video discovery, retaining registered-path and ignore exclusions.
+
 ### [4.3.1] - 2026-10-15
 
 #### Fixed
@@ -496,6 +505,12 @@ Versioning rule:
 
 ## Ariadna.Storage
 
+### [3.1.0] - 2026-10-15
+
+#### Added
+
+- Store XXX entries, VR and cast separately, with a three-actor save limit and transactional image saves. Initialize the additive schema-2 tables after recovery and a verified SQLite backup of existing catalogs; preserve existing tables and assets.
+
 ### [3.0.0] - 2026-10-11
 
 #### Changed
@@ -536,6 +551,12 @@ Versioning rule:
 - Direct SQLite catalog operations, explicit schema and Unicode comparison, complete-entry transactions, integrity/backup operations, and recoverable external image writes.
 
 ## Ariadna.Migration
+
+### [3.1.0] - 2026-10-15
+
+#### Added
+
+- Include optional XXX tables, posters and screenshots in matched snapshots and package restore, retaining support for older packages. Keep SQL-source comparisons limited to the four original collections.
 
 ### [3.0.0] - 2026-10-11
 

@@ -6,4 +6,5 @@ public enum CatalogKind
     Documentary,
     Game,
     Library,
+    Xxx,
 }

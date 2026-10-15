@@ -43,6 +43,32 @@ public sealed class CatalogTransferTests
     public void Cleanup() => Directory.Delete(directory, true);
 
     [TestMethod]
+    public void Import_XxxSnapshot_PreservesCastVrAndScreenshot()
+    {
+        // Arrange
+        var source = Path.Combine(directory, "source.sqlite");
+        var store = new CatalogStore(new CatalogDatabase(source));
+        var id = store.Save(CatalogKind.Xxx, new CatalogDetails(new CatalogEntry { Title = "Sample", Path = "sample.mp4", Vr = true, Wanted = true }, [], [], [new PersonPhoto("Sample Actor", null)]));
+        Directory.CreateDirectory(Path.Combine(directory, "xxx"));
+        File.WriteAllBytes(Path.Combine(directory, "xxx", $"{id}_preview1"), [4, 5, 6]);
+        var xxxPackage = Path.Combine(directory, "xxx-package");
+        var restored = Path.Combine(directory, "xxx-restored.sqlite");
+
+        // Act
+        transfer.Snapshot(source, directory, xxxPackage);
+        transfer.Import(xxxPackage, restored);
+        transfer.Verify(xxxPackage, restored);
+        var entry = new CatalogStore(new CatalogDatabase(restored)).GetDetails(CatalogKind.Xxx, id)!;
+
+        // Assert
+        Assert.AreEqual("Sample", entry.Entry.Title);
+        Assert.AreEqual(true, entry.Entry.Vr);
+        Assert.AreEqual(true, entry.Entry.Wanted);
+        Assert.AreEqual("Sample Actor", entry.Actors.Single().Name);
+        CollectionAssert.AreEqual(new byte[] { 4, 5, 6 }, File.ReadAllBytes(Path.Combine(xxxPackage, "assets", "xxx", $"{id}_preview1")));
+    }
+
+    [TestMethod]
     public void Import_SnapshotPackage_PreservesZeroIdSequenceNullsDuplicateRelationsAndPhotos()
     {
         // Arrange
