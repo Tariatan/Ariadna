@@ -13,14 +13,17 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.4.1] - 2026-10-15
+
+#### Fixed
+
+- Fine-tune Details form.
+
 ### [4.4.0] - 2026-10-15
 
 #### Added
 
-- Add XXX after Documentaries with a dark burgundy/magenta palette and independent browsing state, title/cast/VR/wishlist filters, manual entry and video playback.
-- Add XXX Details with poster, title, year, VR, up to three cast portraits and one large screenshot; retain video metrics and Wishlist while omitting translation, genres, directors, description and audio languages.
-- Support `xxx`, Ctrl+5 and five-tab cycling. Use configurable XXX discovery/assets paths, defaulting assets to the catalog's `xxx` subdirectory.
-- Search both default XXX folders (`a:\XXX\` and `a:\XXX_VR\`) recursively for video discovery, retaining registered-path and ignore exclusions.
+- Add XXX page.
 
 ### [4.3.1] - 2026-10-15
 

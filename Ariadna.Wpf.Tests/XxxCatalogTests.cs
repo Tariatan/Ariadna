@@ -74,7 +74,7 @@ public sealed class XxxCatalogTests
                 Assert.IsFalse(((FrameworkElement)window.FindName(name)).IsVisible, name);
             }
             Assert.IsTrue(cast.IsVisible && year.IsVisible && vr.IsVisible && screenshot.IsVisible);
-            Assert.IsTrue(cast.ActualWidth <= 300);
+            Assert.AreEqual(310, cast.ActualWidth, 1);
             Assert.AreEqual(year.TranslatePoint(new Point(), window).Y, vr.TranslatePoint(new Point(), window).Y, 15);
             Assert.IsTrue(screenshot.TranslatePoint(new Point(), window).Y >= cast.TranslatePoint(new Point(0, cast.ActualHeight), window).Y);
             var editor = (EntryEditorModel)window.DataContext;
