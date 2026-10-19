@@ -11,6 +11,69 @@ namespace Ariadna.Wpf.Tests;
 public sealed class EntryDetailsWindowTests
 {
     [TestMethod]
+    [DataRow(CatalogKind.Movie, false)]
+    [DataRow(CatalogKind.Movie, true)]
+    [DataRow(CatalogKind.Game, false)]
+    [DataRow(CatalogKind.Game, true)]
+    [DataRow(CatalogKind.Documentary, false)]
+    [DataRow(CatalogKind.Documentary, true)]
+    [DataRow(CatalogKind.Library, false)]
+    [DataRow(CatalogKind.Library, true)]
+    [DataRow(CatalogKind.Xxx, false)]
+    [DataRow(CatalogKind.Xxx, true)]
+    public async Task YearInput_AddOrEdit_AcceptsOnlyAsciiDigits(CatalogKind kind, bool existing) => await WpfThread.RunAsync(async () =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var path = existing ? fixture.Add(kind, "Year input").Path : System.IO.Path.Combine(fixture.Root, "New entry");
+        var window = new EntryDetailsWindow(fixture.Actions, kind, path);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var year = (TextBox)window.FindName(kind == CatalogKind.Xxx ? "XxxYearText" : "YearText");
+
+            foreach (var text in new[] { "2026", "0", "abc", "20a6", "-1", "+1", "20.26", " 2026", "2026\r\n", "٢٠٢٦", "２０２６" })
+            {
+                // Act
+                var input = new TextCompositionEventArgs(Keyboard.PrimaryDevice, new TextComposition(InputManager.Current, year, text))
+                {
+                    RoutedEvent = TextCompositionManager.PreviewTextInputEvent,
+                };
+                year.RaiseEvent(input);
+                var paste = new DataObjectPastingEventArgs(new DataObject(DataFormats.UnicodeText, text), false, DataFormats.UnicodeText);
+                year.RaiseEvent(paste);
+
+                // Assert
+                var valid = text is "2026" or "0";
+                Assert.AreEqual(!valid, input.Handled, $"Typing: {text}");
+                Assert.AreEqual(!valid, paste.CommandCancelled, $"Pasting: {text}");
+            }
+
+            // Act
+            year.Text = "2000";
+            year.Select(2, 2);
+            year.SelectedText = "26";
+
+            // Assert
+            Assert.AreEqual("2026", ((EntryEditorModel)window.DataContext).Year);
+            Assert.IsFalse(year.AllowDrop);
+            Assert.IsFalse(InputMethod.GetIsInputMethodEnabled(year));
+
+            // Act
+            year.SelectAll();
+            year.SelectedText = string.Empty;
+
+            // Assert
+            Assert.AreEqual(string.Empty, ((EntryEditorModel)window.DataContext).Year);
+        }
+        finally
+        {
+            window.Close();
+        }
+    });
+
+    [TestMethod]
     [DataRow(CatalogKind.Movie)]
     [DataRow(CatalogKind.Game)]
     [DataRow(CatalogKind.Documentary)]

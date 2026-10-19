@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.4.2] - 2026-10-19
+
+#### Fixed
+
+- Accept only digits in the Year field in all add/edit forms, including pasted text; retain clearing and normal editing.
+
 ### [4.4.1] - 2026-10-15
 
 #### Fixed

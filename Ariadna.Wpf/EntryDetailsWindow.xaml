@@ -146,7 +146,7 @@
                     <Grid Grid.Row="4" Margin="0,2,0,0" Visibility="{Binding IsStandard, Converter={StaticResource Visibility}}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="120" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,0,0">
-                            <Label Content="Year" /><TextBox x:Name="YearText" HorizontalAlignment="Left" Width="80" Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" />
+                            <Label Content="Year" /><TextBox x:Name="YearText" HorizontalAlignment="Left" Width="80" Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" PreviewTextInput="OnYearTextInput" DataObject.Pasting="OnYearPasting" AllowDrop="False" InputMethod.IsInputMethodEnabled="False" />
                             <StackPanel Visibility="{Binding IsGame, Converter={StaticResource Visibility}}">
                                 <Label Content="Version" /><TextBox x:Name="VersionText" Text="{Binding Version, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
@@ -181,7 +181,7 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="110" /><ColumnDefinition Width="80" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                         <StackPanel>
                             <Label Content="Year" Target="{Binding ElementName=XxxYearText}" />
-                            <TextBox x:Name="XxxYearText" Width="80" HorizontalAlignment="Left" Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBox x:Name="XxxYearText" Width="80" HorizontalAlignment="Left" Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" PreviewTextInput="OnYearTextInput" DataObject.Pasting="OnYearPasting" AllowDrop="False" InputMethod.IsInputMethodEnabled="False" />
                         </StackPanel>
                         <CheckBox Grid.Column="1" x:Name="XxxVr" Content="VR" IsChecked="{Binding Vr}" VerticalAlignment="Top" Margin="0,30,0,0" />
                         <Border Grid.Column="2" Style="{StaticResource DetailsSection}" MaxWidth="500" HorizontalAlignment="Right">

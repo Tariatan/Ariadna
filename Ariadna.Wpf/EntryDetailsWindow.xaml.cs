@@ -95,6 +95,18 @@ public partial class EntryDetailsWindow : Window
         }
     }
 
+    private void OnYearTextInput(object sender, TextCompositionEventArgs e) => e.Handled = !ContainsOnlyDigits(e.Text);
+
+    private void OnYearPasting(object sender, DataObjectPastingEventArgs e)
+    {
+        if (e.DataObject.GetData(DataFormats.UnicodeText) is not string text || !ContainsOnlyDigits(text))
+        {
+            e.CancelCommand();
+        }
+    }
+
+    private static bool ContainsOnlyDigits(string text) => text.All(char.IsAsciiDigit);
+
     private async void InspectChangedPath(object sender, KeyboardFocusChangedEventArgs e) => await InspectPathAsync(editor.Path);
     private void Save(object sender, RoutedEventArgs e)
     {
