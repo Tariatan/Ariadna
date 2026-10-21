@@ -99,10 +99,14 @@ public partial class EntryDetailsWindow : Window
 
     private void OnYearPasting(object sender, DataObjectPastingEventArgs e)
     {
-        if (e.DataObject.GetData(DataFormats.UnicodeText) is not string text || !ContainsOnlyDigits(text))
+        if (e.DataObject.GetData(DataFormats.UnicodeText) is not string text || !ContainsOnlyDigits(text.Trim()))
         {
             e.CancelCommand();
+            return;
         }
+
+        e.DataObject = new DataObject(DataFormats.UnicodeText, text.Trim());
+        e.FormatToApply = DataFormats.UnicodeText;
     }
 
     private static bool ContainsOnlyDigits(string text) => text.All(char.IsAsciiDigit);

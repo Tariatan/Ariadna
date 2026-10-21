@@ -239,7 +239,8 @@ internal sealed class EntryEditorModel : ObservableObject
             throw new InvalidDataException("Title and media path are required.");
         }
 
-        if (!string.IsNullOrEmpty(Year) && (!int.TryParse(Year, CultureInfo.InvariantCulture, out var parsed) || parsed < 0))
+        var yearText = Year.Trim();
+        if (!string.IsNullOrEmpty(yearText) && (!int.TryParse(yearText, CultureInfo.InvariantCulture, out var parsed) || parsed < 0))
         {
             throw new InvalidDataException("Year must be a nonnegative number or empty.");
         }
@@ -255,7 +256,7 @@ internal sealed class EntryEditorModel : ObservableObject
             Title = loaded != null && Title == loaded.Entry.Title ? loaded.Entry.Title : Title.Trim(),
             OriginalTitle = loaded != null && OriginalTitle == loaded.Entry.OriginalTitle ? loaded.Entry.OriginalTitle : OriginalTitle.Trim(),
             Path = loaded != null && Path == loaded.Entry.Path ? loaded.Entry.Path : Path.Trim(),
-            Year = int.TryParse(Year, CultureInfo.InvariantCulture, out var value) ? value : 0,
+            Year = int.TryParse(yearText, CultureInfo.InvariantCulture, out var value) ? value : 0,
             CreationDate = loaded != null ? loaded.Entry.CreationDate : DateOnly.FromDateTime(File.GetLastWriteTimeUtc(Path)),
             Wanted = PreserveFlag(loaded?.Entry.Wanted, Wanted),
             Description = loaded != null && Description == (loaded.Entry.Description ?? string.Empty) ? loaded.Entry.Description : Description,

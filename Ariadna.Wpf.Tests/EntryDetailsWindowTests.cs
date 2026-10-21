@@ -33,7 +33,7 @@ public sealed class EntryDetailsWindowTests
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
             var year = (TextBox)window.FindName(kind == CatalogKind.Xxx ? "XxxYearText" : "YearText");
 
-            foreach (var text in new[] { "2026", "0", "abc", "20a6", "-1", "+1", "20.26", " 2026", "2026\r\n", "٢٠٢٦", "２０２６" })
+            foreach (var text in new[] { "2026", "0", "abc", "20a6", "-1", "+1", "20.26", " 2026", "2026 ", " 2026 ", "2026\r\n", "20 26", "٢٠٢٦", "２０２６" })
             {
                 // Act
                 var input = new TextCompositionEventArgs(Keyboard.PrimaryDevice, new TextComposition(InputManager.Current, year, text))
@@ -47,7 +47,12 @@ public sealed class EntryDetailsWindowTests
                 // Assert
                 var valid = text is "2026" or "0";
                 Assert.AreEqual(!valid, input.Handled, $"Typing: {text}");
-                Assert.AreEqual(!valid, paste.CommandCancelled, $"Pasting: {text}");
+                var validPaste = valid || text is " 2026" or "2026 " or " 2026 " or "2026\r\n";
+                Assert.AreEqual(!validPaste, paste.CommandCancelled, $"Pasting: {text}");
+                if (validPaste)
+                {
+                    Assert.AreEqual(text.Trim(), paste.DataObject.GetData(DataFormats.UnicodeText));
+                }
             }
 
             // Act
@@ -66,6 +71,14 @@ public sealed class EntryDetailsWindowTests
 
             // Assert
             Assert.AreEqual(string.Empty, ((EntryEditorModel)window.DataContext).Year);
+
+            // Act
+            var model = (EntryEditorModel)window.DataContext;
+            model.Year = " 2020 ";
+            var id = model.Save();
+
+            // Assert
+            Assert.AreEqual(2020, fixture.Store.GetDetails(kind, id)!.Entry.Year);
         }
         finally
         {

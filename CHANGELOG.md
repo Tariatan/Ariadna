@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.4.3] - 2026-10-21
+
+#### Fixed
+
+- Allow surrounding whitespace in pasted years, trim it on paste and before saving, and continue rejecting spaces between digits.
+
 ### [4.4.2] - 2026-10-19
 
 #### Fixed
