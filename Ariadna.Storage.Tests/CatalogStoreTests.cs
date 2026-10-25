@@ -548,6 +548,35 @@ public sealed class CatalogStoreTests
         Assert.IsFalse(File.Exists(missing));
     }
 
+    [TestMethod]
+    [DataRow(CatalogKind.Movie)]
+    [DataRow(CatalogKind.Game)]
+    [DataRow(CatalogKind.Documentary)]
+    [DataRow(CatalogKind.Library)]
+    public void RenamePostapocalypseGenre_ExistingGenres_PreservesIdsAndBacksUpOnce(CatalogKind kind)
+    {
+        // Arrange
+        var id = Save(kind, "Rename sample", genres: ["Postapocalypse", "Dystopian", "Other"]);
+        var layout = CatalogLayout.For(kind);
+        using var connection = database.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = $"SELECT group_concat(Id || ':' || genreId) FROM [{layout.GenreRelation}] WHERE [{layout.EntryKey}]={id}";
+        var relationships = command.ExecuteScalar();
+
+        // Act
+        database.RenamePostapocalypseGenre();
+        database.RenamePostapocalypseGenre();
+
+        // Assert
+        CollectionAssert.AreEquivalent(new[] { "Dystopian", "Dystopian", "Other" }, store.GetDetails(kind, id)!.Genres.ToArray());
+        Assert.AreEqual(relationships, command.ExecuteScalar());
+        Assert.HasCount(1, Directory.GetFiles(directory, "*.before-dystopian-*.sqlite"));
+        var backup = new CatalogStore(new CatalogDatabase(Directory.GetFiles(directory, "*.before-dystopian-*.sqlite").Single()));
+        CollectionAssert.Contains(backup.GetDetails(kind, id)!.Genres.ToArray(), "Postapocalypse");
+        Assert.HasCount(1, store.Query(kind, new CatalogQuery { Genre = "Dystopian", RequireGenreMatch = true }));
+        database.CheckIntegrity();
+    }
+
     private int Save(CatalogKind kind, string title, string original = "", string? path = null, bool? wanted = null, DateOnly? date = null, int year = 2020, bool? vr = null, string[]? genres = null, PersonPhoto[]? directors = null, PersonPhoto[]? actors = null)
         => store.Save(kind, new CatalogDetails(new CatalogEntry
         {

@@ -37,6 +37,7 @@ internal sealed class CatalogApplication : WindowsFormsApplicationBase
         try
         {
             CatalogServices.CreateDatabase().RecoverAssets();
+            CatalogServices.CreateDatabase().RenamePostapocalypseGenre();
         }
         catch (Exception exception)
         {

@@ -73,7 +73,7 @@ public sealed class GenreIconConverter : IValueConverter
         ["Fighting"] = "fighting",
         ["Quest"] = "detective",
         ["Platformer"] = "platformer",
-        ["Postapocalypse"] = "postapocalypse",
+        ["Dystopian"] = "dystopian",
         ["RPG"] = "historical",
         ["Turn-Based"] = "turnbased",
         ["Simulator"] = "simulator",

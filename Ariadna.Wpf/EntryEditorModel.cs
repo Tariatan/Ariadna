@@ -15,10 +15,10 @@ internal sealed class EntryEditorModel : ObservableObject
     private string path;
     private string year;
     private string description;
-    private string version;
-    private bool wanted;
-    private bool vr;
-    private BitmapSource? poster;
+    private readonly string version;
+    private readonly bool wanted;
+    private readonly bool vr;
+
     internal EntryEditorModel(CatalogActions actions, CatalogKind kind, string path)
     {
         this.actions = actions;
@@ -34,11 +34,11 @@ internal sealed class EntryEditorModel : ObservableObject
         version = loaded?.Entry.Version ?? string.Empty;
         wanted = loaded?.Entry.Wanted ?? false;
         vr = loaded?.Entry.Vr ?? false;
-        Genres = new(loaded?.Genres ?? []);
-        People = new((loaded?.Directors ?? []).Select(person => new PersonEditorModel(person)));
-        Actors = new((loaded?.Actors ?? []).Select(person => new PersonEditorModel(person)));
-        poster = ReadImage(string.Empty);
-        Previews = Enumerable.Range(1, 4).Select(index => ReadImage(actions.Configuration.PreviewSuffix(index))).ToArray();
+        Genres = [.. loaded?.Genres ?? []];
+        People = [.. (loaded?.Directors ?? []).Select(person => new PersonEditorModel(person))];
+        Actors = [.. (loaded?.Actors ?? []).Select(person => new PersonEditorModel(person))];
+        Poster = ReadImage(string.Empty);
+        Previews = [.. Enumerable.Range(1, 4).Select(index => ReadImage(actions.Configuration.PreviewSuffix(index)))];
         Genres.CollectionChanged += (_, _) => Revision++;
     }
 
@@ -148,10 +148,11 @@ internal sealed class EntryEditorModel : ObservableObject
         }
     }
 
-    public string Version { get => version; set => Set(ref version, value); }
-    public bool Wanted { get => wanted; set => Set(ref wanted, value); }
-    public bool Vr { get => vr; set => Set(ref vr, value); }
-    public BitmapSource? Poster => poster;
+    public string Version { get => version; init => Set(ref version, value); }
+    public bool Wanted { get => wanted; init => Set(ref wanted, value); }
+    public bool Vr { get => vr; init => Set(ref vr, value); }
+    public BitmapSource? Poster { get; private set; }
+
     public ObservableCollection<string> Genres { get; }
     public ObservableCollection<PersonEditorModel> People { get; }
     public ObservableCollection<PersonEditorModel> Actors { get; }
@@ -185,7 +186,7 @@ internal sealed class EntryEditorModel : ObservableObject
         }
         else
         {
-            poster = Images.Decode(png);
+            Poster = Images.Decode(png);
             Notify(nameof(Poster));
         }
 
@@ -263,7 +264,8 @@ internal sealed class EntryEditorModel : ObservableObject
             Version = loaded != null && Version == (loaded.Entry.Version ?? string.Empty) ? loaded.Entry.Version : Version.Trim(),
             Vr = PreserveFlag(loaded?.Entry.Vr, Vr),
         };
-        return new CatalogDetails(entry, Genres.ToArray(), People.Select(person => person.ToPerson()).ToArray(), Actors.Select(person => person.ToPerson()).ToArray());
+        return new CatalogDetails(entry, [.. Genres], [.. People.Select(person => person.ToPerson())],
+            [.. Actors.Select(person => person.ToPerson())]);
     }
 
     private bool? PreserveFlag(bool? previous, bool current) => loaded != null && previous.GetValueOrDefault() == current ? previous : current;

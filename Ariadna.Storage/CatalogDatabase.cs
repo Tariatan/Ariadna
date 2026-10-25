@@ -140,6 +140,32 @@ public sealed class CatalogDatabase
         CheckIntegrity();
     }
 
+    public void RenamePostapocalypseGenre()
+    {
+        using var writeLock = AcquireWriteLock();
+        RecoverAssetsWhileLocked();
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        string[] tables = ["Genre", "GenreOfGame", "GenreOfDocumentary", "GenreOfLibrary"];
+        command.CommandText = string.Join(" UNION ALL ", tables.Select(table => $"SELECT 1 FROM [{table}] WHERE [name]='Postapocalypse'")) + " LIMIT 1";
+        if (command.ExecuteScalar() is null)
+        {
+            return;
+        }
+
+        CheckIntegrity();
+        Backup($"{path}.before-dystopian-{Guid.NewGuid():N}.sqlite");
+        using var transaction = connection.BeginTransaction();
+        command.Transaction = transaction;
+        foreach (var table in tables)
+        {
+            command.CommandText = $"UPDATE [{table}] SET [name]='Dystopian' WHERE [name]='Postapocalypse'";
+            command.ExecuteNonQuery();
+        }
+        transaction.Commit();
+        CheckIntegrity();
+    }
+
     private static void AddXxxTables(SqliteConnection connection)
     {
         using var stream = typeof(CatalogDatabase).Assembly.GetManifestResourceStream("Ariadna.Storage.XxxSchema.sql")

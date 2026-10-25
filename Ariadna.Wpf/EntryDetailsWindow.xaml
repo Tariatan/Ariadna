@@ -98,7 +98,7 @@
             <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
                 <ScrollViewer.Style>
                     <Style TargetType="ScrollViewer">
-                        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+                        <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Kind}" Value="{x:Static storage:CatalogKind.Documentary}">
                                 <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />

@@ -761,9 +761,9 @@ namespace Ariadna.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        public static System.Drawing.Bitmap postapocalypse {
+        public static System.Drawing.Bitmap dystopian {
             get {
-                object obj = ResourceManager.GetObject("postapocalypse", resourceCulture);
+                object obj = ResourceManager.GetObject("dystopian", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

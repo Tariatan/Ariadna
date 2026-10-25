@@ -15,6 +15,8 @@ public sealed class GenreTranslationTests
     [DataRow("Мелодрама", "Drama")]
     [DataRow("Фантастика", "Sci-Fi")]
     [DataRow("Новогодний", "New Year")]
+    [DataRow("Постапокалипсис", "Dystopian")]
+    [DataRow("Postapocalypse", "Dystopian")]
     public async Task AddGenre_RussianMovieGenre_PersistsEnglishWithMatchingIcon(string russian, string english) => await WpfThread.RunAsync(() =>
     {
         // Arrange

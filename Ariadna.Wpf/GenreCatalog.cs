@@ -3,8 +3,8 @@ using Ariadna.Storage;
 namespace Ariadna.Wpf;
 internal static class GenreCatalog
 {
-    private static readonly string[] MovieGenres = ["Action", "Adventure", "Animation", "Biography", "Comedy", "Crime", "Detective", "Disaster", "Drama", "Fairytale", "Family", "Fantasy", "Historical", "Horror", "Child", "Music", "Mysticism", "Postapocalypse", "Romance", "Sci-Fi", "Sport", "Thriller", "War", "Western", "New Year"];
-    private static readonly string[] GameGenres = ["Adventure", "Fighting", "Action", "Quest", "Platformer", "Postapocalypse", "RPG", "Turn-Based", "Simulator", "Strategy", "Tower Defense", "Racing", "Sport", "Sci-Fi", "Fantasy", "FPS", "3rd View", "Isometric", "Horror", "City Building", "Music", "Arcade", "Meditate"];
+    private static readonly string[] MovieGenres = ["Action", "Adventure", "Animation", "Biography", "Comedy", "Crime", "Detective", "Disaster", "Drama", "Fairytale", "Family", "Fantasy", "Historical", "Horror", "Child", "Music", "Mysticism", "Dystopian", "Romance", "Sci-Fi", "Sport", "Thriller", "War", "Western", "New Year"];
+    private static readonly string[] GameGenres = ["Adventure", "Fighting", "Action", "Quest", "Platformer", "Dystopian", "RPG", "Turn-Based", "Simulator", "Strategy", "Tower Defense", "Racing", "Sport", "Sci-Fi", "Fantasy", "FPS", "3rd View", "Isometric", "Horror", "City Building", "Music", "Arcade", "Meditate"];
     private static readonly string[] DocumentaryGenres = ["Travel", "Art. History", "Universe", "Stars. Planets", "Astronautics", "Personality", "Science", "Misc"];
     private static readonly string[] LibraryGenres = ["Languages", "Literature", "Programming", "Misc"];
     private static readonly string[] LibraryLanguagesGenres = ["English", "French", "German", "Italian"];
@@ -47,7 +47,7 @@ internal static class GenreCatalog
         ["Детский"] = "Child",
         ["Музыка"] = "Music",
         ["Мистика"] = "Mysticism",
-        ["Постапокалипсис"] = "Postapocalypse",
+        ["Постапокалипсис"] = "Dystopian",
         ["Романтика"] = "Romance",
         ["Фантастика"] = "Sci-Fi",
         ["Спорт"] = "Sport",
@@ -62,5 +62,6 @@ internal static class GenreCatalog
     };
 
     internal static string Normalize(CatalogKind kind, string name) =>
+        name.Equals("Postapocalypse", StringComparison.OrdinalIgnoreCase) ? "Dystopian" :
         kind == CatalogKind.Movie && MovieGenreTranslations.TryGetValue(name, out var translated) ? translated : name;
 }

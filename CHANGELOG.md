@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.4.4] - 2026-10-25
+
+#### Fixed
+
+- Rename Postapocalypse to Dystopian in genre choices, translation and icons; rename stored genres on startup with a verified database backup and preserved IDs and relationships.
+
 ### [4.4.3] - 2026-10-21
 
 #### Fixed
@@ -406,6 +412,12 @@ Versioning rule:
 
 ## Ariadna
 
+### [4.1.8] - 2026-10-25
+
+#### Fixed
+
+- Rename the genre and icon resource to Dystopian and apply the backed-up stored-genre rename at startup.
+
 ### [4.1.7] - 2026-10-04
 
 #### Changed
@@ -519,6 +531,12 @@ Versioning rule:
 - Changelog introduced, tracking the current project version before the planned rework.
 
 ## Ariadna.Storage
+
+### [3.1.1] - 2026-10-25
+
+#### Fixed
+
+- Add a backed-up, transactional Postapocalypse-to-Dystopian genre rename across the four genre tables, preserving catalog relationships.
 
 ### [3.1.0] - 2026-10-15
 
