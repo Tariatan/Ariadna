@@ -1,0 +1,102 @@
+using System.Globalization;
+using System.Windows.Data;
+
+namespace Ariadna;
+public sealed class GenreIconConverter : IValueConverter
+{
+    private static readonly Dictionary<string, string> Icons = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Animation"] = "animation",
+        ["Biography"] = "biography",
+        ["Comedy"] = "comedy",
+        ["Crime"] = "criminal",
+        ["Detective"] = "detective",
+        ["Disaster"] = "disaster",
+        ["Drama"] = "drama",
+        ["Family"] = "family",
+        ["Historical"] = "historical",
+        ["Mysticism"] = "mystic",
+        ["Romance"] = "romance",
+        ["Thriller"] = "thriller",
+        ["War"] = "war",
+        ["Western"] = "western",
+        ["New Year"] = "xmas",
+        ["Travel"] = "travel",
+        ["Art. History"] = "art",
+        ["Universe"] = "universe",
+        ["Stars. Planets"] = "planets",
+        ["Astronautics"] = "rocket",
+        ["Personality"] = "biography",
+        ["Science"] = "science",
+        ["Misc"] = "misc",
+        ["Languages"] = "languages",
+        ["Literature"] = "literature",
+        ["Programming"] = "programming",
+        ["English"] = "en_language",
+        ["French"] = "fr_language",
+        ["German"] = "de_language",
+        ["Italian"] = "it_language",
+        ["Sci-Fi"] = "scifi",
+        ["Action"] = "action",
+        ["Fantasy"] = "fantasy",
+        ["Horror"] = "horror",
+        ["Adventure"] = "adventure",
+        ["Fairytale"] = "fairytale",
+        ["Child"] = "kid",
+        ["Testing"] = "testing",
+        ["Network"] = "network",
+        ["OOP"] = "oop",
+        ["Concurrency"] = "concurrency",
+        ["Cryptography"] = "cryptography",
+        ["Algorithm"] = "algorithm",
+        ["UML"] = "uml",
+        ["Qt"] = "qt",
+        ["Python"] = "python",
+        ["Project Management"] = "pm",
+        ["Linux"] = "linux",
+        ["Kanzi"] = "kanzi",
+        ["Java"] = "java",
+        ["HTML"] = "html",
+        ["Git"] = "git",
+        ["GameDev"] = "gamedev",
+        ["DevOps"] = "devops",
+        ["Database"] = "database",
+        ["CAN"] = "can",
+        ["C#"] = "csharp",
+        ["C++"] = "cpp",
+        ["BigData"] = "bigdata",
+        ["Assembler"] = "assembler",
+        ["Architecture"] = "architecture",
+        ["Android"] = "android",
+        ["Rust"] = "rust",
+        ["Ai"] = "ai",
+        ["Fighting"] = "fighting",
+        ["Quest"] = "detective",
+        ["Platformer"] = "platformer",
+        ["Dystopian"] = "dystopian",
+        ["RPG"] = "historical",
+        ["Turn-Based"] = "turnbased",
+        ["Simulator"] = "simulator",
+        ["Strategy"] = "strategy",
+        ["Tower Defense"] = "towerdefense",
+        ["Racing"] = "racing",
+        ["Sport"] = "sport",
+        ["FPS"] = "fps",
+        ["3rd View"] = "tps",
+        ["Isometric"] = "isometric",
+        ["City Building"] = "city_building",
+        ["Music"] = "musical",
+        ["Arcade"] = "arcade",
+        ["Meditate"] = "meditate",
+    };
+
+    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var name = GenreCatalog.Normalize(Ariadna.Storage.CatalogKind.Movie, value as string ?? string.Empty);
+        return Icons.TryGetValue(name, out var icon)
+            ? $"pack://application:,,,/Ariadna;component/Resources/genres/{icon}.png"
+            : null;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}

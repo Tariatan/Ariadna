@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows8.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Version>5.0.1</Version>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <AppConfig>App.config</AppConfig>
+    <ApplicationIcon>Resources/Ariadna.ico</ApplicationIcon>
+    <!-- MediaInfo's unused Linux distribution RIDs do not apply to this Windows application. -->
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Ariadna.Storage/Ariadna.Storage.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
+    <PackageReference Include="MediaInfo.Wrapper.Core" Version="26.10.0" />
+    <PackageReference Include="TMDbLib" Version="4.0.0" />
+    <Resource Include="Resources/**/*" />
+  </ItemGroup>
+</Project>

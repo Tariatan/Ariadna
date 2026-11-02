@@ -11,7 +11,17 @@ Versioning rule:
 - **Minor** - new backward-compatible feature
 - **Patch** - backward-compatible bug fix only
 
-## Ariadna.Wpf
+## Ariadna (formerly Ariadna.Wpf)
+
+### [5.0.1] - 2026-11-02
+
+#### Changed
+
+- Rename the frontend test project and namespace to Ariadna.Tests and update solution references and internal visibility.
+- Rename the WPF application project, namespace and executable to Ariadna; update solution references, configuration loading, resource URIs and build instructions while retaining saved-window settings and single-instance identity.
+- Replace obsolete MediaInfoWrapper usage with asynchronous MediaInfo analysis and forward inspection cancellation, retaining metadata formatting and size-only results for non-media files.
+- Run frontend tests against detached WPF visual trees and synthetic routed input, without showing windows, opening popups, activating the desktop or modifying the clipboard. Guard each WPF test against native presentation sources and window handles, and reject direct desktop-interaction calls in test sources.
+- Replace desktop-dependent focus, modal interaction and rendered-frame assertions with headless layout, filtering, editor, shortcut, placement and tab-state contracts. Keep confirmed removal and neighbour selection covered through a shared action method; desktop interaction remains a manual check.
 
 ### [5.0.0] - 2026-11-02
 

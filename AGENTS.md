@@ -17,15 +17,15 @@ Resolve contradictions explicitly instead of silently choosing an old memory ent
 
 ## Default project
 
-Focus on Ariadna.Wpf by default for features, fixes, UI work, builds, and runs.
-Use Ariadna.Wpf.Tests for frontend tests and change shared projects only when
-the task requires it. Ariadna.Wpf is the sole desktop application.
+Focus on Ariadna by default for features, fixes, UI work, builds, and runs.
+Use Ariadna.Tests for frontend tests and change shared projects only when
+the task requires it. Ariadna is the sole desktop application.
 
 ## Product boundaries
 
 Ariadna is a personal Windows media catalog with one application instance and
 five permanent tabs: movies, games, library, documentaries, and XXX. The current application uses
-C#/.NET 10 WPF in Ariadna.Wpf and direct SQLite storage in Ariadna.Storage.
+C#/.NET 10 WPF in Ariadna and direct SQLite storage in Ariadna.Storage.
 
 Keep existing catalog IDs, metadata, relationships, ignore entries, and external
 images intact. Poster filenames use extensionless IDs; game previews use the
@@ -46,14 +46,17 @@ projects in Ariadna.slnx with checked-in dependency locks and an SDK pin in
 global.json; do not assume another project's SDK or commands apply here.
 Close running Ariadna instances
 before rebuilding. UI changes need native Windows mouse/keyboard checks in the
-affected modes. In-memory query tests do not prove database-provider behavior.
+affected modes, performed separately from automated tests. All automated tests
+must run headlessly: no shown/activated windows, native popups/dialogs or desktop
+clipboard access. Use detached visual layout and model/action contracts instead.
+In-memory query tests do not prove database-provider behavior.
 Do not claim planned commands, unavailable checks, or documentation as verified
 implementation.
 
 ## Versioning
 
 Bump versions for projects whose implementation changed. Whenever any project's
-version changes, also bump the main project Ariadna.Wpf, even if its implementation
+version changes, also bump the main project Ariadna, even if its implementation
 is unchanged. Do not bump other unchanged projects merely because they reference
 or ship with a changed project.
 Record notable implementation changes in [CHANGELOG.md](CHANGELOG.md) under the

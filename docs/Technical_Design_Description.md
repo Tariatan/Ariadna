@@ -11,11 +11,11 @@ retains its filters, selection, scroll position and palette.
 
 ## Projects and architecture
 
-- `Ariadna.Wpf`: .NET 10 native WPF application, XAML views, observable models,
+- `Ariadna`: .NET 10 native WPF application, XAML views, observable models,
   virtualized poster rows, bounded asynchronous thumbnails and native editors.
 - `Ariadna.Storage`: direct SQLite commands, explicit mapping and complete-entry
   transactions with recoverable external-image promotion.
-- `Ariadna.Wpf.Tests`: frontend workflow and virtualization tests.
+- `Ariadna.Tests`: frontend workflow and virtualization tests.
 - `Ariadna.Storage.Tests`: real-provider storage and recovery integration tests.
 
 The desktop references storage directly. There is no WinForms, EF, SQL Server
@@ -26,7 +26,7 @@ modal editing.
 
 ## Persistence and configuration
 
-`Ariadna.Wpf/App.config` owns paths, tool locations and the TMDb API-key setting.
+`Ariadna/App.config` owns paths, tool locations and the TMDb API-key setting.
 Keep credentials and private catalog contents out of examples and diagnostics.
 `ARIADNA_CATALOG_PATH` and `ARIADNA_ASSET_ROOT` provide disposable test overrides.
 
@@ -70,6 +70,9 @@ from the local application-data file `Ariadna/Wpf/window.json`. Normal restore
 bounds are retained when closing minimized or maximized; the existing maximized
 state is also persisted. Canceled closure and unshown windows leave saved geometry
 unchanged. WPF tests initialize application resources without production startup.
+Automated UI tests measure and arrange detached content on an STA dispatcher,
+without native presentation sources. They exercise layout and model/action contracts;
+activation, native keyboard focus, popup capture and modal interaction remain manual checks.
 Startup and catalog tab activation focus the poster items list after restoring
 the view state, rather than the Add entry button. Existing selection and scroll
 positions are retained; unloaded views cannot receive deferred activation focus.

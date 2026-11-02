@@ -30,7 +30,7 @@ journals on local storage with all configured asset folders accessible.
 
 ## Configuration and isolated checks
 
-Use `Ariadna.Wpf/App.config` for the catalog and asset roots. For disposable checks:
+Use `Ariadna/App.config` for the catalog and asset roots. For disposable checks:
 
 ```powershell
 $env:ARIADNA_CATALOG_PATH = 'C:\Ariadna-QA\catalog.sqlite'
