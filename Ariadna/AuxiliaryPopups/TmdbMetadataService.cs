@@ -31,7 +31,7 @@ internal sealed class TmdbMetadataService(ILogger logger) : ITmdbMetadataService
             {
                 return;
             }
-            var cache = new FileInfo("config.json");
+            var cache = new FileInfo(Path.Combine(Path.GetDirectoryName(CatalogServices.GetDatabasePath())!, "config.json"));
             if (cache.Exists && cache.LastWriteTimeUtc >= DateTime.UtcNow.AddHours(-10))
             {
                 var json = await File.ReadAllTextAsync(cache.FullName, Encoding.UTF8, cancellationToken);

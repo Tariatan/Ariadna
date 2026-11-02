@@ -10,6 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Ariadna.Storage\Ariadna.Storage.csproj" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
   </ItemGroup>
 </Project>

@@ -9,7 +9,9 @@ namespace Ariadna;
 
 internal static class CatalogServices
 {
-    internal static CatalogDatabase CreateDatabase()
+    internal static CatalogDatabase CreateDatabase() => new(GetDatabasePath());
+
+    internal static string GetDatabasePath()
     {
         var path = Environment.GetEnvironmentVariable("ARIADNA_CATALOG_PATH");
         if (string.IsNullOrEmpty(path))
@@ -18,7 +20,7 @@ internal static class CatalogServices
                 ?? throw new InvalidDataException("The AriadnaCatalog connection setting is missing.");
             path = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connection.ConnectionString).DataSource;
         }
-        return new CatalogDatabase(path);
+        return path;
     }
 
     internal static CatalogStore CreateStore() => new(CreateDatabase());

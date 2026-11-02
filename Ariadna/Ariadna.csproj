@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0-windows8.0</TargetFramework>
     <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
-    <Version>4.1.8</Version>
+    <Version>4.1.9</Version>
     <OutputType>WinExe</OutputType>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
@@ -16,7 +16,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>4.1.8.0</ApplicationVersion>
+    <ApplicationVersion>4.1.9.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
@@ -69,11 +69,11 @@
     <Content Include="Resources\empty_icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MediaInfo.Wrapper.Core" Version="26.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
-    <PackageReference Include="SkiaSharp" Version="3.119.2" />
-    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="10.0.5" />
-    <PackageReference Include="TMDbLib" Version="3.0.0" />
+    <PackageReference Include="MediaInfo.Wrapper.Core" Version="26.10.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.14" />
+    <PackageReference Include="SkiaSharp" Version="4.154.0" />
+    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="10.0.14" />
+    <PackageReference Include="TMDbLib" Version="4.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Extension\" />

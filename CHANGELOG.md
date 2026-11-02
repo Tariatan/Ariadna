@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [4.4.5] - 2026-11-01
+
+#### Fixed
+
+- Bump the main application version alongside the legacy frontend's TMDb cache location fix.
+
 ### [4.4.4] - 2026-10-25
 
 #### Fixed
@@ -411,6 +417,12 @@ Versioning rule:
 - Project-built Debug launch, locked dependencies, synthetic SQLite/image workflow tests, and migration/acceptance documentation. Production acceptance and WinForms retirement remain pending.
 
 ## Ariadna
+
+### [4.1.9] - 2026-11-01
+
+#### Fixed
+
+- Store the TMDb configuration cache beside the configured catalog database instead of in the working directory.
 
 ### [4.1.8] - 2026-10-25
 
