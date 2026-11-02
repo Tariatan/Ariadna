@@ -14,6 +14,6 @@
     <PackageReference Include="MSTest.TestAdapter" Version="4.5.2" />
     <PackageReference Include="MSTest.TestFramework" Version="4.5.2" />
     <ProjectReference Include="../Ariadna.Wpf/Ariadna.Wpf.csproj" />
-    <None Include="../Ariadna.Tests/Fixtures/media-two-seconds.avi" Link="Fixtures/media-two-seconds.avi" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures/media-two-seconds.avi" Link="Fixtures/media-two-seconds.avi" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

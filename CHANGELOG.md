@@ -13,6 +13,17 @@ Versioning rule:
 
 ## Ariadna.Wpf
 
+### [5.0.0] - 2026-11-02
+
+#### Removed
+
+- Retire the WinForms frontend, migration CLI and their test projects after user-confirmed WPF acceptance; WPF is now the sole application.
+- Remove obsolete frontend and SQLite migration guides and legacy build instructions.
+
+#### Changed
+
+- Keep the synthetic video fixture within WPF tests and document current WPF build, configuration and matched recovery guidance.
+
 ### [4.4.5] - 2026-11-01
 
 #### Fixed

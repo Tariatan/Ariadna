@@ -19,17 +19,13 @@ Resolve contradictions explicitly instead of silently choosing an old memory ent
 
 Focus on Ariadna.Wpf by default for features, fixes, UI work, builds, and runs.
 Use Ariadna.Wpf.Tests for frontend tests and change shared projects only when
-the task requires it. The legacy WinForms Ariadna project is not the default
-target; modify it only when explicitly requested.
+the task requires it. Ariadna.Wpf is the sole desktop application.
 
 ## Product boundaries
 
 Ariadna is a personal Windows media catalog with one application instance and
-four permanent tabs: movies, documentaries, games, and library. The current application uses
+five permanent tabs: movies, games, library, documentaries, and XXX. The current application uses
 C#/.NET 10 WPF in Ariadna.Wpf and direct SQLite storage in Ariadna.Storage.
-The legacy WinForms frontend remains in the repository. The separate
-migration utility alone uses a SQL client for legacy export. Preserve collection-specific
-behavior and each tab's filters, selection, scroll position, and palette.
 
 Keep existing catalog IDs, metadata, relationships, ignore entries, and external
 images intact. Poster filenames use extensionless IDs; game previews use the
@@ -42,8 +38,8 @@ tests; keep API keys and personal catalog contents out of examples and diagnosti
 Implement one usable slice at a time from docs/PLAN.md. Before changing code,
 identify the affected workflow in the Technical Design Description. Preserve
 existing behavior through characterization tests before broader refactoring.
-Migration work must follow the recovery and comparison gates in
-[docs/SQLITE-MIGRATION-PLAN.md](docs/SQLITE-MIGRATION-PLAN.md).
+Storage changes must preserve matched database/image recovery; see
+[SQLite operations](docs/SQLITE-OPERATIONS.md).
 
 Use README.md for restore/build/test/run guidance. The solution uses SDK-style
 projects in Ariadna.slnx with checked-in dependency locks and an SDK pin in

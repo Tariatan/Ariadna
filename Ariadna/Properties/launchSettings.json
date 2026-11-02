@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Ariadna": {
-      "commandName": "Project",
-      "commandLineArgs": "movies"
-    }
-  }
-}
