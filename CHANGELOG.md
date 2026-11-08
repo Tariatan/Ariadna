@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna (formerly Ariadna.Wpf)
 
+### [5.0.2] - 2026-11-08
+
+#### Fixed
+
+- Open WebP posters, portraits, game previews and screenshots without relying on a Windows WebP codec. Image edits still save as PNG.
+
 ### [5.0.1] - 2026-11-02
 
 #### Changed

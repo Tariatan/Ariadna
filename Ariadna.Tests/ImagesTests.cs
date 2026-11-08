@@ -8,6 +8,32 @@ namespace Ariadna.Tests;
 public sealed class ImagesTests
 {
     [TestMethod]
+    [DataRow("UklGRiIAAABXRUJQVlA4TBYAAAAvA0ABEAdQmSJXoYABgCD8b5uI6H8I", 128)]
+    [DataRow("UklGRjwAAABXRUJQVlA4IDAAAADQAQCdASoEAAYAAUAmJaACdLoB+AADsAD+8Bvf/zsGxLteOf/3OB7OB7OB/EgAAAA=", 255)]
+    public async Task Decode_WebP_ProducesFrozenBitmapAndCanSaveAsPng(string encodedImage, int alpha) => await WpfThread.RunAsync(() =>
+    {
+        // Arrange
+        var source = Convert.FromBase64String(encodedImage);
+
+        // Act
+        var thumbnail = Images.Decode(source, 2);
+        var saved = Images.Decode(Images.ResizePortrait(source));
+
+        // Assert
+        Assert.IsTrue(thumbnail.IsFrozen);
+        Assert.AreEqual(2, thumbnail.PixelWidth);
+        Assert.AreEqual(3, thumbnail.PixelHeight);
+        Assert.AreEqual(200, saved.PixelWidth);
+        Assert.AreEqual(300, saved.PixelHeight);
+        var bitmap = new FormatConvertedBitmap(saved, PixelFormats.Bgra32, null, 0);
+        var pixel = new byte[4];
+        bitmap.CopyPixels(new System.Windows.Int32Rect(0, 0, 1, 1), pixel, 4, 0);
+        Assert.IsTrue(pixel[2] is >= 195 and <= 205);
+        Assert.AreEqual((byte)alpha, pixel[3]);
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
     public async Task Resize_FineCheckerboardToPosterSize_AveragesPixelsWithoutAliasing() => await WpfThread.RunAsync(() =>
     {
         // Arrange
