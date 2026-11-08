@@ -104,7 +104,7 @@ public partial class PeopleEditorView : UserControl
 
         var dialog = new OpenFileDialog
         {
-            Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.exif;*.webp;*.tiff|All files|*.*"
+            Filter = "Images (200x300)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.exif;*.webp;*.tiff|All files|*.*"
         };
         if (dialog.ShowDialog(Window.GetWindow(this)) == true)
         {

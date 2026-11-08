@@ -172,11 +172,17 @@ internal sealed class EntryEditorModel : ObservableObject
         return File.Exists(file) ? Images.Decode(File.ReadAllBytes(file), suffix.Length == 0 ? 400 : 603) : null;
     }
 
+    internal (int Width, int Height) GetImageSize(bool preview)
+    {
+        var width = actions.Configuration.GetInt(preview ? "PreviewWidth" : "PosterWidth", preview ? 603 : 600);
+        var height = actions.Configuration.GetInt(preview ? "PreviewHeight" : "PosterHeight", preview ? 339 : 900);
+        return (width, height);
+    }
+
     internal void ReplaceImage(string suffix, byte[] bytes)
     {
         var preview = suffix.Length > 0;
-        var width = actions.Configuration.GetInt(preview ? "PreviewWidth" : "PosterWidth", preview ? 603 : 600);
-        var height = actions.Configuration.GetInt(preview ? "PreviewHeight" : "PosterHeight", preview ? 339 : 900);
+        var (width, height) = GetImageSize(preview);
         var png = Images.Resize(bytes, width, height);
         changedImages[suffix] = png;
         if (preview)

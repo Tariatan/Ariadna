@@ -234,10 +234,11 @@ public partial class EntryDetailsWindow : Window
 
     private void ReplaceImage(string suffix)
     {
+        var (width, height) = editor.GetImageSize(suffix.Length > 0);
         var dialog = new OpenFileDialog
         {
             InitialDirectory = actions.Configuration.Get("BitmapInitialSearchDir"),
-            Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.exif;*.webp;*.tiff|All files|*.*",
+            Filter = $"Images ({width}x{height})|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.exif;*.webp;*.tiff|All files|*.*",
         };
         if (dialog.ShowDialog(this) == true)
         {

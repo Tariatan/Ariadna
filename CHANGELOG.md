@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna (formerly Ariadna.Wpf)
 
+### [5.1.0] - 2026-11-08
+
+#### Added
+
+- Show the configured pixel dimensions in the image picker for posters, game previews and XXX screenshots.
+
 ### [5.0.2] - 2026-11-08
 
 #### Fixed
