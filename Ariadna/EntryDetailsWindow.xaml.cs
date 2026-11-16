@@ -292,6 +292,7 @@ public partial class EntryDetailsWindow : Window
             return;
         }
 
+        editor.PrepareGenrePicker();
         if (editor.Genres.Count >= actions.Configuration.GetInt("MaxGenresCount", 5))
         {
             return;

@@ -9,6 +9,69 @@ namespace Ariadna.Tests;
 public sealed class EntryEditorModelTests
 {
     [TestMethod]
+    [DataRow(@"C:\Library\Programming\Book.pdf", CatalogKind.Library, true)]
+    [DataRow("C:/Library/programming/Rust/Book.pdf", CatalogKind.Library, true)]
+    [DataRow(@"C:\Library\Programming books\Book.pdf", CatalogKind.Library, false)]
+    [DataRow(@"C:\Library\Programming.pdf", CatalogKind.Library, false)]
+    [DataRow(@"C:\Programming\Movie.mkv", CatalogKind.Movie, false)]
+    public async Task PrepareGenrePicker_ItemPath_SelectsProgrammingSubjectsOnlyForProgrammingFolder(string path, CatalogKind kind, bool programming) => await WpfThread.RunAsync(() =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var editor = new EntryEditorModel(fixture.Actions, kind, path);
+        editor.AddGenre("Custom saved tag");
+
+        // Act
+        editor.PrepareGenrePicker();
+        editor.PrepareGenrePicker();
+
+        // Assert
+        Assert.AreEqual(programming, editor.Genres.Contains("Programming"));
+        CollectionAssert.Contains(editor.Genres.ToArray(), "Custom saved tag");
+        if (programming)
+        {
+            CollectionAssert.AreEquivalent(GenreCatalog.Subgenres("Programming").Where(name => name.Length > 0).ToArray(), editor.AvailableGenres.ToArray());
+            editor.AddGenre("Rust");
+            var id = editor.Save();
+            CollectionAssert.AreEquivalent(new[] { "Custom saved tag", "Programming", "Rust" }, fixture.Store.GetDetails(kind, id)!.Genres.ToArray());
+        }
+        else
+        {
+            CollectionAssert.Contains(editor.AvailableGenres.ToArray(), kind == CatalogKind.Library ? "Literature" : "Comedy");
+        }
+
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
+    public async Task PrepareGenrePicker_ChangedPathAndFullGenres_PreservesTagsAndLimit() => await WpfThread.RunAsync(() =>
+    {
+        // Arrange
+        using var fixture = new CatalogFixture();
+        var editor = new EntryEditorModel(fixture.Actions, CatalogKind.Library, @"C:\Library\Book.pdf");
+        foreach (var name in new[] { "One", "Two", "Three", "Four", "Five" })
+        {
+            editor.AddGenre(name);
+        }
+
+        // Act
+        editor.Path = @"C:\Library\Programming\Book.pdf";
+        editor.PrepareGenrePicker();
+
+        // Assert
+        Assert.HasCount(5, editor.Genres);
+        Assert.IsFalse(editor.Genres.Contains("Programming"));
+        CollectionAssert.Contains(editor.AvailableGenres.ToArray(), "Rust");
+        editor.Genres.Remove("Five");
+        editor.PrepareGenrePicker();
+        Assert.HasCount(5, editor.Genres);
+        CollectionAssert.Contains(editor.Genres.ToArray(), "Programming");
+        editor.Path = @"C:\Library\Literature\Book.pdf";
+        CollectionAssert.Contains(editor.AvailableGenres.ToArray(), "Literature");
+        return Task.CompletedTask;
+    });
+
+    [TestMethod]
     [DataRow(CatalogKind.Movie)]
     [DataRow(CatalogKind.Game)]
     [DataRow(CatalogKind.Library)]

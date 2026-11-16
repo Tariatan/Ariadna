@@ -156,7 +156,11 @@ internal sealed class EntryEditorModel : ObservableObject
     public ObservableCollection<string> Genres { get; }
     public ObservableCollection<PersonEditorModel> People { get; }
     public ObservableCollection<PersonEditorModel> Actors { get; }
-    public IReadOnlyCollection<string> AvailableGenres => GenreCatalog.For(Kind).Concat(actions.Store.GetGenres(Kind)).Distinct().Order().ToArray();
+    private bool IsProgrammingLibraryItem => Kind == CatalogKind.Library &&
+        Path.Replace('\\', '/').Split('/').SkipLast(1).Contains("Programming", StringComparer.OrdinalIgnoreCase);
+    public IReadOnlyCollection<string> AvailableGenres => IsProgrammingLibraryItem
+        ? GenreCatalog.Subgenres("Programming").Where(name => name.Length > 0).Order().ToArray()
+        : GenreCatalog.For(Kind).Concat(actions.Store.GetGenres(Kind)).Distinct().Order().ToArray();
     public BitmapSource? [] Previews { get; }
     internal int StoredId { get; private set; }
     internal int Revision { get; private set; }
@@ -197,6 +201,14 @@ internal sealed class EntryEditorModel : ObservableObject
         }
 
         Revision++;
+    }
+
+    internal void PrepareGenrePicker()
+    {
+        if (IsProgrammingLibraryItem)
+        {
+            AddGenre("Programming");
+        }
     }
 
     internal void AddGenre(string name)

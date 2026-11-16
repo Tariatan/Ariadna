@@ -13,6 +13,12 @@ Versioning rule:
 
 ## Ariadna (formerly Ariadna.Wpf)
 
+### [5.2.0] - 2026-11-16
+
+#### Added
+
+- Automatically add Programming when opening the genre picker for Library items inside a Programming folder, and offer only Programming subjects while preserving existing tags and the genre limit.
+
 ### [5.1.0] - 2026-11-08
 
 #### Added
